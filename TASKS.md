@@ -119,6 +119,8 @@
   - [ ] 候補表示の上位表示ロジック
 - [ ] ホロワーク一覧の下部にホロメン一覧を表示する
   - [ ] `holowork_achievements` の回数 / 次閾値 / 残回数
+  - [ ] `holowork_achievements.current_count` を編集可能にする
+  - [ ] `holowork_achievements.note` を編集可能にする
   - [ ] 黄マス情報
   - [ ] カード所持・レベル状況
 

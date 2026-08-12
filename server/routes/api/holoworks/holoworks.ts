@@ -6,7 +6,9 @@ import { mergeIssues } from '../../../../shared/helpers/merge-issues';
 import { holoworkSchema } from '../../../../shared/schemas/holowork-schema';
 import { ActiveHoloworkMembersRepository } from '../../../repositories/active-holowork-members-repository';
 import { HoloworksRepository } from '../../../repositories/holoworks-repository';
+import { HoloworkCandidatesService, holoworkPriorities } from '../../../services/holowork-candidates-service';
 
+import type { HoloworkPriority } from '../../../services/holowork-candidates-service';
 import type { HonoBindings } from '../../../types/hono-bindings';
 
 export const holoworks = new Hono<{ Bindings: HonoBindings; }>();
@@ -39,4 +41,20 @@ holoworks.delete('/:id', async context => {  // eslint-disable-line neos-eslint-
   
   await new HoloworksRepository(context.env.DB).delete(id);
   return context.json({ result: { id } }, httpStatusCode.ok);
+});
+
+holoworks.get('/:id/candidates', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
+  const id = Number(context.req.param('id'));
+  if(Number.isNaN(id)) return context.json({ error: 'ホロワーク ID が不正です' }, httpStatusCode.badRequest);
+  
+  const priority = context.req.query('priority');
+  if(priority == null) return context.json({ error: 'priority パラメータを指定してください' }, httpStatusCode.badRequest);
+  if(!holoworkPriorities.includes(priority as HoloworkPriority)) {
+    return context.json({ error: `priority は ${holoworkPriorities.join(' / ')} のいずれかで指定してください` }, httpStatusCode.badRequest);
+  }
+  
+  const candidatesService = new HoloworkCandidatesService(context.env.DB);
+  const candidates = await candidatesService.getCandidates(id, priority as HoloworkPriority);
+  
+  return context.json({ result: candidates }, httpStatusCode.ok);
 });
