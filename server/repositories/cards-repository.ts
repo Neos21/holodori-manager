@@ -1,17 +1,18 @@
 import { rarities } from '../../shared/constants/holodori-constants';
 import { buildUpdateQuery } from '../helpers/update-query';
 
-import type { Card } from '../../shared/types/card';
+import type { Card, CardDisplay } from '../../shared/types/card';
 
 export class CardsRepository {
   constructor(private readonly db: D1Database) { }
   
-  public async findAll(): Promise<Array<Card>> {
+  public async findAll(): Promise<Array<CardDisplay>> {
     const result = await this.db
       .prepare(`
         SELECT
           cards.id,
           cards.holomems_id,
+          holomems.name AS holomem_name,
           cards.rarity,
           cards.name,
           cards.is_owned,
@@ -21,15 +22,29 @@ export class CardsRepository {
         INNER JOIN holomems ON holomems.id = cards.holomems_id
         ORDER BY holomems.sort_order ASC, cards.rarity DESC, cards.id ASC
       `)
-      .all<Card>();
+      .all<CardDisplay>();
     return result.results ?? [];
   }
   
-  public async findById(id: number): Promise<Card | null> {
+  public async findById(id: number): Promise<CardDisplay | null> {
     return await this.db
-      .prepare('SELECT id, holomems_id, rarity, name, is_owned, level, bloom FROM cards WHERE id = ? LIMIT 1')
+      .prepare(`
+        SELECT
+          cards.id,
+          cards.holomems_id,
+          holomems.name AS holomem_name,
+          cards.rarity,
+          cards.name,
+          cards.is_owned,
+          cards.level,
+          cards.bloom
+        FROM cards
+        INNER JOIN holomems ON holomems.id = cards.holomems_id
+        WHERE cards.id = ?
+        LIMIT 1
+      `)
       .bind(id)
-      .first<Card>();
+      .first<CardDisplay>();
   }
   
   public async create(card: Partial<Card>): Promise<number> {

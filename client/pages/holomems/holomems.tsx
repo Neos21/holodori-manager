@@ -1,6 +1,5 @@
 import { type ChangeEvent, type ReactElement, type SubmitEvent, useEffect, useState } from 'react';
 
-import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { holomemSchema } from '../../../shared/schemas/holomem-schema';
 import { adminApi } from '../../helpers/admin-api';
@@ -72,23 +71,7 @@ export default function HolomemsPage(): ReactElement {
     event.preventDefault();
     setErrorMessage('');
     
-    if(isEmpty(form.group)) {
-      setErrorMessage('所属グループを入力してください');
-      return;
-    }
-    
-    if(isEmpty(form.name)) {
-      setErrorMessage('タレント名を入力してください');
-      return;
-    }
-    
-    const payload = {
-      sort_order: form.sort_order,
-      group: form.group.trim(),
-      name: form.name.trim(),
-      note: isEmpty(form.note) ? null : form.note.trim(),
-      is_active: form.is_active
-    };
+    const payload = { ...form };
     const parsed = holomemSchema.safeParse(payload);
     if(!parsed.success) {
       setErrorMessage(mergeIssues(parsed.error));

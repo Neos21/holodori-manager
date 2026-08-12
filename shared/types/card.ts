@@ -7,3 +7,7 @@ export type Card = {
   level: number;
   bloom: 0 | 1 | 2 | 3 | 4 | 5;
 };
+
+export type CardDisplay = Card & {
+  holomem_name: string;
+};

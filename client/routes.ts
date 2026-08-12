@@ -4,6 +4,7 @@ export default [
   index('./pages/index/index.tsx'),
   layout('./layouts/admin-layout.tsx', [
     route('/home'    , './pages/home/home.tsx'),
-    route('/holomems', './pages/holomems/holomems.tsx')
+    route('/holomems', './pages/holomems/holomems.tsx'),
+    route('/cards'   , './pages/cards/cards.tsx')
   ])
 ] satisfies RouteConfig;
