@@ -1,3 +1,5 @@
+import { buildUpdateQuery } from '../helpers/update-query';
+
 import type { Holomem } from '../../shared/types/holomem';
 
 export class HolomemsRepository {
@@ -26,33 +28,13 @@ export class HolomemsRepository {
   }
   
   public async update(id: number, holomem: Partial<Holomem>): Promise<void> {
-    const sets: Array<string> = [];
-    const values: Array<unknown> = [];
-    
-    if(holomem.sort_order != null) {
-      sets.push('sort_order = ?');
-      values.push(holomem.sort_order);
-    }
-    
-    if(holomem.group != null) {
-      sets.push('"group" = ?');
-      values.push(holomem.group);
-    }
-    
-    if(holomem.name != null) {
-      sets.push('name = ?');
-      values.push(holomem.name);
-    }
-    
-    if(holomem.note != null) {
-      sets.push('note = ?');
-      values.push(holomem.note);
-    }
-    
-    if(holomem.is_active != null) {
-      sets.push('is_active = ?');
-      values.push(holomem.is_active);
-    }
+    const { sets, values } = buildUpdateQuery([
+      { column: 'sort_order', value: holomem.sort_order },
+      { column: '"group"', value: holomem.group },
+      { column: 'name', value: holomem.name },
+      { column: 'note', value: holomem.note, shouldInclude: (value: unknown): boolean => value !== undefined },
+      { column: 'is_active', value: holomem.is_active }
+    ]);
     
     if(sets.length === 0) return;
     
