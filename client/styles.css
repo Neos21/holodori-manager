@@ -132,12 +132,15 @@
   
   .text-muted { @apply text-slate-500; }
   
-  :is(.alert-danger, .alert-warning, .alert-success) { @apply p-4; }
+  :is(.alert-danger, .alert-warning, .alert-success, .alert-danger) { @apply p-4; }
   .alert-danger  { @apply text-red-600     bg-red-50    ; }
   .alert-warning { @apply text-amber-600   bg-amber-50  ; }
   .alert-success { @apply text-emerald-600 bg-emerald-50; }
+  .alert-info    { @apply text-indigo-600  bg-indigo-50 ; }
   
-  :is(.label-success, .label-info) { @apply p-1 font-bold; }
+  :is(.label-danger, .label-warning, .label-success, .label-info) { @apply font-bold; }
+  .label-danger  { @apply text-red-600     bg-red-50    ; }
+  .label-warning { @apply text-amber-600   bg-amber-50  ; }
   .label-success { @apply text-emerald-600 bg-emerald-50; }
   .label-info    { @apply text-indigo-600  bg-indigo-50 ; }
 }

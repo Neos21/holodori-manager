@@ -34,6 +34,13 @@
 - 正常レスポンスは必ずトップレベルを `result` のみとし、エラーはトップレベル `error` を使う
 - 正規表現は必ず `(/.../)` とカッコで囲む
 - 暗黙型変換を使った `if(!condition)` は避け、`== null` や `=== ''` のように明示比較する。`isEmpty()` 関数を積極的に利用する
+- フロントエンド実装ルール:
+    - イベントハンドラは `onSubmit` / `onLoadFoo` / `onChangeBar` のように `on` を接頭辞にした関数名に統一し、`handleX` 系の命名は避ける
+    - UX で発火する処理は `SubmitEvent` (`react` より Type インポート) を必ず使い、`FormEvent` は絶対に使用してはならない (非推奨のため)
+    - `ky` の `json<T>()` は `json<{ result: Array<Holomem>; }>()` のように型引数の最後にセミコロンを必ず付ける
+    - API 呼び出しの例外は `try/catch` の中に閉じ込み、`.catch()` は使わない
+    - 画面入力のバリデーションは共有の Zod schema を使う。空文字チェックが必要なときは `isEmpty()` のみを使い、`=== ''` などの比較はしない
+    - フォームやボタンの見た目は既存の global CSS を優先し、不要な `className` を増やさない
 - ルートパス文字列に `/:id` を含む場合、`comment-colon-spacing` ルールの影響を避けるため `// eslint-disable-line neos-eslint-plugin/comment-colon-spacing` を付ける
 - `null` を許容する値は `string | null | undefined` とし、`0 / 1` のような真偽値は `preprocessBooleanNumber` と `z.union([z.literal(0), z.literal(1)])` を使う
 - `sort_order` などの並び順は `1` 以上の整数を要求する。必要に応じて `value == null ? 0 : value` のような前処理をして、意図的に不正入力を弾くことがある

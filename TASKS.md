@@ -67,7 +67,7 @@
 
 - 狙い : ホロメン / カード / ボードノード / ホロワークの CRUD UI
 - チェックリスト :
-  - [ ] `/holomems` 一覧・編集 (`sort_order`, `is_active`, note)
+  - [x] `/holomems` 一覧・編集 (`sort_order`, `is_active`, note)
   - [ ] `/cards` 一覧・編集 (所持フラグ、レベル、開花)
   - [ ] `/board-nodes` 一覧・編集 (カテゴリ別表示、編集)
   - [ ] `/holoworks` 管理ページ (開始/完了/中断、候補表示、優先度選択)
