@@ -37,7 +37,7 @@
 - チェックリスト :
   - [x] 主要 Repository 実装 (Holomems, Cards, BoardNodes, HoloworkAchievements, Holoworks, ActiveHoloworkMembers, Memo)
   - [x] `holomems` 作成時に `cards` を自動生成するロジック
-  - [ ] `cards` の高度なクエリ (並び順・レア度・保有)
+  - [x] `cards` の高度なクエリ (並び順・レア度・保有)
   - [ ] `board_nodes` のカテゴリ / `yellow_target` バリデーションの強化
   - [ ] `holowork_achievements` の閾値計算の共通化 (現在はサービス内に留める)
   - [ ] DB 側の削除制約 / 一意制約の追加検討

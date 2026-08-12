@@ -72,13 +72,13 @@ CREATE TABLE holomems (  -- ホロメン
 
 ```sql
 CREATE TABLE cards (  -- カード
-  id         INTEGER  PRIMARY KEY  AUTOINCREMENT,                        -- ID
-  holomem_id INTEGER  NOT NULL,                                          -- FK → holomems.id
-  rarity     INTEGER  NOT NULL  CHECK (rarity IN (3, 4, 5)),             -- レア度・3・4・5 のいずれかが入る
-  name       TEXT     NOT NULL,                                          -- カード名称 (通常版・イベント限定版などの識別に使用する)
-  is_owned   INTEGER  NOT NULL  DEFAULT 0 CHECK (is_owned IN (0, 1)),    -- 所持しているか否か
-  level      INTEGER  NOT NULL,                                          -- カードの現在レベル
-  bloom      INTEGER  NOT NULL  DEFAULT 0 CHECK (bloom BETWEEN 0 AND 5)  -- 開花度 (0〜5)
+  id           INTEGER  PRIMARY KEY  AUTOINCREMENT,                        -- ID
+  holomems_id  INTEGER  NOT NULL,                                          -- FK → holomems.id
+  rarity       INTEGER  NOT NULL  CHECK (rarity IN (3, 4, 5)),             -- レア度・3・4・5 のいずれかが入る
+  name         TEXT     NOT NULL,                                          -- カード名称 (通常版・イベント限定版などの識別に使用する)
+  is_owned     INTEGER  NOT NULL  DEFAULT 0 CHECK (is_owned IN (0, 1)),    -- 所持しているか否か
+  level        INTEGER  NOT NULL,                                          -- カードの現在レベル
+  bloom        INTEGER  NOT NULL  DEFAULT 0 CHECK (bloom BETWEEN 0 AND 5)  -- 開花度 (0〜5)
 );
 ```
 
@@ -88,14 +88,14 @@ CREATE TABLE cards (  -- カード
 
 ```sql
 CREATE TABLE board_nodes (  -- ホロメンボードのマス
-  id            INTEGER  PRIMARY KEY  AUTOINCREMENT,                                                                     -- ID
-  holomem_id    INTEGER  NOT NULL,                                                                                       -- FK → holomems.id
-  category      TEXT     NOT NULL  CHECK (category IN ('red', 'blue', 'yellow', 'green')),                               -- この4値のみ許容する
-  yellow_target TEXT               CHECK (yellow_target IS NULL OR yellow_target IN ('lesson_pt', 'cube', 'training')),  -- category = yellow の時のみいずれかを指定する、その他の場合は Null とする
-  description   TEXT     NOT NULL,                                                                                       -- マス効果の内容 (自由記述。例 : 「キューブ獲得量アップ」「リーダー時スコア +50」)
-  is_unlocked   INTEGER  NOT NULL  DEFAULT 0 CHECK (is_unlocked IN (0, 1)),                                              -- 対象のマスを解放済みか否か
-  amount        REAL     NOT NULL,                                                                                       -- マス自体の基礎効果量 (% の場合もあれば固定値の場合もあるため単位非依存の数値として保持する)
-  connect_rate  REAL                                                                                                     -- コネクトマスによる増幅率 (%)。未設定なら Null とする
+  id             INTEGER  PRIMARY KEY  AUTOINCREMENT,                                                                     -- ID
+  holomems_id    INTEGER  NOT NULL,                                                                                       -- FK → holomems.id
+  category       TEXT     NOT NULL  CHECK (category IN ('red', 'blue', 'yellow', 'green')),                               -- この4値のみ許容する
+  yellow_target  TEXT               CHECK (yellow_target IS NULL OR yellow_target IN ('lesson_pt', 'cube', 'training')),  -- category = yellow の時のみいずれかを指定する、その他の場合は Null とする
+  description    TEXT     NOT NULL,                                                                                       -- マス効果の内容 (自由記述。例 : 「キューブ獲得量アップ」「リーダー時スコア +50」)
+  is_unlocked    INTEGER  NOT NULL  DEFAULT 0 CHECK (is_unlocked IN (0, 1)),                                              -- 対象のマスを解放済みか否か
+  amount         REAL     NOT NULL,                                                                                       -- マス自体の基礎効果量 (% の場合もあれば固定値の場合もあるため単位非依存の数値として保持する)
+  connect_rate   REAL                                                                                                     -- コネクトマスによる増幅率 (%)。未設定なら Null とする
 );
 ```
 
@@ -106,10 +106,10 @@ CREATE TABLE board_nodes (  -- ホロメンボードのマス
 
 ```sql
 CREATE TABLE holowork_achievements (  -- ホロワーク達成状況
-  id            INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
-  holomem_id    INTEGER  NOT NULL  UNIQUE,            -- FK → holomems.id・ユニーク
-  current_count INTEGER  NOT NULL  DEFAULT 0,         -- ホロワーク完了回数
-  note          TEXT                                  -- 自由記入欄
+  id             INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
+  holomems_id    INTEGER  NOT NULL  UNIQUE,            -- FK → holomems.id・ユニーク
+  current_count  INTEGER  NOT NULL  DEFAULT 0,         -- ホロワーク完了回数
+  note           TEXT                                  -- 自由記入欄
 );
 ```
 
@@ -132,9 +132,9 @@ CREATE TABLE holoworks (  -- ホロワークの枠
 
 ```sql
 CREATE TABLE active_holowork_members (  -- ホロワーク活動中のホロメン
-  id           INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
-  holoworks_id INTEGER  NOT NULL,                    -- FK → holoworks.id
-  holomem_id   INTEGER  NOT NULL  UNIQUE,            -- FK → holomems.id・ユニーク (1人が同時に複数枠で活動できないのでそれを防ぐ)
+  id            INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
+  holoworks_id  INTEGER  NOT NULL,                    -- FK → holoworks.id
+  holomems_id   INTEGER  NOT NULL  UNIQUE,            -- FK → holomems.id・ユニーク (1人が同時に複数枠で活動できないのでそれを防ぐ)
 );
 ```
 

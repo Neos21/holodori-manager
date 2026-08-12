@@ -42,11 +42,11 @@ export class HoloworkCandidatesService {
         ${this.buildNextThresholdCase('holowork_achievements.current_count')} AS next_threshold,
         ${this.buildRemainingCountCase('holowork_achievements.current_count')} AS remaining_count
       FROM holomems
-      LEFT JOIN holowork_achievements ON holowork_achievements.holomem_id = holomems.id
+      LEFT JOIN holowork_achievements ON holowork_achievements.holomems_id = holomems.id
       LEFT JOIN (
-        SELECT holomem_id FROM active_holowork_members WHERE holoworks_id = ?
-      ) AS active_members ON active_members.holomem_id = holomems.id
-      WHERE active_members.holomem_id IS NULL
+        SELECT holomems_id FROM active_holowork_members WHERE holoworks_id = ?
+      ) AS active_members ON active_members.holomems_id = holomems.id
+      WHERE active_members.holomems_id IS NULL
         AND COALESCE(holowork_achievements.current_count, 0) < 400
       ORDER BY remaining_count ASC, next_threshold ASC, holomems_id ASC
     `;
@@ -75,11 +75,11 @@ export class HoloworkCandidatesService {
           END
         ) AS total_rate
       FROM holomems
-      LEFT JOIN board_nodes ON board_nodes.holomem_id = holomems.id
+      LEFT JOIN board_nodes ON board_nodes.holomems_id = holomems.id
       LEFT JOIN (
-        SELECT holomem_id FROM active_holowork_members WHERE holoworks_id = ?
-      ) AS active_members ON active_members.holomem_id = holomems.id
-      WHERE active_members.holomem_id IS NULL
+        SELECT holomems_id FROM active_holowork_members WHERE holoworks_id = ?
+      ) AS active_members ON active_members.holomems_id = holomems.id
+      WHERE active_members.holomems_id IS NULL
       GROUP BY holomems.id
       HAVING total_rate > 0
       ORDER BY total_rate DESC, holomems_id ASC

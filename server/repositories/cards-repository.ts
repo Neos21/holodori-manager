@@ -8,21 +8,33 @@ export class CardsRepository {
   
   public async findAll(): Promise<Array<Card>> {
     const result = await this.db
-      .prepare('SELECT id, holomem_id AS holomems_id, rarity, name, is_owned, level, bloom FROM cards ORDER BY rarity DESC, id ASC')
+      .prepare(`
+        SELECT
+          cards.id,
+          cards.holomems_id,
+          cards.rarity,
+          cards.name,
+          cards.is_owned,
+          cards.level,
+          cards.bloom
+        FROM cards
+        INNER JOIN holomems ON holomems.id = cards.holomems_id
+        ORDER BY holomems.sort_order ASC, cards.rarity DESC, cards.id ASC
+      `)
       .all<Card>();
     return result.results ?? [];
   }
   
   public async findById(id: number): Promise<Card | null> {
     return await this.db
-      .prepare('SELECT id, holomem_id AS holomems_id, rarity, name, is_owned, level, bloom FROM cards WHERE id = ? LIMIT 1')
+      .prepare('SELECT id, holomems_id, rarity, name, is_owned, level, bloom FROM cards WHERE id = ? LIMIT 1')
       .bind(id)
       .first<Card>();
   }
   
   public async create(card: Partial<Card>): Promise<number> {
     const result = await this.db
-      .prepare('INSERT INTO cards (holomem_id, rarity, name, is_owned, level, bloom) VALUES (?, ?, ?, ?, ?, ?)')
+      .prepare('INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (?, ?, ?, ?, ?, ?)')
       .bind(card.holomems_id, card.rarity, card.name, card.is_owned, card.level, card.bloom)
       .run();
     return result.meta.last_row_id;
@@ -30,14 +42,14 @@ export class CardsRepository {
   
   public async createDefaultCards(holomemId: number): Promise<void> {
     const cardStatements = rarities.map(rarity => this.db
-      .prepare('INSERT INTO cards (holomem_id, rarity, name, is_owned, level, bloom) VALUES (?, ?, ?, ?, ?, ?)')
+      .prepare('INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (?, ?, ?, ?, ?, ?)')
       .bind(holomemId, rarity, '通常版', 0, 1, 0));
     await this.db.batch(cardStatements);
   }
   
   public async update(id: number, card: Partial<Card>): Promise<void> {
     const { sets, values } = buildUpdateQuery([
-      { column: 'holomem_id', value: card.holomems_id },
+      { column: 'holomems_id', value: card.holomems_id },
       { column: 'rarity', value: card.rarity },
       { column: 'name', value: card.name },
       { column: 'is_owned', value: card.is_owned },
