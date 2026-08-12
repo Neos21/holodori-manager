@@ -1,5 +1,11 @@
 # 実装計画チェックリスト
 
+## 現在の進捗サマリ
+
+- 実装済み : JWT 認証、`/api/login`、`holomems` の CRUD API と Repository、LocalStorage による JWT 管理、ルートガード
+- 次に着手するべき抽象タスク : `cards` / `board_nodes` / `holoworks` の API と UI、優先候補ロジック、最終 UX
+- このファイルはタスク管理用である。実装ルールや命名規約は README / AGENTS.md を確認すること
+
 ## 基本方針
 
 - README.md の機能要件と AGENTS.md のコーディングルールを守る

@@ -24,9 +24,13 @@
 - 共有ロジックはヘルパーに切り出す
 - DB テーブルの型定義は `shared/types/` 配下にテーブル別に作成する
 - DB 操作部分は `server/repositories/` 配下にテーブル別の Repository として実装する
+- Repository の命名は複数形にする。例 : `holomems-repository.ts` / `class HolomemsRepository`。ファイル名とクラス名の単複は一致させる
+- Repository のメソッド名は `findAll` / `findById` / `create` / `update` のように、一覧取得・単体取得の命名を明確にする
 - サーバサイドロジックは `server/services/` 配下に作成し、サーバサイドロジック内でのみ使う型定義は `server/types/` 配下に作成する
 - `context.req.json()` は常に `await context.req.json().catch(() => null)` で受け、`body == null` の場合は 400 エラーを返す
 - 正常レスポンスは必ずトップレベルを `result` のみとし、エラーはトップレベル `error` を使う
 - 正規表現は必ず `(/.../)` とカッコで囲む
 - 暗黙型変換を使った `if(!condition)` は避け、`== null` や `=== ''` のように明示比較する。`isEmpty()` 関数を積極的に利用する
 - ルートパス文字列に `/:id` を含む場合、`comment-colon-spacing` ルールの影響を避けるため `// eslint-disable-line neos-eslint-plugin/comment-colon-spacing` を付ける
+- `null` を許容する値は `string | null | undefined` とし、`0 / 1` のような真偽値は `preprocessBooleanNumber` と `z.union([z.literal(0), z.literal(1)])` を使う
+- `sort_order` などの並び順は `1` 以上の整数を要求する。必要に応じて `value == null ? 0 : value` のような前処理をして、意図的に不正入力を弾くことがある
