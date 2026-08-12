@@ -38,9 +38,9 @@
   - [x] 主要 Repository 実装 (Holomems, Cards, BoardNodes, HoloworkAchievements, Holoworks, ActiveHoloworkMembers, Memo)
   - [x] `holomems` 作成時に `cards` を自動生成するロジック
   - [x] `cards` の高度なクエリ (並び順・レア度・保有)
-  - [ ] `board_nodes` のカテゴリ / `yellow_target` バリデーションの強化
-  - [ ] `holowork_achievements` の閾値計算の共通化 (現在はサービス内に留める)
-  - [ ] DB 側の削除制約 / 一意制約の追加検討
+  - [x] `board_nodes` のカテゴリ / `yellow_target` バリデーションの強化
+  - [x] `holowork_achievements` の閾値計算の共通化 (現在はサービス内に留める)
+  - [x] DB 側の削除制約 / 一意制約の追加検討
 
 ### Phase 3 : 認証と API ルーティング
 
@@ -59,7 +59,7 @@
   - [x] React Router v7 の構成 (`client/root.tsx`, `client/routes.ts`)
   - [x] 認証状態管理と LocalStorage 永続化 (`client/stores/`)
   - [x] API 呼び出しラッパー (`client/helpers/`)
-  - [ ] トップページのログイン画面
+  - [x] トップページのログイン画面
   - [ ] 共通レイアウトとサイドメニュー
   - [ ] `/home` メニューとナビゲーション
 
