@@ -31,7 +31,6 @@
     "type": "github",
     "url": "https://github.com/sponsors/Neos21"
   },
-  
   "dependencies": {
     "@react-router/node": "7.14.2",
     "hono": "4.13.1",

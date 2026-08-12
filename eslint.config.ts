@@ -78,7 +78,7 @@ export default defineConfig([
     }
   },
   
-  ...tailwindcss.configs['flat/recommended'],  // Tailwind CSS のクラス名を検証する
+  ...tailwindcss.configs['flat/recommended'],
   {
     settings: {
       tailwindcss: {

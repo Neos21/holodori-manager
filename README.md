@@ -191,6 +191,11 @@
 - 音ゲー部分のスコア戦略検討機能
 
 
+## Notes
+
+- ESLint v9 → v10、React Router v7 → v8、TypeScript v6 → v7 はそれぞれ紐付く別パッケージとの整合性が保てないためアップデートせず放置しておく
+
+
 ## Links
 
 - [Neo's World](https://neos21.net/)
