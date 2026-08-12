@@ -10,21 +10,21 @@
 
 ## Phase 1: プロジェクト基盤と共通定義
 
-- [ ] 既存のルート構成と命名規約を確認し、今後追加するファイルの配置方針を固定する
-- [ ] `shared/constants/` に HTTP ステータスと各種定数を整理する
-- [ ] `shared/helpers/` に汎用ヘルパーを整理し、既存の `isEmpty` などの命名と用途を統一する
-- [ ] `shared/types/` 配下に DB テーブルごとの型定義を作成する
-- [ ] `server/types/` 配下にサーバサイド専用の型を作成する
-- [ ] `server/repositories/` 配下に DB 操作クラスを追加する方針を定義する
-- [ ] `server/services/` にサーバロジックを切り出す構成を決める
-- [ ] アプリ全体で使うレスポンス形式を統一する（`result` / `error`）
+- [x] 既存のルート構成と命名規約を確認し、今後追加するファイルの配置方針を固定する
+- [x] `shared/constants/` に HTTP ステータスと各種定数を整理する
+- [x] `shared/helpers/` に汎用ヘルパーを整理し、既存の `isEmpty` などの命名と用途を統一する
+- [x] `shared/types/` 配下に DB テーブルごとの型定義を作成する
+- [x] `server/types/` 配下にサーバサイド専用の型を作成する
+- [x] `server/repositories/` 配下に DB 操作クラスを追加する方針を定義する
+- [x] `server/services/` にサーバロジックを切り出す構成を決める
+- [x] アプリ全体で使うレスポンス形式を統一する（`result` / `error`）
 
 ---
 
 ## Phase 2: データモデルと DB 周りの実装
 
-- [ ] D1 SQLite の各テーブルに対応する型定義を作成する
-  - [ ] `holomems`
+- [x] D1 SQLite の各テーブルに対応する型定義を作成する
+  - [x] `holomems`
   - [ ] `cards`
   - [ ] `board_nodes`
   - [ ] `holowork_achievements`
@@ -38,8 +38,8 @@
 - [ ] `holoworks` の削除制約（`active_holowork_members` がない場合のみ削除可能）を API で保証する
 - [ ] `active_holowork_members` のユニーク制約は DB / API の両方で守るように設計する
 - [ ] `memo` の単一レコード運用と保存/更新処理を実装する
-- [ ] 主要な Repository の実装を作成する
-  - [ ] `HolomemRepository`
+- [x] 主要な Repository の実装を作成する
+  - [x] `HolomemsRepository`
   - [ ] `CardRepository`
   - [ ] `BoardNodeRepository`
   - [ ] `HoloworkAchievementRepository`
@@ -51,13 +51,13 @@
 
 ## Phase 3: 認証と API ルーティング
 
-- [ ] `ADMIN_JWT_SECRET` を使った JWT 認証の仕組みを実装する
-- [ ] ログイン API `POST /api/login` を作成する
-  - [ ] 環境変数で渡されたパスワードと照合する
-  - [ ] JWT を発行し、Zustand の LocalStorage 永続化で保持する前提に合わせる
-  - [ ] 失敗時は適切な 401 / 400 を返す
-- [ ] API ルートの整理を行い、各リソースを `server/routes/api/...` に追加する
-- [ ] `GET /api/holomems` / `POST /api/holomems` / `PATCH /api/holomems/:id` を実装する
+- [x] `ADMIN_JWT_SECRET` を使った JWT 認証の仕組みを実装する
+- [x] ログイン API `POST /api/login` を作成する
+  - [x] 環境変数で渡されたパスワードと照合する
+  - [x] JWT を発行し、Zustand の LocalStorage 永続化で保持する前提に合わせる
+  - [x] 失敗時は適切な 401 / 400 を返す
+- [x] API ルートの整理を行い、各リソースを `server/routes/api/...` に追加する
+- [x] `GET /api/holomems` / `POST /api/holomems` / `PATCH /api/holomems/:id` を実装する
 - [ ] `GET /api/cards` / `POST /api/cards` / `PATCH /api/cards/:id` を実装する
 - [ ] `GET /api/board-nodes` / `POST /api/board-nodes` / `PATCH /api/board-nodes/:id` を実装する
 - [ ] `GET /api/holowork-achievements` / `PATCH /api/holowork-achievements/:id` を実装する
@@ -65,28 +65,28 @@
 - [ ] `GET /api/active-holowork-members` / `POST /api/holoworks/:id/start` / `POST /api/holoworks/:id/complete` / `POST /api/holoworks/:id/abort` を実装する
 - [ ] `GET /api/holoworks/:id/candidates?priority=...` を実装する
 - [ ] `GET /api/memo` / `PATCH /api/memo` を実装する
-- [ ] 各 API のバリデーションを Zod で定義し、入力不備を 400 で返す
-- [ ] 共通エラーハンドリングを設けて `error` に統一する
+
+- API 実装時に守るルール:
+  - 各 API では `context.req.json().catch(() => null)` で JSON を受け取り、`body == null` のときは 400 を返す
+  - 正常レスポンスはトップレベルを `result` のみにし、失敗時はトップレベル `error` を使う
+  - Zod で入力を検証し、`!parsed.success` のときは `mergeIssues(parsed.error)` を返す
+  - `auth` が必要な API は `jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next)` の形で守る
+  - `null` を許容する値は `string | null | undefined` とし、0 / 1 の真偽値は `z.union([z.literal(0), z.literal(1)])` を使う
 
 ---
 
 ## Phase 4: フロントエンド基盤と画面遷移
 
-- [ ] React Router v7 の画面構成を整理し、`/` と `/home` を含むルートを定義する
-- [ ] ログイン状態に応じてトップページとメインページの遷移を実装する
-- [ ] `client/stores/` に認証状態と共通状態を持つストアを作成する
-- [ ] `client/helpers/` に API 呼び出し用ラッパーを作成する
-- [ ] トップページにログインフォームを作成する
-- [ ] ログイン済みユーザーは `/home` へリダイレクトする
-- [ ] JWT 無効時にトップへ戻すガード処理を実装する
-- [ ] サイドメニューを共通レイアウトとして実装する
+- [x] React Router v7 の画面構成と route の基本構造を整理する
+- [x] JWT の有無でログイン状態を判定し、リダイレクトの基盤を作る
+- [x] `client/stores/` の認証状態と LocalStorage 永続化の基盤を作る
+- [x] `client/helpers/` に API 呼び出しラッパーを作成する
+- [ ] トップページのログイン画面を作る
+- [ ] 共通レイアウトとサイドメニューを作る
 - [ ] `/home` のメインメニューを作成する
-  - [ ] ホロワーク管理
-  - [ ] ホロメン管理
-  - [ ] カード管理
-  - [ ] ホロメンボード管理
 - [ ] `memo` の自動保存と保存メッセージ表示を実装する
 - [ ] 最終保存日時を表示する
+- [ ] 画面ごとのルーティングと画面遷移を整える
 
 ---
 
@@ -145,13 +145,14 @@
 
 ## Phase 8: 検証と仕上げ
 
-- [ ] `npm run lint` の実行と改善を行う
-- [ ] `npm run build` の実行と型エラー・ビルドエラーの解消を行う
-- [ ] 主要 API のエンドポイントを手動で確認する
-- [ ] ログインフローの挙動を確認する
-- [ ] ホロワーク開始・完了・中断の操作フローを確認する
-- [ ] 最終的なコードの整理と命名の統一を行う
-- [ ] README と実装差分が合っているか最終確認する
+- 各タスク作業時に守るルール:
+  - `npm run lint` を実行し、改善が必要ならその場で修正する
+  - `npm run build` を実行し、型エラー・ビルドエラーが残らないようにする
+  - 主要 API のエンドポイントは手動確認を行う
+  - ログインフローの挙動を確認する
+  - ホロワーク開始・完了・中断の操作フローを確認する
+  - 最終的なコードの整理と命名の統一を行う
+  - README と実装差分が合っているか最終確認する
 
 ---
 
@@ -177,26 +178,26 @@
 
 ### Task 1: 認証基盤と API 共通レスポンスの定義
 
-- [ ] 既存の Hono ルート構造を確認し、認証用の API ルートを追加する
-  - [ ] [server/routes/api/api.ts](server/routes/api/api.ts) に認証ルートを組み込む
-  - [ ] [server/routes/api/login/login.ts](server/routes/api/login/login.ts) を新規作成する
-- [ ] サーバー共通のレスポンス形式を固定する
-  - [ ] 200 系成功時は `{ result: ... }` を返す
-  - [ ] 失敗時は `{ error: ... }` を返す
-  - [ ] 例外時の共通ハンドリングを整える
-- [ ] JWT 認証の基盤を作る
-  - [ ] `ADMIN_JWT_SECRET` を利用する
-  - [ ] `hono/jwt` を使って JWT を検証する
-  - [ ] 認証失敗時の 401 レスポンスを定義する
-- [ ] `POST /api/login` の入力・出力を定義する
-  - [ ] 入力: `{ password: string }`
-  - [ ] 成功: JWT 発行
-  - [ ] 失敗: 400 / 401
-- [ ] ルートガードを作る準備を行う
-  - [ ] ログイン済み判定の共通ヘルパーを用意する
-  - [ ] 次のタスクでホロメン API などに適用できる形にする
-- [ ] 既存のサンプル実装を整理し、Task 1 で扱う API 以外のサンプルを分離する
-  - [ ] [server/routes/api/example/example.ts](server/routes/api/example/example.ts) は参考用途に限定する
+- [x] 既存の Hono ルート構造を確認し、認証用の API ルートを追加する
+  - [x] [server/routes/api/api.ts](server/routes/api/api.ts) に認証ルートを組み込む
+  - [x] [server/routes/api/login/login.ts](server/routes/api/login/login.ts) を新規作成する
+- [x] サーバー共通のレスポンス形式を固定する
+  - [x] 200 系成功時は `{ result: ... }` を返す
+  - [x] 失敗時は `{ error: ... }` を返す
+  - [x] 例外時の共通ハンドリングを整える
+- [x] JWT 認証の基盤を作る
+  - [x] `ADMIN_JWT_SECRET` を利用する
+  - [x] `hono/jwt` を使って JWT を検証する
+  - [x] 認証失敗時の 401 レスポンスを定義する
+- [x] `POST /api/login` の入力・出力を定義する
+  - [x] 入力: `{ password: string }`
+  - [x] 成功: JWT 発行
+  - [x] 失敗: 400 / 401
+- [x] ルートガードを作る準備を行う
+  - [x] ログイン済み判定の共通ヘルパーを用意する
+  - [x] 次のタスクでホロメン API などに適用できる形にする
+- [x] 既存のサンプル実装を整理し、Task 1 で扱う API 以外のサンプルを分離する
+  - [x] [server/routes/api/example/example.ts](server/routes/api/example/example.ts) は参考用途に限定する
 
 ### 実装時のファイル候補
 
@@ -207,9 +208,9 @@
 
 ### Task 2: `holomems` の基本 CRUD と Repository
 
-- [ ] `holomems` の Repository を作る
-- [ ] 一覧取得・新規追加・更新 API を作る
-- [ ] `sort_order` と `is_active` の扱いを定義する
+- [x] `holomems` の Repository を作る
+- [x] 一覧取得・新規追加・更新 API を作る
+- [x] `sort_order` と `is_active` の扱いを定義する
 - [ ] `cards` 自動生成の準備を整える
 
 ### Task 3: `cards` と `board_nodes` の対応 API
