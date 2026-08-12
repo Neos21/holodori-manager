@@ -22,6 +22,7 @@
     - 例 : `holomems` は複数レコード集合、`holomem` は単一レコードを表す
 - TODO コメント入りの `example.ts` などは、命名の単複が未確定のサンプルである可能性があるため、実装時に単複が誤っていないか都度確認する
 - 共有ロジックはヘルパーに切り出す
+- helper を作成する際は `@typescript-eslint/explicit-function-return-type` を考慮し、関数式や arrow 関数の戻り型を明示する
 - DB テーブルの型定義は `shared/types/` 配下にテーブル別に作成する
 - DB 操作部分は `server/repositories/` 配下にテーブル別の Repository として実装する
 - Repository の命名は複数形にする。例 : `holomems-repository.ts` / `class HolomemsRepository`。ファイル名とクラス名の単複は一致させる

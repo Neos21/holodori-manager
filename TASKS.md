@@ -31,12 +31,12 @@
 
 - [x] D1 SQLite の各テーブルに対応する型定義を作成する
   - [x] `holomems`
-  - [ ] `cards`
-  - [ ] `board_nodes`
-  - [ ] `holowork_achievements`
-  - [ ] `holoworks`
-  - [ ] `active_holowork_members`
-  - [ ] `memo`
+  - [x] `cards`
+  - [x] `board_nodes`
+  - [x] `holowork_achievements`
+  - [x] `holoworks`
+  - [x] `active_holowork_members`
+  - [x] `memo`
 - [ ] `holomems` 新規追加時に `cards` の星3・4・5レコードを自動生成するロジックを実装する
 - [ ] `cards` の並び順・レア度・保有状況に対応するクエリを定義する
 - [ ] `board_nodes` のカテゴリ制約 (`red|blue|yellow|green`) と `yellow_target` を反映する
@@ -46,12 +46,12 @@
 - [ ] `memo` の単一レコード運用と保存/更新処理を実装する
 - [x] 主要な Repository の実装を作成する
   - [x] `HolomemsRepository`
-  - [ ] `CardRepository`
-  - [ ] `BoardNodeRepository`
-  - [ ] `HoloworkAchievementRepository`
-  - [ ] `HoloworkRepository`
-  - [ ] `ActiveHoloworkMemberRepository`
-  - [ ] `MemoRepository`
+  - [x] `CardRepository`
+  - [x] `BoardNodeRepository`
+  - [x] `HoloworkAchievementRepository`
+  - [x] `HoloworkRepository`
+  - [x] `ActiveHoloworkMemberRepository`
+  - [x] `MemoRepository`
 
 ---
 
@@ -64,13 +64,13 @@
   - [x] 失敗時は適切な 401 / 400 を返す
 - [x] API ルートの整理を行い、各リソースを `server/routes/api/...` に追加する
 - [x] `GET /api/holomems` / `POST /api/holomems` / `PATCH /api/holomems/:id` を実装する
-- [ ] `GET /api/cards` / `POST /api/cards` / `PATCH /api/cards/:id` を実装する
-- [ ] `GET /api/board-nodes` / `POST /api/board-nodes` / `PATCH /api/board-nodes/:id` を実装する
-- [ ] `GET /api/holowork-achievements` / `PATCH /api/holowork-achievements/:id` を実装する
-- [ ] `GET /api/holoworks` / `POST /api/holoworks` / `DELETE /api/holoworks/:id` を実装する
-- [ ] `GET /api/active-holowork-members` / `POST /api/holoworks/:id/start` / `POST /api/holoworks/:id/complete` / `POST /api/holoworks/:id/abort` を実装する
+- [x] `GET /api/cards` / `POST /api/cards` / `PATCH /api/cards/:id` を実装する
+- [x] `GET /api/board-nodes` / `POST /api/board-nodes` / `PATCH /api/board-nodes/:id` を実装する
+- [x] `GET /api/holowork-achievements` / `PATCH /api/holowork-achievements/:id` を実装する
+- [x] `GET /api/holoworks` / `POST /api/holoworks` / `DELETE /api/holoworks/:id` を実装する
+- [x] `GET /api/active-holowork-members` / `POST /api/holoworks/:id/start` / `POST /api/holoworks/:id/complete` / `POST /api/holoworks/:id/abort` を実装する
 - [ ] `GET /api/holoworks/:id/candidates?priority=...` を実装する
-- [ ] `GET /api/memo` / `PATCH /api/memo` を実装する
+- [x] `GET /api/memo` / `PATCH /api/memo` を実装する
 
 - API 実装時に守るルール:
   - 各 API では `context.req.json().catch(() => null)` で JSON を受け取り、`body == null` のときは 400 を返す
