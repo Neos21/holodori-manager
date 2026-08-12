@@ -1,0 +1,13 @@
+{
+  "name": "Holodori Manager",
+  "short_name": "Holodori Manager",
+  "lang": "ja",
+  "theme_color": "#0088ff",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "https://holodori-manager.neos21.workers.dev",
+  "icons": [
+    { "src": "icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "icon-512.png", "type": "image/png", "sizes": "512x512" }
+  ]
+}
