@@ -2,7 +2,6 @@ import { reduceNewlines } from '../helpers/reduce-newlines';
 
 export const preprocessOneLineString    = (value: unknown): unknown => value == null ? ''   : typeof value === 'string' ? value.trim()                 : value;
 export const preprocessMultiLinesString = (value: unknown): unknown => value == null ? ''   : typeof value === 'string' ? reduceNewlines(value.trim()) : value;
-export const preprocessUrl              = (value: unknown): unknown => value == null ? null : typeof value === 'string' ? value.trim()                 : value;
 
 export const preprocessBooleanNumber = (value: unknown): unknown => {
   if(typeof value === 'number') return value;

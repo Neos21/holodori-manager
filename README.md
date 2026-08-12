@@ -49,86 +49,101 @@
 
 ## DB スキーマ (Cloudflare D1 SQLite)
 
+D1 のマイグレーション作業は、開発者が必要なタイミングで手動で実施する。AI エージェントはローカル開発環境・リモート環境の両方において、マイグレーション SQL の作成・実行を行わない。
+
 ### `holomems` : ホロメン
 
-| カラム     | 型      | 備考                                               |
-|------------|---------|----------------------------------------------------|
-| id         | INTEGER | PK                                                 |
-| sort_order | INTEGER | ゲーム内表示順を再現するための手動調整可能な並び順 |
-| group      | TEXT    | 所属グループ                                       |
-| name       | TEXT    | タレント名                                         |
-| note       | TEXT    | 自由記入欄                                         |
-| is_active  | BOOLEAN | 卒業等による無効化。物理削除はしない               |
+```sql
+CREATE TABLE holomems (  -- ホロメン
+  id         INTEGER  PRIMARY KEY  AUTOINCREMENT,                      -- ID
+  sort_order INTEGER  NOT NULL  DEFAULT 0,                             -- ゲーム内表示順を再現するための手動調整可能な並び順
+  group      TEXT     NOT NULL,                                        -- 所属グループ
+  name       TEXT     NOT NULL,                                        -- タレント名
+  note       TEXT,                                                     -- 自由記入欄
+  is_active  INTEGER  NOT NULL  DEFAULT 1 CHECK (is_active IN (0, 1))  -- 卒業等による無効化・物理削除はしない
+);
+```
 
-- 新規ホロメン追加時、`cards` に星3・4・5の3レコードを `is_owned=false` で自動生成する
+- 新規ホロメン追加時、`cards` に星3・4・5の3レコードを `is_owned = 0` で自動生成する
 
 ### `cards` : カード
 
-| カラム     | 型      | 備考                                                    |
-|------------|---------|---------------------------------------------------------|
-| id         | INTEGER | PK                                                      |
-| holomem_id | INTEGER | FK → `holomems.id`                                     |
-| rarity     | INTEGER | 3・4・5 のいずれかが入る                                |
-| name       | TEXT    | カード名称 (通常版・イベント限定版などの識別に使用する) |
-| is_owned   | BOOLEAN | 所持しているか否か                                      |
-| level      | INTEGER | カードの現在レベル                                      |
-| bloom      | INTEGER | 開花度 (0〜5)                                           |
+```sql
+CREATE TABLE cards (  -- カード
+  id         INTEGER  PRIMARY KEY  AUTOINCREMENT,                        -- ID
+  holomem_id INTEGER  NOT NULL,                                          -- FK → holomems.id
+  rarity     INTEGER  NOT NULL  CHECK (rarity IN (3, 4, 5)),             -- レア度・3・4・5 のいずれかが入る
+  name       TEXT     NOT NULL,                                          -- カード名称 (通常版・イベント限定版などの識別に使用する)
+  is_owned   INTEGER  NOT NULL  DEFAULT 0 CHECK (is_owned IN (0, 1)),    -- 所持しているか否か
+  level      INTEGER  NOT NULL,                                          -- カードの現在レベル
+  bloom      INTEGER  NOT NULL  DEFAULT 0 CHECK (bloom BETWEEN 0 AND 5)  -- 開花度 (0〜5)
+);
+```
 
 - 一覧のデフォルトソート : `holomems.sort_order ASC` → `rarity DESC` → `id ASC` (同レア度内では登録順 = 通常版が先、イベント限定版が後になる想定)
 
 ### `board_nodes` : ホロメンボードのマス
 
-| カラム        | 型      | 備考                                                                                               |
-|---------------|---------|----------------------------------------------------------------------------------------------------|
-| id            | INTEGER | PK                                                                                                 |
-| holomem_id    | INTEGER | FK → `holomems.id`                                                                                |
-| category      | TEXT    | `red`・`blue`・`yellow`・`green` のいずれか (DB 制約でこの4値のみ許容する)                         |
-| yellow_target | TEXT    | `category = yellow` の時のみ `lesson_pt`・`cube`・`training` のいずれかを指定、その他の場合は Null |
-| description   | TEXT    | マス効果の内容 (自由記述。例 : 「キューブ獲得量アップ」「リーダー時スコア +50」)                   |
-| is_unlocked   | BOOLEAN | 対象のマスを解放済みか否か                                                                         |
-| amount        | REAL    | マス自体の基礎効果量 (% の場合もあれば固定値の場合もあるため単位非依存の数値として保持する)        |
-| connect_rate  | REAL    | コネクトマスによる増幅率 (%)。未設定なら Null                                                      |
+```sql
+CREATE TABLE board_nodes (  -- ホロメンボードのマス
+  id            INTEGER  PRIMARY KEY  AUTOINCREMENT,                                                                     -- ID
+  holomem_id    INTEGER  NOT NULL,                                                                                       -- FK → holomems.id
+  category      TEXT     NOT NULL  CHECK (category IN ('red', 'blue', 'yellow', 'green')),                               -- この4値のみ許容する
+  yellow_target TEXT               CHECK (yellow_target IS NULL OR yellow_target IN ('lesson_pt', 'cube', 'training')),  -- category = yellow の時のみいずれかを指定する、その他の場合は Null とする
+  description   TEXT     NOT NULL,                                                                                       -- マス効果の内容 (自由記述。例 : 「キューブ獲得量アップ」「リーダー時スコア +50」)
+  is_unlocked   INTEGER  NOT NULL  DEFAULT 0 CHECK (is_unlocked IN (0, 1)),                                              -- 対象のマスを解放済みか否か
+  amount        REAL     NOT NULL,                                                                                       -- マス自体の基礎効果量 (% の場合もあれば固定値の場合もあるため単位非依存の数値として保持する)
+  connect_rate  REAL                                                                                                     -- コネクトマスによる増幅率 (%)。未設定なら Null とする
+);
+```
 
 - `amount` と `connect_rate` を計算した結果の列は持たず、アプリ側で `amount × (1 + connect_rate / 100)` (`connect_rate` が Null なら `amount`そのまま) として算出・表示する
 - 一覧のデフォルトソート : `category` を `yellow`・`green`・`red`・`blue` の順 → `id ASC`
 
 ### `holowork_achievements` : ホロワーク達成状況
 
-| カラム        | 型      | 備考                        |
-|---------------|---------|-----------------------------|
-| id            | INTEGER | PK                          |
-| holomem_id    | INTEGER | FK → `holomems.id`、UNIQUE |
-| current_count | INTEGER | ホロワーク完了回数          |
-| note          | TEXT    | 自由記入欄                  |
+```sql
+CREATE TABLE holowork_achievements (  -- ホロワーク達成状況
+  id            INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
+  holomem_id    INTEGER  NOT NULL  UNIQUE,            -- FK → holomems.id・ユニーク
+  current_count INTEGER  NOT NULL  DEFAULT 0,         -- ホロワーク完了回数
+  note          TEXT                                  -- 自由記入欄
+);
+```
 
 - 「活動中か否か」は `active_holowork_members` の有無で判定するため、本テーブルに `is_active` といったカラムは持たせない
 - 次のアチーブ閾値・残り回数はアプリ側で算出する
 
 ### `holoworks` : ホロワークの枠
 
-| カラム | 型      | 備考                                                         |
-|--------|---------|--------------------------------------------------------------|
-| id     | INTEGER | PK                                                           |
-| name   | TEXT    | 枠の名前 (例 : 「歌配信」「ゲーム配信」「雑談配信」「収録」) |
+```sql
+CREATE TABLE holoworks (  -- ホロワークの枠
+  id    INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
+  name  TEXT     NOT NULL                     -- 枠の名前 (例 : 「歌配信」「ゲーム配信」「雑談配信」「収録」)
+);
+```
 
 - 編集機能は不要。追加・物理削除は可能とする
 - 削除時は `active_holowork_members` に紐付くレコードが存在しないことを API 側で確認する
 
 ### `active_holowork_members` : ホロワーク活動中のホロメン
 
-| カラム       | 型      | 備考                                                                |
-|--------------|---------|---------------------------------------------------------------------|
-| id           | INTEGER | PK                                                                  |
-| holoworks_id | INTEGER | FK → `holoworks.id`                                                |
-| holomem_id   | INTEGER | FK → `holomems.id`・UNIQUE (1人が同時に複数枠で活動することを防ぐ) |
+```sql
+CREATE TABLE active_holowork_members (  -- ホロワーク活動中のホロメン
+  id           INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
+  holoworks_id INTEGER  NOT NULL,                    -- FK → holoworks.id
+  holomem_id   INTEGER  NOT NULL  UNIQUE,            -- FK → holomems.id・ユニーク (1人が同時に複数枠で活動できないのでそれを防ぐ)
+);
+```
 
 ### `memo` : 自由メモ
 
-| カラム  | 型      | 備考                                                                       |
-|---------|---------|----------------------------------------------------------------------------|
-| id      | INTEGER | PK                                                                         |
-| content | TEXT    | サイドメニューに常時表示する自由記述メモ。現状は単一レコード運用を想定する |
-
+```sql
+CREATE TABLE memo (  -- 自由メモ
+  id      INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
+  content TEXT                                  -- サイドメニューに常時表示する自由記述メモ・現状は単一レコード運用を想定する
+);
+```
 
 ## 画面一覧
 
@@ -174,7 +189,7 @@
 
 | リソース             | エンドポイント例                                                                                                                         |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------|
-| 認証                 | `POST /api/auth/login`                                                                                                                   |
+| 認証                 | `POST /api/login`                                                                                                                        |
 | ホロメン             | `GET・POST /api/holomems`・`PATCH /api/holomems/:id`                                                                                     |
 | カード               | `GET・POST /api/cards`・`PATCH /api/cards/:id`                                                                                           |
 | ホロメンボードノード | `GET・POST /api/board-nodes`・`PATCH /api/board-nodes/:id`                                                                               |

@@ -1,6 +1,7 @@
-import { type ReactElement, type ReactNode } from 'react';
+import { type ReactElement, type ReactNode, useEffect } from 'react';
 import { isRouteErrorResponse, Link, Links, Outlet, Scripts, ScrollRestoration } from 'react-router';
 
+import { useAdminStore } from './stores/admin-store';
 import { isEmpty } from '../shared/helpers/is-empty';
 
 import type { Route } from './+types/root';
@@ -8,6 +9,23 @@ import type { Route } from './+types/root';
 import './styles.css';
 
 export function Layout({ children }: { children: ReactNode }): ReactElement {
+  // JWT の有無でログイン済か否かをチェックし適宜リダイレクトする
+  useEffect(() => {
+    const token = useAdminStore.getState().token;
+    const path = window.location.pathname;
+    const isAuthenticated = !isEmpty(token);
+    
+    if(isAuthenticated && path === '/') {
+      window.location.href = '/home';
+      return;
+    }
+    
+    if(!isAuthenticated && path === '/home') {
+      window.location.href = '/';
+      return;
+    }
+  }, []);
+  
   return (
     <html lang="ja">
       <head>

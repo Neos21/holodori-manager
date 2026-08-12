@@ -14,12 +14,19 @@
 
 ## コーディングルール
 
+- D1 のマイグレーションは、必要なタイミングで開発者が手動で行う。AI エージェントはローカル開発・リモート環境のいずれでもマイグレーション SQL の作成・実行を行わない
+- JWT は LocalStorage に保存する。HttpOnly Cookie やサーバーサイド連携の Cookie 認証は使わない
+- ディレクトリ名、ファイル名、TypeScript のクラス名や変数名は単数形と複数形を正確に区別する
+    - 例 : Controller・Service・Repository は複数概念を扱う命名として扱う
+    - 例 : Type・Schema は単数概念として扱う
+    - 例 : `holomems` は複数レコード集合、`holomem` は単一レコードを表す
+- TODO コメント入りの `example.ts` などは、命名の単複が未確定のサンプルである可能性があるため、実装時に単複が誤っていないか都度確認する
 - 共有ロジックはヘルパーに切り出す
 - DB テーブルの型定義は `shared/types/` 配下にテーブル別に作成する
 - DB 操作部分は `server/repositories/` 配下にテーブル別の Repository として実装する
 - サーバサイドロジックは `server/services/` 配下に作成し、サーバサイドロジック内でのみ使う型定義は `server/types/` 配下に作成する
 - `context.req.json()` は常に `await context.req.json().catch(() => null)` で受け、`body == null` の場合は 400 エラーを返す
 - 正常レスポンスは必ずトップレベルを `result` のみとし、エラーはトップレベル `error` を使う
-- 正規表現をは必ず `(/.../)` で囲む
+- 正規表現は必ず `(/.../)` とカッコで囲む
 - 暗黙型変換を使った `if(!condition)` は避け、`== null` や `=== ''` のように明示比較する。`isEmpty()` 関数を積極的に利用する
 - ルートパス文字列に `/:id` を含む場合、`comment-colon-spacing` ルールの影響を避けるため `// eslint-disable-line neos-eslint-plugin/comment-colon-spacing` を付ける
