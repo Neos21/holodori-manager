@@ -36,7 +36,7 @@
 - 狙い : Repository 実装と DB 周りのクエリを固める
 - チェックリスト :
   - [x] 主要 Repository 実装 (Holomems, Cards, BoardNodes, HoloworkAchievements, Holoworks, ActiveHoloworkMembers, Memo)
-  - [ ] `holomems` 作成時に `cards` を自動生成するロジック
+  - [x] `holomems` 作成時に `cards` を自動生成するロジック
   - [ ] `cards` の高度なクエリ (並び順・レア度・保有)
   - [ ] `board_nodes` のカテゴリ / `yellow_target` バリデーションの強化
   - [ ] `holowork_achievements` の閾値計算の共通化 (現在はサービス内に留める)

@@ -5,6 +5,7 @@ import { httpStatusCode } from '../../../../shared/constants/http-status-code';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
 import { holomemSchema } from '../../../../shared/schemas/holomem-schema';
 import { HolomemsRepository } from '../../../repositories/holomems-repository';
+import { HolomemsService } from '../../../services/holomems-service';
 
 import type { HonoBindings } from '../../../types/hono-bindings';
 
@@ -25,7 +26,7 @@ holomems.post('/', async context => {
   const parsed = holomemSchema.safeParse(body);
   if(!parsed.success) return context.json({ error: mergeIssues(parsed.error) }, httpStatusCode.badRequest);
   
-  const id = await new HolomemsRepository(context.env.DB).create(parsed.data);
+  const id = await new HolomemsService(context.env.DB).create(parsed.data);
   return context.json({ result: { id } }, httpStatusCode.created);
 });
 

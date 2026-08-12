@@ -1,3 +1,4 @@
+import { rarities } from '../../shared/constants/holodori-constants';
 import { buildUpdateQuery } from '../helpers/update-query';
 
 import type { Card } from '../../shared/types/card';
@@ -25,6 +26,13 @@ export class CardsRepository {
       .bind(card.holomems_id, card.rarity, card.name, card.is_owned, card.level, card.bloom)
       .run();
     return result.meta.last_row_id;
+  }
+  
+  public async createDefaultCards(holomemId: number): Promise<void> {
+    const cardStatements = rarities.map(rarity => this.db
+      .prepare('INSERT INTO cards (holomem_id, rarity, name, is_owned, level, bloom) VALUES (?, ?, ?, ?, ?, ?)')
+      .bind(holomemId, rarity, '通常版', 0, 1, 0));
+    await this.db.batch(cardStatements);
   }
   
   public async update(id: number, card: Partial<Card>): Promise<void> {

@@ -1,6 +1,7 @@
 import z from 'zod';
 
 import { preprocessBooleanNumber, preprocessOneLineString } from './schema-utilities';
+import { rarities, blooms } from '../constants/holodori-constants';
 
 export const holomemIdDisplayName = 'ホロメン ID' as const;
 export const rarityDisplayName = 'レア度' as const;
@@ -8,9 +9,6 @@ export const cardNameDisplayName = 'カード名' as const;
 export const isOwnedDisplayName = '所持状況' as const;
 export const levelDisplayName = 'レベル' as const;
 export const bloomDisplayName = '開花度' as const;
-
-export const rarities = [3, 4, 5] as const;
-export const blooms = [0, 1, 2, 3, 4, 5] as const;
 
 const numericEnum = <T extends readonly number[]>(values: T): z.ZodUnion<{ [K in keyof T]: z.ZodLiteral<T[K]>; }> =>
   z.union(values.map(value => z.literal(value)) as {
