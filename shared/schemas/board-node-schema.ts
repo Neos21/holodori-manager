@@ -16,10 +16,10 @@ export const connectRateDisplayName  = 'コネクト増幅率'         as const;
 
 export const boardNodeSchema = z.object({
   holomems_id   : z.preprocess(
-                    value => isEmpty(value) ? -1 : value,  // 未入力時は負数にしてエラー扱いにする
+                    value => isEmpty(value) ? 0 : value,  // 未入力時は 0 にしてエラー扱いにする (AUTOINCREMENT な ID は 1 から採番され 0 は登場しない)
                     z.coerce.number({ error: zodErrorMessages.invalidType(holomemsIdDisplayName) })  // `z.coerce.number()` で String 型が入ってきてもキャストする
                       .int({ error: zodErrorMessages.integer(holomemsIdDisplayName) })
-                      .min(0, { error: zodErrorMessages.minimumNumber(holomemsIdDisplayName, 0) })
+                      .min(1, { error: zodErrorMessages.minimumNumber(holomemsIdDisplayName, 1) })
                   ),
   category      : z.preprocess(
                     preprocessOneLineString,

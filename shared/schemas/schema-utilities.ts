@@ -4,9 +4,9 @@ import { reduceNewlines } from '../helpers/reduce-newlines';
 import type { BooleanNumber } from '../types/boolean-types';
 
 /** 1行テキストを Trim する Preprocessor */
-export const preprocessOneLineString    = (value: unknown): unknown => value == null ? ''   : typeof value === 'string' ? value.trim()                 : value;
+export const preprocessOneLineString    = (value: unknown): unknown => value == null ? '' : typeof value === 'string' ? value.trim()                 : value;
 /** 複数行テキストを Trim・空行調整する Preprocessor */
-export const preprocessMultiLinesString = (value: unknown): unknown => value == null ? ''   : typeof value === 'string' ? reduceNewlines(value.trim()) : value;
+export const preprocessMultiLinesString = (value: unknown): unknown => value == null ? '' : typeof value === 'string' ? reduceNewlines(value.trim()) : value;
 
 /** Boolean に類する `value` をできるだけ Number に揃える Preprocessor */
 export const preprocessBooleanNumber = (value: unknown): unknown => {

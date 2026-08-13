@@ -51,9 +51,11 @@ $ wrangler d1 execute holodori-manager --remote --file='./schema.sql'
 # 各種マイグレーション用コマンド
 $ wrangler d1 execute holodori-manager --local  --file='./migrations/create-tables.sql'
 $ wrangler d1 execute holodori-manager --local  --file='./migrations/insert-initial-data.sql'
+$ wrangler d1 execute holodori-manager --local  --file='./migrations/delete-all-data.sql'
 $ wrangler d1 execute holodori-manager --local  --file='./migrations/drop-tables.sql'
 $ wrangler d1 execute holodori-manager --remote --file='./migrations/create-tables.sql'
 $ wrangler d1 execute holodori-manager --remote --file='./migrations/insert-initial-data.sql'
+$ wrangler d1 execute holodori-manager --remote --file='./migrations/delete-all-data.sql'
 $ wrangler d1 execute holodori-manager --remote --file='./migrations/drop-tables.sql'
 
 # テーブル一覧を確認する

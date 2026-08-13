@@ -14,10 +14,10 @@ export const bloomDisplayName      = '開花度'      as const;
 
 export const cardSchema = z.object({
   holomems_id : z.preprocess(
-                  value => isEmpty(value) ? -1 : value,  // 未入力時は負数にしてエラー扱いにする
+                  value => isEmpty(value) ? 0 : value,  // 未入力時は 0 にしてエラー扱いにする
                   z.coerce.number({ error: zodErrorMessages.invalidType(holomemsIdDisplayName) })
                     .int({ error: zodErrorMessages.integer(holomemsIdDisplayName) })
-                    .min(0, { error: zodErrorMessages.minimumNumber(holomemsIdDisplayName, 0) })
+                    .min(1, { error: zodErrorMessages.minimumNumber(holomemsIdDisplayName, 1) })
                 ),
   rarity      : z.preprocess(
                   value => isEmpty(value) ? -1 : Number(value),  // 未入力時は負数にしてエラー扱いにし、Number 型に変換しておく

@@ -9,10 +9,10 @@ export const achievementNoteDisplayName = '自由記入欄'         as const;
 
 export const holoworkAchievementSchema = z.object({
   holomems_id   : z.preprocess(
-                    value => isEmpty(value) ? -1 : value,  // 未入力時は負数にしてエラー扱いにする
+                    value => isEmpty(value) ? 0 : value,  // 未入力時は 0 にしてエラー扱いにする
                     z.coerce.number({ error: zodErrorMessages.invalidType(holomemsIdDisplayName) })
                       .int({ error: zodErrorMessages.integer(holomemsIdDisplayName) })
-                      .min(0, { error: zodErrorMessages.minimumNumber(holomemsIdDisplayName, 0) })
+                      .min(1, { error: zodErrorMessages.minimumNumber(holomemsIdDisplayName, 1) })
                   ),
   current_count : z.preprocess(
                     value => isEmpty(value) ? 0 : value,  // 未入力時は 0 回とみなす
