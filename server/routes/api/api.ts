@@ -12,7 +12,7 @@ import { memo, memoPath } from './memo/memo';
 import type { HonoBindings } from '../../types/hono-bindings';
 
 export const api = new Hono<{ Bindings: HonoBindings; }>();
-export const apiPath = '/api';
+export const apiPath = '/api' as const;
 
 api.route(loginPath                , login);
 api.route(holomemsPath             , holomems);

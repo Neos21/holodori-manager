@@ -10,7 +10,7 @@ import { HolomemsService } from '../../../services/holomems-service';
 import type { HonoBindings } from '../../../types/hono-bindings';
 
 export const holomems = new Hono<{ Bindings: HonoBindings; }>();
-export const holomemsPath = '/holomems';
+export const holomemsPath = '/holomems' as const;
 
 holomems.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next));
 

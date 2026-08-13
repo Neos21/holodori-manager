@@ -1,6 +1,6 @@
 import { blooms, rarities } from '../constants/holodori-constants';
 
-import type { BooleanNumber } from './type-utilities';
+import type { BooleanNumber } from './boolean-types';
 
 /** レア度の型 */
 export type Rarity = (typeof rarities)[number];
@@ -27,6 +27,8 @@ export type Card = {
 
 /** フロントエンド表示用の型 */
 export type CardDisplay = Card & {
+  /** グループ (`holomems.group`) */
+  holomem_group: string;
   /** タレント名 (`holomems.name`) */
   holomem_name: string;
 };

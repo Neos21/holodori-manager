@@ -9,7 +9,7 @@ import { MemoRepository } from '../../../repositories/memo-repository';
 import type { HonoBindings } from '../../../types/hono-bindings';
 
 export const memo = new Hono<{ Bindings: HonoBindings; }>();
-export const memoPath = '/memo';
+export const memoPath = '/memo' as const;
 
 memo.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next));
 

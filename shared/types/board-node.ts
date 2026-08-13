@@ -1,4 +1,6 @@
-import type { BooleanNumber } from './type-utilities';
+import type { BoardNodeYellowTarget } from './app-types';
+import type { BooleanNumber } from './boolean-types';
+import type { BoardNodeCategory } from './holodori-types';
 
 /** ホロメンボードのマス */
 export type BoardNode = {
@@ -7,9 +9,9 @@ export type BoardNode = {
   /** ホロメン ID */
   holomems_id: number;
   /** カテゴリ */
-  category: 'red' | 'blue' | 'yellow' | 'green';  // TODO : 共通化
+  category: BoardNodeCategory;
   /** category = yellow の時のみホロワーク報酬アップ対象のアイテムを示す・その他の場合は `null` */
-  yellow_target: 'lesson_pt' | 'cube' | 'training' | null;  // TODO : 共通化
+  yellow_target: BoardNodeYellowTarget | null;
   /** マス効果の内容 */
   description: string;
   /** 対象のマスを解放済か否か */

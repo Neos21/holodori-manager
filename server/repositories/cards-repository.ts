@@ -1,5 +1,5 @@
-import { bloom0, rarities } from '../../shared/constants/holodori-constants';
-import { booleanNumberFalse } from '../../shared/types/type-utilities';
+import { booleanNumberFalse } from '../../shared/constants/boolean-constants';
+import { bloom0, defaultCardLevel, rarities } from '../../shared/constants/holodori-constants';
 import { buildUpdateQuery } from '../helpers/build-update-query';
 
 import type { Card, CardDisplay } from '../../shared/types/card';
@@ -10,13 +10,13 @@ export class CardsRepository {
   public async findAll(): Promise<Array<CardDisplay>> {
     // タレント名も表示したいのでテーブル結合して CardDisplay を返す
     // `holomems.sort_order` 順 → レア度が高い順 → ID 順 (同レア度の場合は後から追加されたカードが後に来る)
-    // TODO : グループ名も取得する
     const result = await this.db
       .prepare(`
         SELECT
           cards.id,
           cards.holomems_id,
-          holomems.name AS holomem_name,
+          holomems.group AS holomem_group,
+          holomems.name  AS holomem_name,
           cards.rarity,
           cards.name,
           cards.is_owned,
@@ -30,28 +30,6 @@ export class CardsRepository {
     return result.results ?? [];
   }
   
-  // TODO : 現状未使用
-  public async findById(id: number): Promise<CardDisplay | null> {
-    return await this.db
-      .prepare(`
-        SELECT
-          cards.id,
-          cards.holomems_id,
-          holomems.name AS holomem_name,
-          cards.rarity,
-          cards.name,
-          cards.is_owned,
-          cards.level,
-          cards.bloom
-        FROM cards
-        INNER JOIN holomems ON holomems.id = cards.holomems_id
-        WHERE cards.id = ?
-        LIMIT 1
-      `)
-      .bind(id)
-      .first<CardDisplay>();
-  }
-  
   public async create(card: Partial<Card>): Promise<number> {
     const result = await this.db
       .prepare('INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (?, ?, ?, ?, ?, ?)')
@@ -62,10 +40,9 @@ export class CardsRepository {
   
   /** 新規ホロメン追加時に通常版の星3・4・5カードを自動追加するために使用する */
   public async createDefaultCards(holomemId: number): Promise<void> {
-    const defaultLevel = 1;  // カードのデフォルト Lv (TODO : 一応共通化しておきたいかも)
     const cardStatements = rarities.map(rarity => this.db
       .prepare('INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (?, ?, ?, ?, ?, ?)')
-      .bind(holomemId, rarity, '通常版', booleanNumberFalse, defaultLevel, bloom0));
+      .bind(holomemId, rarity, '通常版', booleanNumberFalse, defaultCardLevel, bloom0));
     await this.db.batch(cardStatements);
   }
   

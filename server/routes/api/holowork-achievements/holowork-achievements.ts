@@ -9,7 +9,7 @@ import { HoloworkAchievementsRepository } from '../../../repositories/holowork-a
 import type { HonoBindings } from '../../../types/hono-bindings';
 
 export const holoworkAchievements = new Hono<{ Bindings: HonoBindings; }>();
-export const holoworkAchievementsPath = '/holowork-achievements';
+export const holoworkAchievementsPath = '/holowork-achievements' as const;
 
 holoworkAchievements.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next));
 

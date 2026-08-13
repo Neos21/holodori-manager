@@ -1,13 +1,13 @@
 import z from 'zod';
 
-import { preprocessOneLineString } from './schema-utilities';
+import { preprocessOneLineString, zodErrorMessages } from './schema-utilities';
 
 export const holoworkNameDisplayName = '枠の名前' as const;
 
 export const holoworkSchema = z.object({
   name: z.preprocess(
           preprocessOneLineString,
-          z.string({ error: `${holoworkNameDisplayName}に文字列でないデータが入力されています` })
-            .min(1, { error: `${holoworkNameDisplayName}を入力してください` })
+          z.string({ error: zodErrorMessages.invalidType(holoworkNameDisplayName) })
+            .min(1, { error: zodErrorMessages.empty(holoworkNameDisplayName) })
         )
 });

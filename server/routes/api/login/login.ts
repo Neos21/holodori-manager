@@ -9,7 +9,7 @@ import { loginSchema } from '../../../../shared/schemas/login-schema';
 import type { HonoBindings } from '../../../types/hono-bindings';
 
 export const login = new Hono<{ Bindings: HonoBindings; }>();
-export const loginPath = '/login';
+export const loginPath = '/login' as const;
 
 login.post('/', async context => {
   // エラー理由を正直にレスポンスすると脆弱性に繋がるためレスポンスメッセージは濁しておく

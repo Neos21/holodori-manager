@@ -1,13 +1,14 @@
 import { type ChangeEvent, type ReactElement, type SubmitEvent, useEffect, useState } from 'react';
 
+import { booleanNumberTrue, booleanStringFalse, booleanStringTrue } from '../../../shared/constants/boolean-constants';
 import { bloom0, blooms, rarities, star5 } from '../../../shared/constants/holodori-constants';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { cardSchema } from '../../../shared/schemas/card-schema';
-import { booleanStringTrue, booleanStringFalse, type BooleanString, booleanNumberTrue } from '../../../shared/types/type-utilities';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 
+import type { BooleanString } from '../../../shared/types/boolean-types';
 import type { CardDisplay } from '../../../shared/types/card';
 
 /** Number 型の項目を String 型で扱うための型定義 */
@@ -186,6 +187,7 @@ export default function CardsPage(): ReactElement {
         <table>
           <thead>
             <tr>
+              <th>グループ</th>
               <th>ホロメン</th>
               <th>レア度</th>
               <th>カード名</th>
@@ -198,6 +200,7 @@ export default function CardsPage(): ReactElement {
           <tbody>
             {cards.map(card => (
               <tr key={card.id}>
+                <td>{card.holomem_group}</td>
                 <td>{card.holomem_name}</td>
                 <td>{card.rarity}</td>
                 <td>{card.name}</td>

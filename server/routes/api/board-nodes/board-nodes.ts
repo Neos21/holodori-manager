@@ -9,7 +9,7 @@ import { BoardNodesRepository } from '../../../repositories/board-nodes-reposito
 import type { HonoBindings } from '../../../types/hono-bindings';
 
 export const boardNodes = new Hono<{ Bindings: HonoBindings; }>();
-export const boardNodesPath = '/board-nodes';
+export const boardNodesPath = '/board-nodes' as const;
 
 boardNodes.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next));
 

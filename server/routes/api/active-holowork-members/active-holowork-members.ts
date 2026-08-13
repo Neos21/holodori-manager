@@ -9,7 +9,7 @@ import { HoloworksRepository } from '../../../repositories/holoworks-repository'
 import type { HonoBindings } from '../../../types/hono-bindings';
 
 export const activeHoloworkMembers = new Hono<{ Bindings: HonoBindings; }>();
-export const activeHoloworkMembersPath = '/active-holowork-members';
+export const activeHoloworkMembersPath = '/active-holowork-members' as const;
 
 activeHoloworkMembers.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next));
 

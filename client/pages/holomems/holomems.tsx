@@ -1,12 +1,13 @@
 import { type ChangeEvent, type ReactElement, type SubmitEvent, useEffect, useState } from 'react';
 
+import { booleanNumberTrue, booleanStringFalse, booleanStringTrue } from '../../../shared/constants/boolean-constants';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { holomemSchema } from '../../../shared/schemas/holomem-schema';
-import { booleanNumberTrue, booleanStringFalse, booleanStringTrue, type BooleanString } from '../../../shared/types/type-utilities';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 
+import type { BooleanString } from '../../../shared/types/boolean-types';
 import type { Holomem } from '../../../shared/types/holomem';
 
 /** ホロメンの新規追加・編集フォームの型定義 : 全て String で扱う */
@@ -118,6 +119,7 @@ export default function HolomemsPage(): ReactElement {
         <h2>{editingId == null ? '新規追加' : '編集'}</h2>
         
         <form onSubmit={onSubmit}>
+          {/* TODO : 項目名は holomem-schema.ts の定数 DisplayName を参照する */}
           <div>
             <label>
               表示順

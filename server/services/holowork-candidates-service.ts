@@ -1,10 +1,8 @@
+import { candidatePriorityCount } from '../../shared/constants/app-constants';
+import { holoworkAchievements } from '../../shared/constants/holodori-constants';
+
+import type { CandidatePriority } from '../../shared/types/app-types';
 import type { HoloworkCandidates, HoloworkCountCandidate, HoloworkRateCandidate } from '../../shared/types/holowork-candidate';
-
-export const holoworkPriorities = ['count', 'lesson_pt', 'cube', 'training'] as const;  // TODO : 共通化
-
-export type HoloworkPriority = (typeof holoworkPriorities)[number];
-
-export const achievementThresholds = [1, 5, 10, 30, 50, 100, 200, 300, 400] as const;
 
 /** ホロワークで優先的に選択するべきホロメン候補を取得するためのサービス */
 export class HoloworkCandidatesService {
@@ -22,8 +20,8 @@ export class HoloworkCandidatesService {
    *
    * いずれも、卒業等による無効化がされたホロメンは含まれない
    */
-  public async getCandidates(holoworkId: number, priority: HoloworkPriority): Promise<HoloworkCandidates> {
-    if(priority === 'count') {
+  public async getCandidates(holoworkId: number, priority: CandidatePriority): Promise<HoloworkCandidates> {
+    if(priority === candidatePriorityCount) {
       return {
         selected_priority: priority,
         candidates       : await this.getCountCandidates(holoworkId)
@@ -46,9 +44,9 @@ export class HoloworkCandidatesService {
         holomems.name AS holomems_name,
         holomems.note AS holomems_note,
         
-        COALESCE(holowork_achievements.current_count, 0)                       AS current_count,
-        ${this.buildNextThresholdCase('holowork_achievements.current_count')}  AS next_threshold,
-        ${this.buildRemainingCountCase('holowork_achievements.current_count')} AS remaining_count
+        COALESCE(holowork_achievements.current_count, 0) AS current_count,
+        ${this.buildNextThresholdCase()}                 AS next_threshold,
+        ${this.buildRemainingCountCase()}                AS remaining_count
       FROM holomems
       LEFT JOIN holowork_achievements
         ON holowork_achievements.holomems_id = holomems.id
@@ -67,19 +65,20 @@ export class HoloworkCandidatesService {
   }
   
   /** 現在のホロワーク完了回数から見て直近のアチーブメントの値を返すカラムを組み立てる */
-  private buildNextThresholdCase(currentCountExpression: string): string {
-    const clauses = achievementThresholds.map(threshold => `WHEN COALESCE(${currentCountExpression}, 0) < ${threshold} THEN ${threshold}`).join(' ');
+  private buildNextThresholdCase(): string {
+    const clauses = holoworkAchievements.map(achievement => `WHEN COALESCE(holowork_achievements.current_count, 0) < ${achievement} THEN ${achievement}`).join(' ');
     return `CASE ${clauses} ELSE NULL END`;
   }
   
   /** 直近のアチーブメントに対する残り回数の値を返すカラムを組み立てる */
-  private buildRemainingCountCase(currentCountExpression: string): string {
-    const clauses = achievementThresholds.map(threshold => `WHEN COALESCE(${currentCountExpression}, 0) < ${threshold} THEN ${threshold} - COALESCE(${currentCountExpression}, 0)`).join(' ');
+  private buildRemainingCountCase(): string {
+    const clauses = holoworkAchievements.map(achievement => `WHEN COALESCE(holowork_achievements.current_count, 0) < ${achievement} THEN ${achievement} - COALESCE(holowork_achievements.current_count, 0)`).join(' ');
     return `CASE ${clauses} ELSE NULL END`;
   }
   
   /** アイテム獲得量重視の場合の優先ホロメン候補を取得する */
-  private async getRateCandidates(holoworkId: number, priority: Exclude<HoloworkPriority, 'count'>): Promise<Array<HoloworkRateCandidate>> {
+  private async getRateCandidates(holoworkId: number, priority: Exclude<CandidatePriority, typeof candidatePriorityCount>): Promise<Array<HoloworkRateCandidate>> {
+    // 合計最終レートが 0% (効果なし) のホロメンは含まないよう HAVING 句で除外している
     // TODO : holomems.is_active = 0 なホロメンは除外すること
     const sql = `
       SELECT

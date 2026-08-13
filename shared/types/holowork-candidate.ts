@@ -1,3 +1,5 @@
+import type { CandidatePriority } from './app-types';
+
 /** 完了回数重視を選択した場合の候補者1人を表現した型 */
 export type HoloworkCountCandidate = {
   /** ホロメン ID (`holomems.id`) */
@@ -34,7 +36,7 @@ export type HoloworkCandidate = HoloworkCountCandidate | HoloworkRateCandidate;
 /** ホロワークで優先的に選択すべき候補者を示す型 */
 export type HoloworkCandidates = {
   /** 選択された優先度 */
-  selected_priority: 'count' | 'lesson_pt' | 'cube' | 'training';  // TODO : 共通化
+  selected_priority: CandidatePriority;
   /** 候補一覧 */
   candidates: Array<HoloworkCandidate>;
 };

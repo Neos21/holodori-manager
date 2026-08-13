@@ -1,3 +1,4 @@
+import { boardNodeCategories } from '../../shared/constants/holodori-constants';
 import { buildUpdateQuery } from '../helpers/build-update-query';
 
 import type { BoardNode } from '../../shared/types/board-node';
@@ -6,30 +7,21 @@ export class BoardNodesRepository {
   constructor(private readonly db: D1Database) { }
   
   public async findAll(): Promise<Array<BoardNode>> {
-    // ホロメンボードのマスは黄 → 緑 → 赤 → 青の順にグルーピング・ソートして表示したいため CASE 文が入っている
+    // ホロメンボードのマスは黄 → 緑 → 赤 → 青の順にグルーピング・ソートして表示する
+    const buildCategoryCase = (): string => {
+      const clauses = boardNodeCategories.map((bardNodeCategory, index) => `WHEN '${bardNodeCategory}' THEN ${index + 1}`).join(' ');
+      return `CASE category ${clauses} END ASC`;
+    };
     const result = await this.db
       .prepare(`
         SELECT id, holomems_id, category, yellow_target, description, is_unlocked, amount, connect_rate
         FROM board_nodes
         ORDER BY
-          CASE category
-            WHEN 'yellow' THEN 1
-            WHEN 'green'  THEN 2
-            WHEN 'red'    THEN 3
-            WHEN 'blue'   THEN 4
-          END ASC,
+          ${buildCategoryCase()},
           id ASC
       `)
       .all<BoardNode>();
     return result.results ?? [];
-  }
-  
-  // TODO : 現状未使用
-  public async findById(id: number): Promise<BoardNode | null> {
-    return await this.db
-      .prepare('SELECT id, holomems_id, category, yellow_target, description, is_unlocked, amount, connect_rate FROM board_nodes WHERE id = ? LIMIT 1')
-      .bind(id)
-      .first<BoardNode>();
   }
   
   public async create(boardNode: Partial<BoardNode>): Promise<number> {

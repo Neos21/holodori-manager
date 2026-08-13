@@ -9,7 +9,7 @@ import { CardsRepository } from '../../../repositories/cards-repository';
 import type { HonoBindings } from '../../../types/hono-bindings';
 
 export const cards = new Hono<{ Bindings: HonoBindings; }>();
-export const cardsPath = '/cards';
+export const cardsPath = '/cards' as const;
 
 cards.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next));
 

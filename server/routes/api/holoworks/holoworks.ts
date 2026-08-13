@@ -1,19 +1,20 @@
 import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
 
+import { candidatePriorities } from '../../../../shared/constants/app-constants';
 import { httpStatusCode } from '../../../../shared/constants/http-status-code';
 import { isEmpty } from '../../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
 import { holoworkSchema } from '../../../../shared/schemas/holowork-schema';
 import { ActiveHoloworkMembersRepository } from '../../../repositories/active-holowork-members-repository';
 import { HoloworksRepository } from '../../../repositories/holoworks-repository';
-import { HoloworkCandidatesService, holoworkPriorities } from '../../../services/holowork-candidates-service';
+import { HoloworkCandidatesService } from '../../../services/holowork-candidates-service';
 
-import type { HoloworkPriority } from '../../../services/holowork-candidates-service';
+import type { CandidatePriority } from '../../../../shared/types/app-types';
 import type { HonoBindings } from '../../../types/hono-bindings';
 
 export const holoworks = new Hono<{ Bindings: HonoBindings; }>();
-export const holoworksPath = '/holoworks';
+export const holoworksPath = '/holoworks' as const;
 
 holoworks.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next));
 
@@ -51,8 +52,8 @@ holoworks.get('/:id/candidates', async context => {  // eslint-disable-line neos
   
   const priority = context.req.query('priority');
   if(isEmpty(priority)) return context.json({ error: 'priority パラメータを指定してください' }, httpStatusCode.badRequest);
-  if(!holoworkPriorities.includes(priority as HoloworkPriority)) return context.json({ error: 'priority の値が不正です' }, httpStatusCode.badRequest);
+  if(!candidatePriorities.includes(priority as CandidatePriority)) return context.json({ error: 'priority の値が不正です' }, httpStatusCode.badRequest);
   
-  const candidates = await new HoloworkCandidatesService(context.env.DB).getCandidates(id, priority as HoloworkPriority);
+  const candidates = await new HoloworkCandidatesService(context.env.DB).getCandidates(id, priority as CandidatePriority);
   return context.json({ result: candidates }, httpStatusCode.ok);
 });

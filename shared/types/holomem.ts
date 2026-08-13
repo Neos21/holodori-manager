@@ -1,4 +1,4 @@
-import type { BooleanNumber } from './type-utilities';
+import type { BooleanNumber } from './boolean-types';
 
 /** ホロメン */
 export type Holomem = {
