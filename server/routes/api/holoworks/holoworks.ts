@@ -38,6 +38,9 @@ holoworks.delete('/:id', async context => {  // eslint-disable-line neos-eslint-
   const id = Number(context.req.param('id'));
   if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
   
+  const holowork = await new HoloworksRepository(context.env.DB).findById(id);
+  if(holowork == null) return context.json({ error: '指定のホロワークが見つかりません' }, httpStatusCode.notFound);
+  
   const activeHoloworkMembers = await new ActiveHoloworkMembersRepository(context.env.DB).findByHoloworksId(id);
   if(activeHoloworkMembers.length > 0) return context.json({ error: '活動中のメンバーがいるため削除できません' }, httpStatusCode.badRequest);
   
@@ -54,6 +57,9 @@ holoworks.get('/:id/candidates', async context => {  // eslint-disable-line neos
   if(isEmpty(priority)) return context.json({ error: 'priority パラメータを指定してください' }, httpStatusCode.badRequest);
   if(!candidatePriorities.includes(priority as CandidatePriority)) return context.json({ error: 'priority の値が不正です' }, httpStatusCode.badRequest);
   
-  const candidates = await new HoloworkCandidatesService(context.env.DB).getCandidates(id, priority as CandidatePriority);
+  const holowork = await new HoloworksRepository(context.env.DB).findById(id);
+  if(holowork == null) return context.json({ error: '指定のホロワークが見つかりません' }, httpStatusCode.notFound);
+  
+  const candidates = await new HoloworkCandidatesService(context.env.DB).getCandidates(priority as CandidatePriority);
   return context.json({ result: candidates }, httpStatusCode.ok);
 });

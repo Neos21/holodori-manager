@@ -33,7 +33,7 @@ activeHoloworkMembers.post('/:id/start', async context => {  // eslint-disable-l
   
   // 「選択されたメンバー (ホロメン ID の配列)」が1人以上・5人以下・いずれも ID として妥当な整数値であることをチェックする
   const holomemsIds = Array.isArray(body.holomems_ids) ? body.holomems_ids : null;
-  if(holomemsIds == null || holomemsIds.length < 1 || holomemsIds.length > 5 || holomemsIds.some((holomemsId: unknown) => Number.isInteger(holomemsId))) {
+  if(holomemsIds == null || holomemsIds.length < 1 || holomemsIds.length > 5 || holomemsIds.some((holomemsId: unknown) => !Number.isInteger(holomemsId))) {
     return context.json({ error: '「選択されたメンバー」は 1〜5 件の数値配列である必要があります' }, httpStatusCode.badRequest);
   }
   
@@ -86,7 +86,7 @@ activeHoloworkMembers.post('/:id/abort', async context => {  // eslint-disable-l
   if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
   
   // 対象のホロワーク ID で活動しているメンバー達を一括で開放する
-  new ActiveHoloworkMembersRepository(context.env.DB).deleteByHoloworksId(id);
+  await new ActiveHoloworkMembersRepository(context.env.DB).deleteByHoloworksId(id);
   
   // 操作したホロワーク ID を返しておく
   return context.json({ result: { id } }, httpStatusCode.ok);

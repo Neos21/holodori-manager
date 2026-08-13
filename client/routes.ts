@@ -6,6 +6,7 @@ export default [
     route('/home'       , './pages/home/home.tsx'),
     route('/holomems'   , './pages/holomems/holomems.tsx'),
     route('/cards'      , './pages/cards/cards.tsx'),
-    route('/board-nodes', './pages/board-nodes/board-nodes.tsx')
+    route('/board-nodes', './pages/board-nodes/board-nodes.tsx'),
+    route('/holoworks'  , './pages/holoworks/holoworks.tsx')
   ])
 ] satisfies RouteConfig;

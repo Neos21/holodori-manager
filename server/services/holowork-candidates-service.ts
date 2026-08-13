@@ -21,23 +21,23 @@ export class HoloworkCandidatesService {
    *
    * いずれも、卒業等による無効化がされているホロメンは含まれない
    */
-  public async getCandidates(holoworkId: number, priority: CandidatePriority): Promise<HoloworkCandidates> {
+  public async getCandidates(priority: CandidatePriority): Promise<HoloworkCandidates> {
     if(priority === candidatePriorityCount) {
       return {
         selected_priority: priority,
-        candidates       : await this.getCountCandidates(holoworkId)
+        candidates       : await this.getCountCandidates()
       };
     }
     else {
       return {
         selected_priority: priority,
-        candidates       : await this.getRateCandidates(holoworkId, priority)
+        candidates       : await this.getRateCandidates(priority)
       };
     }
   }
   
   /** 完了回数重視の場合の優先ホロメン候補を取得する */
-  private async getCountCandidates(holoworkId: number): Promise<Array<HoloworkCountCandidate>> {
+  private async getCountCandidates(): Promise<Array<HoloworkCountCandidate>> {
     /** アチーブメント最大回数 */
     const maxCountThreshold = holoworkAchievements[holoworkAchievements.length - 1];
     const sql = `
@@ -52,10 +52,10 @@ export class HoloworkCandidatesService {
       FROM holomems
       LEFT JOIN holowork_achievements
         ON holowork_achievements.holomems_id = holomems.id
-      LEFT JOIN (SELECT holomems_id FROM active_holowork_members WHERE holoworks_id = ?) AS active_members
-        ON active_members.holomems_id = holomems.id
+      LEFT JOIN active_holowork_members
+        ON active_holowork_members.holomems_id = holomems.id
       WHERE
-          active_members.holomems_id IS NULL
+          active_holowork_members.holomems_id IS NULL
       AND holomems.is_active = ${booleanNumberTrue}
       AND COALESCE(holowork_achievements.current_count, 0) < ${maxCountThreshold}
       ORDER BY
@@ -63,7 +63,7 @@ export class HoloworkCandidatesService {
         next_threshold  ASC,
         holomems_id     ASC
     `;
-    const result = await this.db.prepare(sql).bind(holoworkId).all<HoloworkCountCandidate>();
+    const result = await this.db.prepare(sql).all<HoloworkCountCandidate>();
     return result.results ?? [];
   }
   
@@ -80,7 +80,7 @@ export class HoloworkCandidatesService {
   }
   
   /** アイテム獲得量重視の場合の優先ホロメン候補を取得する */
-  private async getRateCandidates(holoworkId: number, priority: Exclude<CandidatePriority, typeof candidatePriorityCount>): Promise<Array<HoloworkRateCandidate>> {
+  private async getRateCandidates(priority: Exclude<CandidatePriority, typeof candidatePriorityCount>): Promise<Array<HoloworkRateCandidate>> {
     // 合計最終レートが 0% (効果なし) のホロメンは含まないよう HAVING 句で除外している
     const sql = `
       SELECT
@@ -97,10 +97,10 @@ export class HoloworkCandidatesService {
       FROM holomems
       LEFT JOIN board_nodes
         ON board_nodes.holomems_id = holomems.id
-      LEFT JOIN (SELECT holomems_id FROM active_holowork_members WHERE holoworks_id = ?) AS active_members
-        ON active_members.holomems_id = holomems.id
+      LEFT JOIN active_holowork_members
+        ON active_holowork_members.holomems_id = holomems.id
       WHERE
-          active_members.holomems_id IS NULL
+          active_holowork_members.holomems_id IS NULL
       AND holomems.is_active = ${booleanNumberTrue}
       GROUP BY holomems.id
       HAVING total_rate > 0
@@ -108,7 +108,7 @@ export class HoloworkCandidatesService {
         total_rate  DESC,
         holomems_id ASC
     `;
-    const result = await this.db.prepare(sql).bind(priority, holoworkId).all<HoloworkRateCandidate>();
+    const result = await this.db.prepare(sql).bind(priority).all<HoloworkRateCandidate>();
     return result.results ?? [];
   }
 }
