@@ -3,7 +3,7 @@ import { type ChangeEvent, type ReactElement, type SubmitEvent, useEffect, useSt
 import { booleanNumberTrue, booleanStringFalse, booleanStringTrue } from '../../../shared/constants/boolean-constants';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
-import { groupDisplayName, isActiveDisplayName, nameDisplayName, noteDisplayName, sortOrderDisplayName, holomemSchema } from '../../../shared/schemas/holomem-schema';
+import { groupNameDisplayName, isActiveDisplayName, nameDisplayName, noteDisplayName, sortOrderDisplayName, holomemSchema } from '../../../shared/schemas/holomem-schema';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 
@@ -13,7 +13,7 @@ import type { Holomem } from '../../../shared/types/holomem';
 /** ホロメンの新規追加・編集フォームの型定義 : 全て String で扱う */
 type HolomemFormState = {
   sort_order: string;
-  group     : string;
+  group_name: string;
   name      : string;
   note      : string;
   is_active : BooleanString;
@@ -22,7 +22,7 @@ type HolomemFormState = {
 /** 空のフォーム値を返す */
 const createEmptyFormValues = (): HolomemFormState => ({
   sort_order: '',
-  group     : '',
+  group_name: '',
   name      : '',
   note      : '',
   is_active : booleanStringTrue  // ホロメンの状態を示す初期値は「有効」としておく
@@ -64,7 +64,7 @@ export default function HolomemsPage(): ReactElement {
     setEditingId(holomem.id);
     setForm({
       sort_order: String(holomem.sort_order),
-      group     : holomem.group,
+      group_name: holomem.group_name,
       name      : holomem.name,
       note      : holomem.note ?? '',
       is_active : String(holomem.is_active) as BooleanString
@@ -126,8 +126,8 @@ export default function HolomemsPage(): ReactElement {
             </label>
             
             <label>
-              {groupDisplayName}
-              <input name="group" type="text" value={form.group} onChange={onChangeForm} required />
+              {groupNameDisplayName}
+              <input name="group_name" type="text" value={form.group_name} onChange={onChangeForm} required />
             </label>
             
             <label>
@@ -168,7 +168,7 @@ export default function HolomemsPage(): ReactElement {
           <thead>
             <tr>
               <th>No</th>
-              <th>{groupDisplayName}</th>
+              <th>{groupNameDisplayName}</th>
               <th>{nameDisplayName}</th>
               <th>{isActiveDisplayName}</th>
               <th>{noteDisplayName}</th>
@@ -180,7 +180,7 @@ export default function HolomemsPage(): ReactElement {
             {holomems.map(holomem => (
               <tr key={holomem.id}>
                 <td>{holomem.sort_order}</td>
-                <td>{holomem.group}</td>
+                <td>{holomem.group_name}</td>
                 <td>{holomem.name}</td>
                 <td>{holomem.is_active === booleanNumberTrue ? '-' : '卒業'}</td>
                 <td>{holomem.note ?? '—'}</td>

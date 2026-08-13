@@ -6,7 +6,7 @@ import { boardNodeCategories, boardNodeCategoryYellow } from '../../../shared/co
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { amountDisplayName, boardNodeSchema, categoryDisplayName, connectRateDisplayName, descriptionDisplayName, holomemsIdDisplayName, isUnlockedDisplayName, yellowTargetDisplayName } from '../../../shared/schemas/board-node-schema';
-import { groupDisplayName, holomemSchema, nameDisplayName, noteDisplayName } from '../../../shared/schemas/holomem-schema';
+import { groupNameDisplayName, holomemSchema, nameDisplayName, noteDisplayName } from '../../../shared/schemas/holomem-schema';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 
@@ -280,7 +280,7 @@ export default function BoardNodesPage(): ReactElement {
                 <table>
                   <thead>
                     <tr>
-                      <th>{groupDisplayName}</th>
+                      <th>{groupNameDisplayName}</th>
                       <th>{nameDisplayName}</th>
                       <th>{noteDisplayName}</th>
                       <th>{yellowTargetDisplayName}</th>
@@ -294,7 +294,7 @@ export default function BoardNodesPage(): ReactElement {
                   <tbody>
                     {categorizedBoardNodes.map(boardNode => (
                         <tr key={boardNode.id}>
-                          <td>{boardNode.holomem_group}</td>
+                          <td>{boardNode.holomem_group_name}</td>
                           <td>{boardNode.holomem_name}</td>
                           <td>{boardNode.holomem_note ?? '—'}</td>
                           <td>{isEmpty(boardNode.yellow_target) ? '—' : yellowTargetDisplayNames[boardNode.yellow_target!]}</td>

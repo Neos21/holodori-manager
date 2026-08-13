@@ -9,6 +9,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
+  // ベースルール
   {
     files: ['**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     plugins: {
@@ -42,6 +43,7 @@ export default defineConfig([
     }
   },
   
+  // TypeScript 向けルール
   tseslint.configs.recommended,
   {
     rules: {
@@ -51,8 +53,10 @@ export default defineConfig([
     }
   },
   
+  // オレオレルール
   neosEslintPlugin.configs.recommended,
   
+  // React 向けルール
   {
     ...pluginReact.configs.flat.recommended,
     rules: {
@@ -64,7 +68,6 @@ export default defineConfig([
       }
     }
   },
-  
   {
     plugins: {
       'react-hooks': pluginReactHooks as unknown as Plugin,
@@ -78,6 +81,7 @@ export default defineConfig([
     }
   },
   
+  // TailwindCSS 向けルール
   ...tailwindcss.configs['flat/recommended'],
   {
     settings: {
@@ -86,10 +90,12 @@ export default defineConfig([
       }
     },
     rules: {
-      'tailwindcss/classnames-order': 'off'
+      'tailwindcss/classnames-order'   : 'off',  // 自分で並び順は決める
+      'tailwindcss/no-custom-classname': 'off'   // daisyUI のクラス名が誤判定されるので無効化する
     }
   },
   
+  // 検証しない除外ファイル
   {
     ignores: [
       'node_modules/**',

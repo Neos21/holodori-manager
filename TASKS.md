@@ -13,80 +13,20 @@
 
 ## 現状サマリ
 
-- サーバ側の主要 API (認証、holomems, cards, board-nodes, holowork-achievements, holoworks, active-holowork-members, candidates, memo) はバックエンド実装済
-- フロントエンドの画面・UX は未完成 (一覧画面、編集画面、ホロワーク管理 UI 等)
+- バックエンド、フロントエンドともに MVP 実装は済
+- フロントエンドの UX を中心に細かな調整を進めていく段階
 
 
-## フェーズ構成 (上から順に実装していくこと)
+## タスクリスト (上から順に実装していくこと)
 
-### Phase 1 : プロジェクト基盤と共通定義
+- [ ] ページ初期表示時、JWT が無効と判断して `/` にリダイレクトした際に、「再度ログインしてください」のメッセージを `alert alert-warning alert-soft` で表示する
+- [ ] ログイン後のサイドメニューに「ログアウト」ボタンを配置する。`useAdminStore` の `logout()` を実行して LocalStorage をクリアし `/` に `navigate()` 遷移する
+- [ ] サイドメニューに `memo` の編集欄を設ける : UI 仕様は README に記載あり
 
-- 狙い : 型・定数・ヘルパー・ディレクトリ構造など土台を固める
-- チェックリスト :
-  - [x] ルート構成と命名規約の確認
-  - [x] `shared/constants/` に HTTP ステータスなど基本定数を整理
-  - [x] `shared/helpers/` に汎用ヘルパーを整理 (`isEmpty` 等)
-  - [x] `shared/types/` に DB テーブル型を作成 (holomems, cards, board_nodes, holowork_achievements, holoworks, active_holowork_members, memo)
-  - [x] `server/types/` にサーバ専用型を作成
-  - [x] `server/repositories/` / `server/services/` 構成方針を決定
-  - [x] API レスポンス形式を `result` / `error` で統一
+### 優先度低
 
-### Phase 2 : データモデルと DB 操作
-
-- 狙い : Repository 実装と DB 周りのクエリを固める
-- チェックリスト :
-  - [x] 主要 Repository 実装 (Holomems, Cards, BoardNodes, HoloworkAchievements, Holoworks, ActiveHoloworkMembers, Memo)
-  - [x] `holomems` 作成時に `cards` を自動生成するロジック
-  - [x] `cards` の高度なクエリ (並び順・レア度・保有)
-  - [x] `board_nodes` のカテゴリ / `yellow_target` バリデーションの強化
-  - [x] `holowork_achievements` の閾値計算の共通化 (現在はサービス内に留める)
-  - [x] DB 側の削除制約 / 一意制約の追加検討
-
-### Phase 3 : 認証と API ルーティング
-
-- 狙い : 認証基盤と主要 API のルートを整備
-- チェックリスト :
-  - [x] `ADMIN_JWT_SECRET` を用いた JWT 認証実装
-  - [x] `POST /api/login` 実装 (`server/routes/api/login/login.ts`)
-  - [x] 主要リソースの API ルートを配置 (`server/routes/api/...`)
-  - [x] `GET/POST/PATCH` 系の多くのエンドポイントは実装済 (holomems, cards, board-nodes, holoworks 等)
-  - [x] `GET /api/holoworks/:id/candidates?priority=...` 実装済 (`server/services/holowork-candidates-service.ts`)
-
-### Phase 4 : フロントエンド基盤と画面遷移
-
-- 狙い : フロントのルーティングと基本 UI を作る
-- チェックリスト :
-  - [x] React Router v7 の構成 (`client/root.tsx`, `client/routes.ts`)
-  - [x] 認証状態管理と LocalStorage 永続化 (`client/stores/`)
-  - [x] API 呼び出しラッパー (`client/helpers/`)
-  - [x] トップページのログイン画面
-  - [x] 共通レイアウトとサイドメニュー
-  - [x] `/home` メニューとナビゲーション
-
-### Phase 5 : 管理画面 (各リソース)
-
-- 狙い : ホロメン / カード / ボードノード / ホロワークの CRUD UI
-- チェックリスト :
-  - [x] `/holomems` 一覧・編集 (`sort_order`, `is_active`, note)
-  - [x] `/cards` 一覧・編集 (所有フラグ、レベル、開花)
-  - [x] `/board-nodes` 一覧・編集 (カテゴリ別表示、編集)
-  - [x] `/holoworks` 管理ページ (開始/完了/中断、候補表示、優先度選択)
-
-### Phase 6 : 優先候補ロジックと UI
-
-- 狙い : 優先度に応じた候補抽出ロジックとフロント表示
-- チェックリスト :
-  - [x] 優先度モード定義 (`count`, `lesson_pt`, `cube`, `training`)
-  - [x] サーバ側で優先度別 SQL を分離して実装 (`getCountCandidates`, `getRateCandidates`)
-  - [x] 活動中メンバーの除外ロジックを実装
-  - [x] API のレスポンス形を固定 (selected_priority + candidates)
-  - [ ] フロントでの候補表示 (並び順、非活性表示) の実装
-
-### Phase 7 : 仕上げと検証
-
-- 狙い : 動作確認、ビルド、ドキュメント整備
-- チェックリスト :
-  - [ ] この Phase で改めて `npm run lint` と `npm run build` を通す (CI 前提の手順)
-  - [ ] 主要 API を手動で確認 (エンドツーエンドの挙動)
-  - [ ] フロントの主要画面で UX を検証、修正
-  - [ ] README と実装差分を照合
+- [ ] サーバサイドの `error` レスポンスメッセージで共通化できる文言を `server/constants/` あたりでまとめる
+- [ ] README の API 一覧の記載と実装が合っているか確認する
+    - 使っていない API が実装にあれば削除する
+    - 使っていて README に記載がなければ README を加筆修正する
+    - 最終的に README と実装を一致させる

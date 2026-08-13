@@ -24,8 +24,8 @@ export type BoardNode = {
 
 /** フロントエンド表示用の型 */
 export type BoardNodeDisplay = BoardNode & {
-  /** グループ (`holomems.group`) */
-  holomem_group: string;
+  /** グループ (`holomems.group_name`) */
+  holomem_group_name: string;
   /** タレント名 (`holomems.name`) */
   holomem_name: string;
   /** 自由記入欄 (`holomems.note`) */

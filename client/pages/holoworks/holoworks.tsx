@@ -293,7 +293,7 @@ export default function HoloworksPage(): ReactElement {
                   return (
                     <tr key={holomem.id}>
                       <td><input type="checkbox" value={holomem.id} checked={isSelected} onChange={onChangeSelectedHolomem} disabled={isSubmitting || isActive || (!isSelected && selectedHolomemsIds.length >= 5)} /></td>
-                      <td>{holomem.group} : {holomem.name}{isActive ? ' (活動中)' : ''}</td>
+                      <td>{holomem.group_name} : {holomem.name}{isActive ? ' (活動中)' : ''}</td>
                       <td>{getCandidateDetail(candidate)}</td>
                       <td>{holomem.note ?? '—'}</td>
                     </tr>

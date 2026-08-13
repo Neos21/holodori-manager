@@ -7,7 +7,7 @@ export type Holomem = {
   /** ゲーム内表示順を再現するための手動調整可能な表示順 */
   sort_order: number;
   /** グループ */
-  group: string;
+  group_name: string;
   /** タレント名 */
   name: string;
   /** 自由記入欄 */

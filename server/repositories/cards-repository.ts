@@ -13,8 +13,8 @@ export class CardsRepository {
     const result = await this.db
       .prepare(`
         SELECT
-          holomems.group AS holomem_group,
-          holomems.name  AS holomem_name,
+          holomems.group_name AS holomem_group_name,
+          holomems.name       AS holomem_name,
           
           cards.id,
           cards.holomems_id,

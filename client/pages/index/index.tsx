@@ -42,24 +42,24 @@ export default function Index(): ReactElement {
   };
   
   return (
-    <main>
-      <h1>Holodori Manager</h1>
+    <main className="m-4">
+      <h1 className="mb-8 text-2xl font-bold">Holodori Manager</h1>
       
-      <form onSubmit={onSubmit}>
+      <form onSubmit={onSubmit} className="space-y-4">
         <input
-          type="password"
-          value={password}
-          onChange={onChangePassword}
-          placeholder="Password"
+          type="password" value={password} onChange={onChangePassword} disabled={isSubmitting}
+          className="input w-full" placeholder="Password"
           autoComplete="current-password"
-          disabled={isSubmitting}
         />
         
         {!isEmpty(errorMessage) && (
-          <div className="alert-danger">{errorMessage}</div>
+          <div className="alert alert-error alert-soft">{errorMessage}</div>
         )}
         
-        <button type="submit" disabled={isSubmitting}>Login</button>
+        <button
+          type="submit" disabled={isSubmitting || isEmpty(password)}
+          className="btn"
+        >Login</button>
       </form>
     </main>
   );

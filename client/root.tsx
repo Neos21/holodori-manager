@@ -81,15 +81,11 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactElement
   }
   
   return (
-    <main>
-      <h1>Holodori Manager</h1>
+    <main className="alert alert-error alert-soft alert-vertical m-4">
+      <h1 className="text-2xl font-bold">{title}</h1>
+      <p>{text}</p>
       
-      <div className="alert-danger mb-8 font-bold text-center">
-        <div className="mb-4 text-lg">{title}</div>
-        <div>{text}</div>
-      </div>
-      
-      <div className="text-center"><Link to="/">トップへ戻る</Link></div>
+      <p><Link to="/" className="hover:underline">トップへ戻る</Link></p>
     </main>
   );
 }

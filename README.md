@@ -14,6 +14,67 @@
 実装に際しては本 `README.md` に記載の設計仕様の他、`AGENTS.md` (作業手順と注意事項) および `TASKS.md` (具体的な実装タスク) も参照すること。
 
 
+## 開発用コマンド
+
+- npm コマンド
+
+```bash
+# 初期インストール (環境構築時に1回のみ実行する)
+$ npm install
+
+# 開発サーバを起動する
+$ npm run dev
+# Lint
+$ npm run lint
+# ビルド
+$ npm run build
+# ビルドした後にプレビューサーバを起動する
+$ npm run preview
+
+# ビルドした後に Cloudflare Workers にデプロイする (開発者が手動でのみ行う・AI は実行禁止)
+$ npm run deploy
+```
+
+- D1 データベース操作 (開発者が手動でのみ行う・AI は実行禁止)
+
+```bash
+# D1 データベースを作成する (最初に1回のみ実行する)
+$ wrangler d1 create holodori-manager
+
+# テーブルを確認するコマンド例
+$ wrangler d1 execute holodori-manager --local  --command='SELECT * FROM 【テーブル名】'
+$ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM 【テーブル名】'
+# SQL ファイルを実行する場合のコマンド例
+$ wrangler d1 execute holodori-manager --local  --file='./schema.sql'
+$ wrangler d1 execute holodori-manager --remote --file='./schema.sql'
+
+# 各種マイグレーション用コマンド
+$ wrangler d1 execute holodori-manager --local  --file='./migrations/create-tables.sql'
+$ wrangler d1 execute holodori-manager --local  --file='./migrations/insert-initial-data.sql'
+$ wrangler d1 execute holodori-manager --local  --file='./migrations/drop-tables.sql'
+$ wrangler d1 execute holodori-manager --remote --file='./migrations/create-tables.sql'
+$ wrangler d1 execute holodori-manager --remote --file='./migrations/insert-initial-data.sql'
+$ wrangler d1 execute holodori-manager --remote --file='./migrations/drop-tables.sql'
+
+# テーブル一覧を確認する
+$ wrangler d1 execute holodori-manager --local  --command='SELECT * FROM sqlite_master WHERE type = '\''table'\'''
+$ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM sqlite_master WHERE type = '\''table'\'''
+# インデックスを確認する
+$ wrangler d1 execute holodori-manager --local  --command='SELECT * FROM sqlite_master WHERE type = '\''index'\'''
+$ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM sqlite_master WHERE type = '\''index'\'''
+```
+
+- シークレット管理
+    - ローカル開発時は `.dev.vars` ファイルが自動的に参照される (Git 管理対象外)
+    - `server/types/hono-bindings.ts` で型定義に含めておく
+
+```bash
+# 本番環境にシークレットを登録するコマンド例 (開発者が手動でのみ行う・AI は実行禁止)
+$ echo 'VALUE' | wrangler secret put ADMIN_PASSWORD   --name holodori-manager
+$ echo 'VALUE' | wrangler secret put ADMIN_JWT_SECRET --name holodori-manager
+```
+
+
 ## ゲーム用語・仕様
 
 | ゲーム内正式名称 | 説明                                                                                                                     |
@@ -29,9 +90,9 @@
 
 | カテゴリ | 用途                                                             | 管理方針                                                   |
 |----------|------------------------------------------------------------------|------------------------------------------------------------|
-| `red`    | 音ゲー・リーダー用途                                             | 詳細管理せず、自由記述で運用する                           |
-| `blue`   | 音ゲー・メンバー用途                                             | 詳細管理せず、自由記述で運用する                           |
-| `yellow` | ホロワーク報酬アップ (レッスン Pt、キューブ4色、特訓アイテム3色) | 数値管理し、ホロワークでの採用優先度算出ロジックに使用する |
+| `red`    | 音ゲー・リーダー用途                                             | 詳細管理せず、ホロメンごとの「自由記入欄」で運用する       |
+| `blue`   | 音ゲー・メンバー用途                                             | 詳細管理せず、ホロメンごとの「自由記入欄」で運用する       |
+| `yellow` | ホロワーク報酬アップ (キューブ4色、特訓アイテム3色、レッスン Pt) | 数値管理し、ホロワークでの採用優先度算出ロジックに使用する |
 | `green`  | ミニゲーム報酬アップ (現状は全ホロメン共通6マス、基本 5% アップ) | 数値管理 (黄マスと同じ構造で管理する)                      |
 
 ### ホロワークの挙動
@@ -40,33 +101,22 @@
 - 1枠につき1人以上、最大5人のホロメンを選んで「開始」する
 - すでに活動中のホロメンは他の枠に同時採用できない (重複不可)
 - 「完了」と「中断」は別の操作となる
-    - **完了** : 5人を解放し、各ホロメンの `holowork_achievements.current_count` をインクリメントする
+    - **完了** : 5人を解放し、各ホロメンの「ホロワーク完了回数」をインクリメントする
     - **中断** : 5人を解放するのみ。カウントは増えない
-- 開始時に「完了回数重視」「キューブ獲得量重視」「特訓アイテム獲得量重視」「レッスン Pt 獲得量重視」(将来的に「S ランク重視」も追加予定) のいずれかを選び、その方針に沿った優先ホロメン候補を上位表示する。この選択自体は DB に永続化しない (選択ロジックのみに使用する)
 
-### アチーブメント (ホロワーク完了回数)
+### ホロワーク完了回数のアチーブメント閾値
 
-- 閾値 : 1、5、10、30、50、100、200、300、400 回 (全ホロメン共通、コード内定数として管理する)
-    - 各ホロメンの「現在のホロワーク完了回数」と閾値を比較し、より少ない回数で閾値に達することができるホロメンを「完了回数重視」で上位表示する
+- 閾値 : 1、5、10、30、50、100、200、300、400 回 (全ホロメン共通)
 
 
 ## DB スキーマ (Cloudflare D1 SQLite)
 
+DDL は [create-tables.sql](./migrations/create-tables.sql) に記載している。
+
 ### `holomems` : ホロメン
 
-```sql
-CREATE TABLE holomems (  -- ホロメン
-  id         INTEGER  PRIMARY KEY  AUTOINCREMENT,                      -- ID
-  sort_order INTEGER  NOT NULL  DEFAULT 0,                             -- ゲーム内表示順を再現するための手動調整可能な表示順
-  group      TEXT     NOT NULL,                                        -- グループ
-  name       TEXT     NOT NULL,                                        -- タレント名
-  note       TEXT,                                                     -- 自由記入欄
-  is_active  INTEGER  NOT NULL  DEFAULT 1 CHECK (is_active IN (0, 1))  -- 卒業等による無効化・物理削除はしない
-);
-```
-
 - 新規ホロメン追加時、`cards` に星3・4・5の3レコードを `is_owned = 0` で自動生成する。また、`holowork_achievements` にも初期レコードを追加しておく
-- `sort_order` は UNIQUE 相当にしたいが、フロントエンドから表示順の入れ替えを行いたい場合の操作性を考慮して、DB に UNIQUE 制約は付けないでおく
+- `sort_order` は UNIQUE 相当で扱いたいが、フロントエンドから表示順の入れ替えを行いたい場合の操作性を考慮して、DB に UNIQUE 制約は付けないでおく
     - 表示においては、同値のレコードがある場合はその中で `id` 順に表示するようにしている
     - NOTE : 現状、「全体の再採番」や「整合性管理」などのロジックは設けていない
 - `sort_order` の DEFAULT 値は 0 としているが、アプリ側のバリデーションで 1 以上でないと入力できないようにしてある
@@ -74,85 +124,33 @@ CREATE TABLE holomems (  -- ホロメン
 
 ### `cards` : カード
 
-```sql
-CREATE TABLE cards (  -- カード
-  id           INTEGER  PRIMARY KEY  AUTOINCREMENT,                        -- ID
-  holomems_id  INTEGER  NOT NULL,                                          -- FK → holomems.id
-  rarity       INTEGER  NOT NULL  CHECK (rarity IN (3, 4, 5)),             -- レア度・3・4・5 のいずれかが入る
-  name         TEXT     NOT NULL,                                          -- カード名称 (通常版・イベント限定版などの識別に使用する)
-  is_owned     INTEGER  NOT NULL  DEFAULT 0 CHECK (is_owned IN (0, 1)),    -- 所有しているか否か
-  level        INTEGER  NOT NULL,                                          -- レベル
-  bloom        INTEGER  NOT NULL  DEFAULT 0 CHECK (bloom BETWEEN 0 AND 5)  -- 開花度 (0〜5)
-);
-```
-
-- 一覧のデフォルトソート : `holomems.sort_order ASC` → `rarity DESC` → `id ASC` (同レア度内では登録順 = 通常版が先、イベント限定版が後になる想定)
+- 一覧ページでのデフォルトソート : `holomems.sort_order ASC` → `holomems.id ASC` (念のため) → `rarity DESC` → `id ASC` (同レア度内では登録順 = 通常版が先、イベント限定版が後になる想定)
 
 ### `board_nodes` : ホロメンボードのマス
 
-```sql
-CREATE TABLE board_nodes (  -- ホロメンボードのマス
-  id             INTEGER  PRIMARY KEY  AUTOINCREMENT,                                                                     -- ID
-  holomems_id    INTEGER  NOT NULL,                                                                                       -- FK → holomems.id
-  category       TEXT     NOT NULL  CHECK (category IN ('yellow', 'green', 'red', 'blue')),                               -- カテゴリ・この4値のみ許容する
-  yellow_target  TEXT               CHECK (yellow_target IS NULL OR yellow_target IN ('lesson_pt', 'cube', 'training')),  -- category = yellow の時のみホロワーク報酬アップ対象のアイテムを示す・その他の場合は Null とする
-  description    TEXT     NOT NULL,                                                                                       -- マス効果の内容 (自由記述。例 : 「キューブ獲得量アップ」「リーダー時スコア +50」)
-  is_unlocked    INTEGER  NOT NULL  DEFAULT 0 CHECK (is_unlocked IN (0, 1)),                                              -- 対象のマスを解放済か否か
-  amount         REAL     NOT NULL,                                                                                       -- マス自体の基礎効果量 (% の場合もあれば固定値の場合もあるため単位非依存の数値として保持する)
-  connect_rate   REAL                                                                                                     -- コネクトマスによる増幅率 (%)。未設定なら Null とする
-);
-```
-
-- `amount` と `connect_rate` を計算した結果の列は持たず、アプリ側で `amount × (1 + connect_rate / 100)` (`connect_rate` が Null なら `amount`そのまま) として算出・表示する
-- 一覧のデフォルトソート : `category` を `yellow`・`green`・`red`・`blue` の順 → `id ASC`
+- `amount` と `connect_rate` を計算した結果の列は持たず、アプリ側で `amount × (1 + connect_rate / 100)` (`connect_rate` が Null なら `amount` そのまま) として算出・表示する
+- 一覧ページでのデフォルトソート : `category` を `yellow`・`green`・`red`・`blue` の順 → `id ASC`
 
 ### `holowork_achievements` : ホロワーク達成状況
-
-```sql
-CREATE TABLE holowork_achievements (  -- ホロワーク達成状況
-  id             INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
-  holomems_id    INTEGER  NOT NULL  UNIQUE,            -- FK → holomems.id・ユニーク
-  current_count  INTEGER  NOT NULL  DEFAULT 0,         -- ホロワーク完了回数
-  note           TEXT                                  -- 自由記入欄
-);
-```
 
 - 「活動中か否か」は `active_holowork_members` の有無で判定するため、本テーブルに `is_active` といったカラムは持たせない
 - 次のアチーブ閾値・残り回数はアプリ側で算出する
 
 ### `holoworks` : ホロワークの枠
 
-```sql
-CREATE TABLE holoworks (  -- ホロワークの枠
-  id    INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
-  name  TEXT     NOT NULL                     -- 枠の名前 (例 : 「歌配信」「ゲーム配信」「雑談配信」「収録」)
-);
-```
-
 - 編集機能は不要。追加・物理削除は可能とする
 - 削除時は `active_holowork_members` に紐付くレコードが存在しないことを API 側で確認する
 
 ### `active_holowork_members` : ホロワーク活動中のホロメン
 
-```sql
-CREATE TABLE active_holowork_members (  -- ホロワーク活動中のホロメン
-  id            INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
-  holoworks_id  INTEGER  NOT NULL,                    -- FK → holoworks.id
-  holomems_id   INTEGER  NOT NULL  UNIQUE,            -- FK → holomems.id・ユニーク (1人が同時に複数枠で活動できないのでそれを防ぐ)
-);
-```
+- 登録と物理削除で活動中のホロメンを表現する
 
 ### `memo` : 自由メモ
 
-```sql
-CREATE TABLE memo (  -- 自由メモ : 現状は単一レコード運用を想定している
-  id      INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
-  content TEXT                                  -- 自由メモ
-);
-```
+- 現状は単一レコード運用を想定している
 
 
-## 画面一覧
+## ページ一覧
 
 ### トップページ (`/`)
 
@@ -162,7 +160,7 @@ CREATE TABLE memo (  -- 自由メモ : 現状は単一レコード運用を想�
 
 ### メインページ (`/home`)
 
-- 各管理画面へのメニュー : 「ホロワーク管理」「ホロメン管理」「カード管理」「ホロメンボード管理」
+- 各管理ページへのメニュー : 「ホロワーク管理」「ホロメン管理」「カード管理」「ホロメンボード管理」
 - 以降の全ページでサイドメニューを表示する (スマホはハンバーガーメニューで開閉する)
 - サイドメニュー内に `memo` を常時編集可能な形で配置し、Blur 時に自動保存する
     - 保存成功時に「保存しました」のメッセージを一定秒数表示し、その後非表示にする
@@ -170,32 +168,35 @@ CREATE TABLE memo (  -- 自由メモ : 現状は単一レコード運用を想�
 
 ### ホロメン管理 (`/holomems`)
 
-- `holomems` の一覧表示・編集画面
+- `holomems` の一覧表示・編集
 - 卒業等に伴う `is_active` の切り替え、`note` 編集、新規ホロメン追加を可能とする
 - デフォルト表示順は `sort_order` に従う
 
 ### カード管理 (`/cards`)
 
-- `cards` の一覧表示・編集画面
+- `cards` の一覧表示・編集
 - `is_owned` のチェックボックスで所有有無を管理する
 - ソート : `holomems.sort_order` 順 → `rarity DESC` → `id ASC`
 
 ### ホロメンボード管理 (`/board-nodes`)
 
-- `board_nodes` の一覧表示・編集画面 (`category` ごとにグルーピングし `id ASC` 順)
-- `holomems.note` もこの画面から表示・編集可能にする (赤・青マスの育成方針メモ用)
+- `board_nodes` の一覧表示・編集 (`category` ごとにグルーピングし `id ASC` 順)
+- `holomems.note` もこのページから表示・編集可能にする (赤・青マスの育成方針メモ用)
 
 ### ホロワーク管理 (`/holoworks`)
 
 - `holoworks` ごとに `active_holowork_members` を表示し、「開始」「完了」「中断」操作を提供する
-- 「開始」時は優先度モード (完了回数重視・キューブ獲得量重視・特訓アイテム獲得量重視・レッスン Pt 獲得量重視) を選択し、優先ホロメン候補を上位表示する。他枠で活動中のホロメンは非活性表示にしておく
-- 画面下部にホロメン一覧を表示し、`holowork_achievements` (現在回数・次の閾値・残り回数)、`board_nodes` の黄マス情報、`cards` から分かる所有・レベル状況を確認できるようにする
+- 開始時に「完了回数重視」「キューブ獲得量重視」「特訓アイテム獲得量重視」「レッスン Pt 獲得量重視」(将来的に「S ランク重視」も追加予定) のいずれかを選び、その方針に沿った優先ホロメン候補を上位表示する
+    - この選択自体は DB に永続化しない (選択ロジックのみに使用する)
+    - 他枠で活動中のホロメンは候補として取得せず一覧には非活性表示 or 非表示にする (TODO : どちらが UI 的に良いかは要検討)
+    - 「完了回数重視」を選択時は、各ホロメンの「現在のホロワーク完了回数」とアチーブメント閾値を比較し、より少ない回数でアチーブメント閾値に到達できるホロメンを上位表示する
+- 下部にホロメン一覧を表示し、`holowork_achievements` (現在回数・次の閾値・残り回数)、`board_nodes` の黄マス情報、`cards` から分かる所有・レベル状況を確認できるようにする
 - ホロワーク完了時のインクリメントはアプリ側で自動的に処理されるが、ゲームと同期してアプリの更新作業ができなかった時のために、ホロメン一覧では「ホロワーク完了回数」を手修正可能にする
 
 
-## API一覧 (`/api` 配下、RESTful)
+## API 一覧 (`/api` 配下、RESTful)
 
-| リソース             | エンドポイント例                                                                                                                         |
+| リソース             | エンドポイント一覧                                                                                                                       |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------|
 | 認証                 | `POST /api/login`                                                                                                                        |
 | ホロメン             | `GET・POST /api/holomems`・`PATCH /api/holomems/:id`                                                                                     |
@@ -203,7 +204,7 @@ CREATE TABLE memo (  -- 自由メモ : 現状は単一レコード運用を想�
 | ホロメンボードノード | `GET・POST /api/board-nodes`・`PATCH /api/board-nodes/:id`                                                                               |
 | ホロワーク達成状況   | `GET /api/holowork-achievements`・`PATCH /api/holowork-achievements/:id`                                                                 |
 | ホロワーク枠         | `GET・POST /api/holoworks`・`DELETE /api/holoworks/:id` (`active_holowork_members` が空の場合のみ許可する)                               |
-| 活動中メンバ         | `GET /api/active-holowork-members`・`POST /api/holoworks/:id/start`・`POST /api/holoworks/:id/complete`・`POST /api/holoworks/:id/abort` |
+| 活動中メンバー       | `GET /api/active-holowork-members`・`POST /api/holoworks/:id/start`・`POST /api/holoworks/:id/complete`・`POST /api/holoworks/:id/abort` |
 | 優先候補算出         | `GET /api/holoworks/:id/candidates?priority=count\|lesson_pt\|cube\|training`                                                            |
 | メモ                 | `GET・PATCH /api/memo`                                                                                                                   |
 
@@ -211,7 +212,6 @@ CREATE TABLE memo (  -- 自由メモ : 現状は単一レコード運用を想�
 ## 将来的な構想 (現段階ではスコープ外)
 
 - ホロワーク1枠での「S ランク」判定・推奨編成ロジックを実装したい (カードの `rarity`・`level`・`bloom` を用いたスコア算出と思われるが現時点では厳密な計算式が不明なため実装未定)
-- 音ゲー部分のスコア戦略検討機能
 
 
 ## Notes

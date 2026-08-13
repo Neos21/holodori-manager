@@ -17,9 +17,9 @@ export class BoardNodesRepository {
     const result = await this.db
       .prepare(`
         SELECT
-          holomems.group AS holomem_group,
-          holomems.name  AS holomem_name,
-          holomems.note  AS holomem_note,
+          holomems.group_name AS holomem_group_name,
+          holomems.name       AS holomem_name,
+          holomems.note       AS holomem_note,
           
           board_nodes.id,
           board_nodes.holomems_id,

@@ -5,7 +5,7 @@ import { booleanNumberFalse, booleanNumberTrue } from '../constants/boolean-cons
 import { isEmpty } from '../helpers/is-empty';
 
 export const sortOrderDisplayName = '表示順'     as const;
-export const groupDisplayName     = 'グループ'   as const;
+export const groupNameDisplayName = 'グループ'   as const;
 export const nameDisplayName      = 'タレント名' as const;
 export const noteDisplayName      = '自由記入欄' as const;
 export const isActiveDisplayName  = '状態'       as const;
@@ -17,10 +17,10 @@ export const holomemSchema = z.object({
                   .int({ error: zodErrorMessages.integer(sortOrderDisplayName) })
                   .min(1, { error: zodErrorMessages.minimumNumber(sortOrderDisplayName, 1) })
               ),
-  group     : z.preprocess(
+  group_name: z.preprocess(
                 preprocessOneLineString,
-                z.string({ error: zodErrorMessages.invalidType(groupDisplayName) })
-                  .min(1, { error: zodErrorMessages.empty(groupDisplayName) })
+                z.string({ error: zodErrorMessages.invalidType(groupNameDisplayName) })
+                  .min(1, { error: zodErrorMessages.empty(groupNameDisplayName) })
               ),
   name      : z.preprocess(
                 preprocessOneLineString,

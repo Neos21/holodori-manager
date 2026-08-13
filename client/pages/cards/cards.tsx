@@ -5,7 +5,7 @@ import { bloom0, blooms, rarities, star5 } from '../../../shared/constants/holod
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { bloomDisplayName, cardNameDisplayName, cardSchema, holomemsIdDisplayName, isOwnedDisplayName, levelDisplayName, rarityDisplayName } from '../../../shared/schemas/card-schema';
-import { groupDisplayName, nameDisplayName } from '../../../shared/schemas/holomem-schema';
+import { groupNameDisplayName, nameDisplayName } from '../../../shared/schemas/holomem-schema';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 
@@ -192,11 +192,11 @@ export default function CardsPage(): ReactElement {
         <table>
           <thead>
             <tr>
-              <th>{groupDisplayName}</th>
+              <th>{groupNameDisplayName}</th>
               <th>{nameDisplayName}</th>
               <th>{rarityDisplayName}</th>
               <th>{cardNameDisplayName}</th>
-              <th>所有状況の初期値は「未所有」にしておく</th>
+              <th>所有</th>
               <th>{levelDisplayName}</th>
               <th>{bloomDisplayName}</th>
               <th>操作</th>
@@ -205,7 +205,7 @@ export default function CardsPage(): ReactElement {
           <tbody>
             {cards.map(card => (
               <tr key={card.id}>
-                <td>{card.holomem_group}</td>
+                <td>{card.holomem_group_name}</td>
                 <td>{card.holomem_name}</td>
                 <td>{card.rarity}</td>
                 <td>{card.name}</td>
