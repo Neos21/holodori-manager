@@ -42,3 +42,11 @@ boardNodes.patch('/:id', async context => {  // eslint-disable-line neos-eslint-
   await new BoardNodesRepository(context.env.DB).update(id, parsed.data);
   return context.json({ result: { id } }, httpStatusCode.ok);
 });
+
+boardNodes.delete('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
+  const id = Number(context.req.param('id'));
+  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
+  
+  await new BoardNodesRepository(context.env.DB).delete(id);
+  return context.json({ result: { id } }, httpStatusCode.ok);
+});
