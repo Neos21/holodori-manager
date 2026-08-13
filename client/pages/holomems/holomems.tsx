@@ -28,6 +28,13 @@ const createEmptyFormValues = (): HolomemFormState => ({
   is_active : booleanStringTrue  // ホロメンの状態を示す初期値は「有効」としておく
 });
 
+/**
+ * ホロメン一覧ページ
+ * 
+ * - `holomems` の管理 (全件一覧表示・新規追加・編集)
+ * - 現状ゲームシステムとしては明らかにされていないが、対象ホロメンがゲーム内で使用不可能になった場合のために「卒業 (`is_active = false`)」を用意してある
+ * - ホロメンの物理削除には対応していない (対応予定なし・万が一対応する場合は関連するリソースの削除対応も必要になる)
+ */
 export default function HolomemsPage(): ReactElement {
   const [isLoading             , setIsLoading             ] = useState<boolean>(true);
   const [holomems              , setHolomems              ] = useState<Array<Holomem>>([]);
@@ -167,8 +174,9 @@ export default function HolomemsPage(): ReactElement {
                   </tr>
                 </thead>
                 <tbody>
+                  {/* 卒業しているホロメンの行はグレー背景で表示する */}
                   {holomems.map(holomem => (
-                    <tr key={holomem.id} className={`[&>td]:align-top ${holomem.is_active === booleanNumberTrue ? '' : 'bg-base-200'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
+                    <tr key={holomem.id} className={`[&>td]:align-top ${holomem.is_active === booleanNumberTrue ? '' : 'bg-base-300'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
                       <td className="w-px pl-0 pr-1 text-center whitespace-nowrap">
                         <button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(holomem)}>{holomem.sort_order}</button>
                       </td>
