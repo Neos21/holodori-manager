@@ -65,7 +65,12 @@ CREATE TABLE holomems (  -- ホロメン
 );
 ```
 
-- 新規ホロメン追加時、`cards` に星3・4・5の3レコードを `is_owned = 0` で自動生成する
+- 新規ホロメン追加時、`cards` に星3・4・5の3レコードを `is_owned = 0` で自動生成する。また、`holowork_achievements` にも初期レコードを追加しておく
+- `sort_order` は UNIQUE 相当にしたいが、フロントエンドから表示順の入れ替えを行いたい場合の操作性を考慮して、DB に UNIQUE 制約は付けないでおく
+    - 表示においては、同値のレコードがある場合はその中で `id` 順に表示するようにしている
+    - NOTE : 現状、「全体の再採番」や「整合性管理」などのロジックは設けていない
+- `sort_order` の DEFAULT 値は 0 としているが、アプリ側のバリデーションで 1 以上でないと入力できないようにしてある
+    - 表示においては「0 のレコードは除外する」といった絞り込みもしていないので、DB 直操作などで万が一「アプリ仕様上不正なデータ」が登録されていても、0 から順に表示されることになる
 
 ### `cards` : カード
 
@@ -89,7 +94,7 @@ CREATE TABLE cards (  -- カード
 CREATE TABLE board_nodes (  -- ホロメンボードのマス
   id             INTEGER  PRIMARY KEY  AUTOINCREMENT,                                                                     -- ID
   holomems_id    INTEGER  NOT NULL,                                                                                       -- FK → holomems.id
-  category       TEXT     NOT NULL  CHECK (category IN ('red', 'blue', 'yellow', 'green')),                               -- カテゴリ・この4値のみ許容する
+  category       TEXT     NOT NULL  CHECK (category IN ('yellow', 'green', 'red', 'blue')),                               -- カテゴリ・この4値のみ許容する
   yellow_target  TEXT               CHECK (yellow_target IS NULL OR yellow_target IN ('lesson_pt', 'cube', 'training')),  -- category = yellow の時のみホロワーク報酬アップ対象のアイテムを示す・その他の場合は Null とする
   description    TEXT     NOT NULL,                                                                                       -- マス効果の内容 (自由記述。例 : 「キューブ獲得量アップ」「リーダー時スコア +50」)
   is_unlocked    INTEGER  NOT NULL  DEFAULT 0 CHECK (is_unlocked IN (0, 1)),                                              -- 対象のマスを解放済か否か

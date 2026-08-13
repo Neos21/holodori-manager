@@ -6,9 +6,7 @@ export class HolomemsRepository {
   constructor(private readonly db: D1Database) { }
   
   public async findAll(): Promise<Array<Holomem>> {
-    // 「表示順」でソートする
-    // TODO : `sort_order` について、現状 DB 制約としては UNIQUE にしていないが、重複しては意味がないのでユニークとしたい
-    // TODO : ただ、実際に UNIQUE 制約を入れてしまうと、表示順を入れ替える際の編集が煩雑になる可能性があるため、扱い方を考える
+    // 「表示順」でソートし、万が一重複していた時のために念のため ID でのソート条件も書いておく
     const result = await this.db
       .prepare('SELECT id, sort_order, "group", name, note, is_active FROM holomems ORDER BY sort_order ASC, id ASC')
       .all<Holomem>();
