@@ -168,7 +168,7 @@ export default function HolomemsPage(): ReactElement {
                 </thead>
                 <tbody>
                   {holomems.map(holomem => (
-                    <tr key={holomem.id} className={`[&>td] : align-top ${holomem.is_active === booleanNumberTrue ? '' : 'bg-base-200'}`}>
+                    <tr key={holomem.id} className={`[&>td]:align-top ${holomem.is_active === booleanNumberTrue ? '' : 'bg-base-200'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
                       <td className="w-px pl-0 pr-1 text-center whitespace-nowrap">
                         <button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(holomem)}>{holomem.sort_order}</button>
                       </td>
