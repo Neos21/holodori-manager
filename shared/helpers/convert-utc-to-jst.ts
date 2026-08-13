@@ -1,5 +1,6 @@
 import { isEmpty } from './is-empty';
 
+/** ISO 8601 形式の UTC 文字列を JST 文字列に変換する・変換できない場合は `-` を返す */
 export const convertUtcToJst = (utcString: string | null | undefined, isDateOnly: boolean = false): string => {
   if(isEmpty(utcString) || !(/^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$/).test(utcString!)) return '-';
   

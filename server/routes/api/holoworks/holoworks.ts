@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
 
 import { httpStatusCode } from '../../../../shared/constants/http-status-code';
+import { isEmpty } from '../../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
 import { holoworkSchema } from '../../../../shared/schemas/holowork-schema';
 import { ActiveHoloworkMembersRepository } from '../../../repositories/active-holowork-members-repository';
@@ -34,27 +35,24 @@ holoworks.post('/', async context => {
 
 holoworks.delete('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
-  if(Number.isNaN(id)) return context.json({ error: 'ホロワーク ID が不正です' }, httpStatusCode.badRequest);
+  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
   
-  const activeMembers = await new ActiveHoloworkMembersRepository(context.env.DB).findByHoloworksId(id);
-  if(activeMembers.length > 0) return context.json({ error: '活動中のメンバーがいるため削除できません' }, httpStatusCode.badRequest);
+  const activeHoloworkMembers = await new ActiveHoloworkMembersRepository(context.env.DB).findByHoloworksId(id);
+  if(activeHoloworkMembers.length > 0) return context.json({ error: '活動中のメンバーがいるため削除できません' }, httpStatusCode.badRequest);
   
   await new HoloworksRepository(context.env.DB).delete(id);
   return context.json({ result: { id } }, httpStatusCode.ok);
 });
 
+/** ホロワークで優先的に選択すべきホロメン候補を取得する */
 holoworks.get('/:id/candidates', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
-  if(Number.isNaN(id)) return context.json({ error: 'ホロワーク ID が不正です' }, httpStatusCode.badRequest);
+  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
   
   const priority = context.req.query('priority');
-  if(priority == null) return context.json({ error: 'priority パラメータを指定してください' }, httpStatusCode.badRequest);
-  if(!holoworkPriorities.includes(priority as HoloworkPriority)) {
-    return context.json({ error: `priority は ${holoworkPriorities.join(' / ')} のいずれかで指定してください` }, httpStatusCode.badRequest);
-  }
+  if(isEmpty(priority)) return context.json({ error: 'priority パラメータを指定してください' }, httpStatusCode.badRequest);
+  if(!holoworkPriorities.includes(priority as HoloworkPriority)) return context.json({ error: 'priority の値が不正です' }, httpStatusCode.badRequest);
   
-  const candidatesService = new HoloworkCandidatesService(context.env.DB);
-  const candidates = await candidatesService.getCandidates(id, priority as HoloworkPriority);
-  
+  const candidates = await new HoloworkCandidatesService(context.env.DB).getCandidates(id, priority as HoloworkPriority);
   return context.json({ result: candidates }, httpStatusCode.ok);
 });

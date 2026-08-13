@@ -10,20 +10,13 @@ import './styles.css';
 
 export function Layout({ children }: { children: ReactNode }): ReactElement {
   // JWT の有無でログイン済か否かをチェックし適宜リダイレクトする
-  useEffect(() => {
+  useEffect((): void => {
     const token = useAdminStore.getState().token;
     const path = window.location.pathname;
     const isAuthenticated = !isEmpty(token);
     
-    if(isAuthenticated && path === '/') {
-      window.location.href = '/home';
-      return;
-    }
-    
-    if(!isAuthenticated && path === '/home') {
-      window.location.href = '/';
-      return;
-    }
+    if(isAuthenticated  && path === '/'    ) return (window.location.href = '/home') as unknown as void;
+    if(!isAuthenticated && path === '/home') return (window.location.href = '/'    ) as unknown as void;
   }, []);
   
   return (

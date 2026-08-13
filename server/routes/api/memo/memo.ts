@@ -14,7 +14,7 @@ export const memoPath = '/memo';
 memo.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next));
 
 memo.get('/', async context => {
-  const result = await new MemoRepository(context.env.DB).find();
+  const result = await new MemoRepository(context.env.DB).findOne();
   return context.json({ result }, httpStatusCode.ok);
 });
 
@@ -25,13 +25,15 @@ memo.patch('/', async context => {
   const parsed = memoSchema.safeParse(body);
   if(!parsed.success) return context.json({ error: mergeIssues(parsed.error) }, httpStatusCode.badRequest);
   
-  const repository = new MemoRepository(context.env.DB);
-  const existing = await repository.find();
+  // `memo` テーブルは単一行で運用する想定のため、1件取得できれば UPDATE・1件も取得できなければ INSERT で処理する
+  const memoRepository = new MemoRepository(context.env.DB);
+  const existing = await memoRepository.findOne();
   if(existing == null) {
-    const id = await repository.create(parsed.data);
+    const id = await memoRepository.create(parsed.data);
     return context.json({ result: { id } }, httpStatusCode.created);
   }
-  
-  await repository.update(existing.id, parsed.data);
-  return context.json({ result: { id: existing.id } }, httpStatusCode.ok);
+  else {
+    await memoRepository.update(existing.id, parsed.data);
+    return context.json({ result: { id: existing.id } }, httpStatusCode.ok);
+  }
 });

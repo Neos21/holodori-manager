@@ -31,7 +31,7 @@ cards.post('/', async context => {
 
 cards.patch('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
-  if(Number.isNaN(id)) return context.json({ error: 'カード ID が不正です' }, httpStatusCode.badRequest);
+  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
   
   const body = await context.req.json().catch(() => null);
   if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);

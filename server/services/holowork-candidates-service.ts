@@ -1,73 +1,92 @@
-import type { HoloworkCandidate, HoloworkCandidates } from '../../shared/types/holowork-candidate';
+import type { HoloworkCandidates, HoloworkCountCandidate, HoloworkRateCandidate } from '../../shared/types/holowork-candidate';
 
-export const holoworkPriorities = ['count', 'lesson_pt', 'cube', 'training'] as const;
+export const holoworkPriorities = ['count', 'lesson_pt', 'cube', 'training'] as const;  // TODO : 共通化
 
 export type HoloworkPriority = (typeof holoworkPriorities)[number];
 
 export const achievementThresholds = [1, 5, 10, 30, 50, 100, 200, 300, 400] as const;
 
+/** ホロワークで優先的に選択するべきホロメン候補を取得するためのサービス */
 export class HoloworkCandidatesService {
   constructor(private readonly db: D1Database) { }
   
   /**
-   * ホロワーク候補を生成し、指定優先度と候補データを返す。
+   * 優先すべきホロメン候補を優先度順に返す
+   * 
+   * Priority で `count` (完了回数重視) が選択された場合、次のアチーブメント達成までの残り回数が少ない順に取得する
+   * アチーブメント最大回数を超えているホロメンは含まない
+   * 
+   * Priority で `lesson_pt`・`cube`・`training` のいずれか (アイテム獲得量重視) が選択された場合、
+   * Priority と対応する `yellow_target` を見て「合計最終レート」が高いホロメンを順に取得する
+   * 合計最終レートが 0% (効果なし) のホロメンは含まない
    *
-   * - `count` : 次のアチーブメントまでの残り回数が少ない順
-   * - `lesson_pt` / `cube` / `training` : 選択された yellow_target の合計最終レートが高い順
-   *
-   * `count` は achievement 集計のみ、その他は選択 priority に該当する board_nodes 集計のみを行います。
+   * いずれも、卒業等による無効化がされたホロメンは含まれない
    */
   public async getCandidates(holoworkId: number, priority: HoloworkPriority): Promise<HoloworkCandidates> {
     if(priority === 'count') {
       return {
         selected_priority: priority,
-        candidates: await this.getCountCandidates(holoworkId)
+        candidates       : await this.getCountCandidates(holoworkId)
       };
     }
     else {
       return {
         selected_priority: priority,
-        candidates: await this.getRateCandidates(holoworkId, priority)
+        candidates       : await this.getRateCandidates(holoworkId, priority)
       };
     }
   }
   
-  private async getCountCandidates(holoworkId: number): Promise<Array<HoloworkCandidate>> {
+  /** 完了回数重視の場合の優先ホロメン候補を取得する */
+  private async getCountCandidates(holoworkId: number): Promise<Array<HoloworkCountCandidate>> {
+    // TODO : holomems.is_active = 0 なホロメンは除外すること・`400` がマジックナンバーとして登場しているので直す
     const sql = `
       SELECT
-        holomems.id AS holomems_id,
+        holomems.id   AS holomems_id,
         holomems.name AS holomems_name,
         holomems.note AS holomems_note,
-        COALESCE(holowork_achievements.current_count, 0) AS current_count,
-        ${this.buildNextThresholdCase('holowork_achievements.current_count')} AS next_threshold,
+        
+        COALESCE(holowork_achievements.current_count, 0)                       AS current_count,
+        ${this.buildNextThresholdCase('holowork_achievements.current_count')}  AS next_threshold,
         ${this.buildRemainingCountCase('holowork_achievements.current_count')} AS remaining_count
       FROM holomems
-      LEFT JOIN holowork_achievements ON holowork_achievements.holomems_id = holomems.id
-      LEFT JOIN (
-        SELECT holomems_id FROM active_holowork_members WHERE holoworks_id = ?
-      ) AS active_members ON active_members.holomems_id = holomems.id
-      WHERE active_members.holomems_id IS NULL
-        AND COALESCE(holowork_achievements.current_count, 0) < 400
-      ORDER BY remaining_count ASC, next_threshold ASC, holomems_id ASC
+      LEFT JOIN holowork_achievements
+        ON holowork_achievements.holomems_id = holomems.id
+      LEFT JOIN (SELECT holomems_id FROM active_holowork_members WHERE holoworks_id = ?) AS active_members
+        ON active_members.holomems_id = holomems.id
+      WHERE
+          active_members.holomems_id IS NULL
+      AND COALESCE(holowork_achievements.current_count, 0) < 400
+      ORDER BY
+        remaining_count ASC,
+        next_threshold  ASC,
+        holomems_id     ASC
     `;
-    
-    const result = await this.db.prepare(sql).bind(holoworkId).all<Record<string, unknown>>();
-    return (result.results ?? []).map((candidate: Record<string, unknown>) => ({
-      holomems_id: candidate['holomems_id'] as number,
-      holomems_name: candidate['holomems_name'] as string,
-      holomems_note: (candidate['holomems_note'] as string) ?? null,
-      current_count: candidate['current_count'] as number,
-      next_threshold: candidate['next_threshold'] as number | null,
-      remaining_count: candidate['remaining_count'] as number | null
-    }));
+    const result = await this.db.prepare(sql).bind(holoworkId).all<HoloworkCountCandidate>();
+    return result.results ?? [];
   }
   
-  private async getRateCandidates(holoworkId: number, priority: Exclude<HoloworkPriority, 'count'>): Promise<Array<HoloworkCandidate>> {
+  /** 現在のホロワーク完了回数から見て直近のアチーブメントの値を返すカラムを組み立てる */
+  private buildNextThresholdCase(currentCountExpression: string): string {
+    const clauses = achievementThresholds.map(threshold => `WHEN COALESCE(${currentCountExpression}, 0) < ${threshold} THEN ${threshold}`).join(' ');
+    return `CASE ${clauses} ELSE NULL END`;
+  }
+  
+  /** 直近のアチーブメントに対する残り回数の値を返すカラムを組み立てる */
+  private buildRemainingCountCase(currentCountExpression: string): string {
+    const clauses = achievementThresholds.map(threshold => `WHEN COALESCE(${currentCountExpression}, 0) < ${threshold} THEN ${threshold} - COALESCE(${currentCountExpression}, 0)`).join(' ');
+    return `CASE ${clauses} ELSE NULL END`;
+  }
+  
+  /** アイテム獲得量重視の場合の優先ホロメン候補を取得する */
+  private async getRateCandidates(holoworkId: number, priority: Exclude<HoloworkPriority, 'count'>): Promise<Array<HoloworkRateCandidate>> {
+    // TODO : holomems.is_active = 0 なホロメンは除外すること
     const sql = `
       SELECT
-        holomems.id AS holomems_id,
+        holomems.id   AS holomems_id,
         holomems.name AS holomems_name,
         holomems.note AS holomems_note,
+        
         SUM(
           CASE WHEN board_nodes.yellow_target = ?
             THEN COALESCE(board_nodes.amount, 0) * (1 + COALESCE(board_nodes.connect_rate, 0) / 100.0)
@@ -75,36 +94,19 @@ export class HoloworkCandidatesService {
           END
         ) AS total_rate
       FROM holomems
-      LEFT JOIN board_nodes ON board_nodes.holomems_id = holomems.id
-      LEFT JOIN (
-        SELECT holomems_id FROM active_holowork_members WHERE holoworks_id = ?
-      ) AS active_members ON active_members.holomems_id = holomems.id
-      WHERE active_members.holomems_id IS NULL
+      LEFT JOIN board_nodes
+        ON board_nodes.holomems_id = holomems.id
+      LEFT JOIN (SELECT holomems_id FROM active_holowork_members WHERE holoworks_id = ?) AS active_members
+        ON active_members.holomems_id = holomems.id
+      WHERE
+          active_members.holomems_id IS NULL
       GROUP BY holomems.id
       HAVING total_rate > 0
-      ORDER BY total_rate DESC, holomems_id ASC
+      ORDER BY
+        total_rate  DESC,
+        holomems_id ASC
     `;
-    
-    const result = await this.db.prepare(sql).bind(priority, holoworkId).all<Record<string, unknown>>();
-    return (result.results ?? []).map((candidate: Record<string, unknown>) => ({
-      holomems_id: candidate['holomems_id'] as number,
-      holomems_name: candidate['holomems_name'] as string,
-      holomems_note: (candidate['holomems_note'] as string) ?? null,
-      total_rate: candidate['total_rate'] as number
-    }));
-  }
-  
-  private buildNextThresholdCase(currentCountExpression: string): string {
-    const clauses = achievementThresholds
-      .map(threshold => `WHEN COALESCE(${currentCountExpression}, 0) < ${threshold} THEN ${threshold}`)
-      .join(' ');
-    return `CASE ${clauses} ELSE NULL END`;
-  }
-  
-  private buildRemainingCountCase(currentCountExpression: string): string {
-    const clauses = achievementThresholds
-      .map(threshold => `WHEN COALESCE(${currentCountExpression}, 0) < ${threshold} THEN ${threshold} - COALESCE(${currentCountExpression}, 0)`)
-      .join(' ');
-    return `CASE ${clauses} ELSE NULL END`;
+    const result = await this.db.prepare(sql).bind(priority, holoworkId).all<HoloworkRateCandidate>();
+    return result.results ?? [];
   }
 }

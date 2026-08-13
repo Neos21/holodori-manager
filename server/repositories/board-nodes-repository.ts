@@ -1,4 +1,4 @@
-import { buildUpdateQuery } from '../helpers/update-query';
+import { buildUpdateQuery } from '../helpers/build-update-query';
 
 import type { BoardNode } from '../../shared/types/board-node';
 
@@ -6,12 +6,25 @@ export class BoardNodesRepository {
   constructor(private readonly db: D1Database) { }
   
   public async findAll(): Promise<Array<BoardNode>> {
+    // ホロメンボードのマスは黄 → 緑 → 赤 → 青の順にグルーピング・ソートして表示したいため CASE 文が入っている
     const result = await this.db
-      .prepare('SELECT id, holomems_id, category, yellow_target, description, is_unlocked, amount, connect_rate FROM board_nodes ORDER BY CASE category WHEN \'yellow\' THEN 1 WHEN \'green\' THEN 2 WHEN \'red\' THEN 3 WHEN \'blue\' THEN 4 END ASC, id ASC')
+      .prepare(`
+        SELECT id, holomems_id, category, yellow_target, description, is_unlocked, amount, connect_rate
+        FROM board_nodes
+        ORDER BY
+          CASE category
+            WHEN 'yellow' THEN 1
+            WHEN 'green'  THEN 2
+            WHEN 'red'    THEN 3
+            WHEN 'blue'   THEN 4
+          END ASC,
+          id ASC
+      `)
       .all<BoardNode>();
     return result.results ?? [];
   }
   
+  // TODO : 現状未使用
   public async findById(id: number): Promise<BoardNode | null> {
     return await this.db
       .prepare('SELECT id, holomems_id, category, yellow_target, description, is_unlocked, amount, connect_rate FROM board_nodes WHERE id = ? LIMIT 1')
@@ -29,13 +42,13 @@ export class BoardNodesRepository {
   
   public async update(id: number, boardNode: Partial<BoardNode>): Promise<void> {
     const { sets, values } = buildUpdateQuery([
-      { column: 'holomems_id', value: boardNode.holomems_id },
-      { column: 'category', value: boardNode.category },
-      { column: 'yellow_target', value: boardNode.yellow_target, shouldInclude: (value: unknown): boolean => value !== undefined },
-      { column: 'description', value: boardNode.description },
-      { column: 'is_unlocked', value: boardNode.is_unlocked },
-      { column: 'amount', value: boardNode.amount },
-      { column: 'connect_rate', value: boardNode.connect_rate, shouldInclude: (value: unknown): boolean => value !== undefined }
+      { column: 'holomems_id'  , value: boardNode.holomems_id                                                                    },
+      { column: 'category'     , value: boardNode.category                                                                       },
+      { column: 'yellow_target', value: boardNode.yellow_target, shouldInclude: (value: unknown): boolean => value !== undefined },  // `null` を許容するため
+      { column: 'description'  , value: boardNode.description                                                                    },
+      { column: 'is_unlocked'  , value: boardNode.is_unlocked                                                                    },
+      { column: 'amount'       , value: boardNode.amount                                                                         },
+      { column: 'connect_rate' , value: boardNode.connect_rate , shouldInclude: (value: unknown): boolean => value !== undefined }  // `null` を許容するため
     ]);
     
     if(sets.length === 0) return;

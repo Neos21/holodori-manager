@@ -37,29 +37,28 @@
 ### ホロワークの挙動
 
 - 現状4枠 (将来増枠の可能性あり)。枠には「歌配信」「ゲーム配信」「雑談配信」「収録」といった名前がある
-- 1枠につき5人のホロメンを選んで「開始」する
-- 開始中のホロメンは他の枠に同時採用できない (重複不可)
+- 1枠につき1人以上、最大5人のホロメンを選んで「開始」する
+- すでに活動中のホロメンは他の枠に同時採用できない (重複不可)
 - 「完了」と「中断」は別の操作となる
-  - **完了** : 5人を解放し、各ホロメンの `holowork_achievements.current_count` をインクリメントする
-  - **中断** : 5人を解放するのみ。カウントは増えない
+    - **完了** : 5人を解放し、各ホロメンの `holowork_achievements.current_count` をインクリメントする
+    - **中断** : 5人を解放するのみ。カウントは増えない
 - 開始時に「完了回数重視」「キューブ獲得量重視」「特訓アイテム獲得量重視」「レッスン Pt 獲得量重視」(将来的に「S ランク重視」も追加予定) のいずれかを選び、その方針に沿った優先ホロメン候補を上位表示する。この選択自体は DB に永続化しない (選択ロジックのみに使用する)
 
 ### アチーブメント (ホロワーク完了回数)
 
 - 閾値 : 1、5、10、30、50、100、200、300、400 回 (全ホロメン共通、コード内定数として管理する)
+    - 各ホロメンの「現在のホロワーク完了回数」と閾値を比較し、より少ない回数で閾値に達することができるホロメンを「完了回数重視」で上位表示する
 
 
 ## DB スキーマ (Cloudflare D1 SQLite)
-
-D1 のマイグレーション作業は、開発者が必要なタイミングで手動で実施する。AI エージェントはローカル開発環境・リモート環境の両方において、マイグレーション SQL の作成・実行を行わない。
 
 ### `holomems` : ホロメン
 
 ```sql
 CREATE TABLE holomems (  -- ホロメン
   id         INTEGER  PRIMARY KEY  AUTOINCREMENT,                      -- ID
-  sort_order INTEGER  NOT NULL  DEFAULT 0,                             -- ゲーム内表示順を再現するための手動調整可能な並び順
-  group      TEXT     NOT NULL,                                        -- 所属グループ
+  sort_order INTEGER  NOT NULL  DEFAULT 0,                             -- ゲーム内表示順を再現するための手動調整可能な表示順
+  group      TEXT     NOT NULL,                                        -- グループ
   name       TEXT     NOT NULL,                                        -- タレント名
   note       TEXT,                                                     -- 自由記入欄
   is_active  INTEGER  NOT NULL  DEFAULT 1 CHECK (is_active IN (0, 1))  -- 卒業等による無効化・物理削除はしない
@@ -76,8 +75,8 @@ CREATE TABLE cards (  -- カード
   holomems_id  INTEGER  NOT NULL,                                          -- FK → holomems.id
   rarity       INTEGER  NOT NULL  CHECK (rarity IN (3, 4, 5)),             -- レア度・3・4・5 のいずれかが入る
   name         TEXT     NOT NULL,                                          -- カード名称 (通常版・イベント限定版などの識別に使用する)
-  is_owned     INTEGER  NOT NULL  DEFAULT 0 CHECK (is_owned IN (0, 1)),    -- 所持しているか否か
-  level        INTEGER  NOT NULL,                                          -- カードの現在レベル
+  is_owned     INTEGER  NOT NULL  DEFAULT 0 CHECK (is_owned IN (0, 1)),    -- 所有しているか否か
+  level        INTEGER  NOT NULL,                                          -- レベル
   bloom        INTEGER  NOT NULL  DEFAULT 0 CHECK (bloom BETWEEN 0 AND 5)  -- 開花度 (0〜5)
 );
 ```
@@ -90,10 +89,10 @@ CREATE TABLE cards (  -- カード
 CREATE TABLE board_nodes (  -- ホロメンボードのマス
   id             INTEGER  PRIMARY KEY  AUTOINCREMENT,                                                                     -- ID
   holomems_id    INTEGER  NOT NULL,                                                                                       -- FK → holomems.id
-  category       TEXT     NOT NULL  CHECK (category IN ('red', 'blue', 'yellow', 'green')),                               -- この4値のみ許容する
-  yellow_target  TEXT               CHECK (yellow_target IS NULL OR yellow_target IN ('lesson_pt', 'cube', 'training')),  -- category = yellow の時のみいずれかを指定する、その他の場合は Null とする
+  category       TEXT     NOT NULL  CHECK (category IN ('red', 'blue', 'yellow', 'green')),                               -- カテゴリ・この4値のみ許容する
+  yellow_target  TEXT               CHECK (yellow_target IS NULL OR yellow_target IN ('lesson_pt', 'cube', 'training')),  -- category = yellow の時のみホロワーク報酬アップ対象のアイテムを示す・その他の場合は Null とする
   description    TEXT     NOT NULL,                                                                                       -- マス効果の内容 (自由記述。例 : 「キューブ獲得量アップ」「リーダー時スコア +50」)
-  is_unlocked    INTEGER  NOT NULL  DEFAULT 0 CHECK (is_unlocked IN (0, 1)),                                              -- 対象のマスを解放済みか否か
+  is_unlocked    INTEGER  NOT NULL  DEFAULT 0 CHECK (is_unlocked IN (0, 1)),                                              -- 対象のマスを解放済か否か
   amount         REAL     NOT NULL,                                                                                       -- マス自体の基礎効果量 (% の場合もあれば固定値の場合もあるため単位非依存の数値として保持する)
   connect_rate   REAL                                                                                                     -- コネクトマスによる増幅率 (%)。未設定なら Null とする
 );
@@ -141,9 +140,9 @@ CREATE TABLE active_holowork_members (  -- ホロワーク活動中のホロメ�
 ### `memo` : 自由メモ
 
 ```sql
-CREATE TABLE memo (  -- 自由メモ
+CREATE TABLE memo (  -- 自由メモ : 現状は単一レコード運用を想定している
   id      INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
-  content TEXT                                  -- サイドメニューに常時表示する自由記述メモ・現状は単一レコード運用を想定する
+  content TEXT                                  -- 自由メモ
 );
 ```
 
@@ -173,7 +172,7 @@ CREATE TABLE memo (  -- 自由メモ
 ### カード管理 (`/cards`)
 
 - `cards` の一覧表示・編集画面
-- `is_owned` のチェックボックスで所持有無を管理する
+- `is_owned` のチェックボックスで所有有無を管理する
 - ソート : `holomems.sort_order` 順 → `rarity DESC` → `id ASC`
 
 ### ホロメンボード管理 (`/board-nodes`)
@@ -185,7 +184,7 @@ CREATE TABLE memo (  -- 自由メモ
 
 - `holoworks` ごとに `active_holowork_members` を表示し、「開始」「完了」「中断」操作を提供する
 - 「開始」時は優先度モード (完了回数重視・キューブ獲得量重視・特訓アイテム獲得量重視・レッスン Pt 獲得量重視) を選択し、優先ホロメン候補を上位表示する。他枠で活動中のホロメンは非活性表示にしておく
-- 画面下部にホロメン一覧を表示し、`holowork_achievements` (現在回数・次の閾値・残り回数)、`board_nodes` の黄マス情報、`cards` から分かる所持・レベル状況を確認できるようにする
+- 画面下部にホロメン一覧を表示し、`holowork_achievements` (現在回数・次の閾値・残り回数)、`board_nodes` の黄マス情報、`cards` から分かる所有・レベル状況を確認できるようにする
 - ホロワーク完了時のインクリメントはアプリ側で自動的に処理されるが、ゲームと同期してアプリの更新作業ができなかった時のために、ホロメン一覧では「ホロワーク完了回数」を手修正可能にする
 
 

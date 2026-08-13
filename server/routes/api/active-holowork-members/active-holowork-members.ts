@@ -18,62 +18,76 @@ activeHoloworkMembers.get('/', async context => {
   return context.json({ result: members }, httpStatusCode.ok);
 });
 
+/** ホロワーク開始 */
 activeHoloworkMembers.post('/:id/start', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
-  const holoworksId = Number(context.req.param('id'));
-  if(Number.isNaN(holoworksId)) return context.json({ error: 'ホロワーク ID が不正です' }, httpStatusCode.badRequest);
+  /** ホロワーク ID */
+  const id = Number(context.req.param('id'));  // Number 型にする
+  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);  // 整数のみ許容する
   
   const body = await context.req.json().catch(() => null);
   if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);
   
-  const holomemIds = Array.isArray(body.holomem_ids) ? body.holomem_ids : null;
-  if(holomemIds == null || holomemIds.length < 1 || holomemIds.length > 5 || !holomemIds.every((id: unknown) => typeof id === 'number' && !Number.isNaN(id))) {
-    return context.json({ error: 'holomem_ids は 1〜5 件の数値配列である必要があります' }, httpStatusCode.badRequest);
+  // 指定のホロワーク ID が存在するかチェックする
+  const holowork = await new HoloworksRepository(context.env.DB).findById(id);
+  if(holowork == null) return context.json({ error: '指定のホロワークが見つかりません' }, httpStatusCode.notFound);
+  
+  // 「選択されたメンバー (ホロメン ID の配列)」が1人以上・5人以下・いずれも ID として妥当な整数値であることをチェックする
+  const holomemsIds = Array.isArray(body.holomems_ids) ? body.holomems_ids : null;
+  if(holomemsIds == null || holomemsIds.length < 1 || holomemsIds.length > 5 || holomemsIds.some((holomemsId: unknown) => Number.isInteger(holomemsId))) {
+    return context.json({ error: '「選択されたメンバー」は 1〜5 件の数値配列である必要があります' }, httpStatusCode.badRequest);
   }
   
-  const parsedHolomemIds = holomemIds as number[];
+  const parsedHolomemsIds = holomemsIds as Array<number>;
   const activeHoloworkMembersRepository = new ActiveHoloworkMembersRepository(context.env.DB);
-  const existing = await Promise.all(parsedHolomemIds.map(id => activeHoloworkMembersRepository.findByHolomemsId(id)));
-  if(existing.some(member => member != null)) {
-    return context.json({ error: '他枠で活動中のホロメンが含まれています' }, httpStatusCode.badRequest);
+  
+  // 「選択されたメンバー」に活動中のホロメンがいないかチェックする
+  const existing = await Promise.all(parsedHolomemsIds.map(holomemsId => activeHoloworkMembersRepository.findByHolomemsId(holomemsId)));
+  if(existing.some(member => member != null)) return context.json({ error: '他枠で活動中のホロメンが含まれています' }, httpStatusCode.badRequest);
+  
+  // 選択されたメンバーを「活動中」にする
+  const activeHoloworkMemberIds: Array<number> = [];
+  for(const holomemsId of parsedHolomemsIds) {
+    const activeHoloworkMemberId = await activeHoloworkMembersRepository.create({ holoworks_id: id, holomems_id: holomemsId });
+    activeHoloworkMemberIds.push(activeHoloworkMemberId);
   }
   
-  const holowork = await new HoloworksRepository(context.env.DB).findById(holoworksId);
-  if(holowork == null) return context.json({ error: 'ホロワークが見つかりません' }, httpStatusCode.notFound);
-  
-  const ids = [] as number[];
-  for(const holomemId of parsedHolomemIds) {
-    const id = await activeHoloworkMembersRepository.create({ holoworks_id: holoworksId, holomems_id: holomemId });
-    ids.push(id);
-  }
-  
-  return context.json({ result: { ids } }, httpStatusCode.created);
+  // 生成された ID を一応返しておく (用途はないだろうけど)
+  return context.json({ result: { active_holowork_member_ids: activeHoloworkMemberIds } }, httpStatusCode.created);
 });
 
+/** ホロワーク完了 */
 activeHoloworkMembers.post('/:id/complete', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
-  const holoworksId = Number(context.req.param('id'));
-  if(Number.isNaN(holoworksId)) return context.json({ error: 'ホロワーク ID が不正です' }, httpStatusCode.badRequest);
+  /** ホロワーク ID */
+  const id = Number(context.req.param('id'));
+  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
   
   const activeHoloworkMembersRepository = new ActiveHoloworkMembersRepository(context.env.DB);
-  const members = await activeHoloworkMembersRepository.findByHoloworksId(holoworksId);
-  if(members.length === 0) return context.json({ error: '活動中のメンバーが存在しません' }, httpStatusCode.badRequest);
-  
-  const holomemIds = members.map(member => member.holomems_id);
   const holoworkAchievementsRepository = new HoloworkAchievementsRepository(context.env.DB);
   
-  for(const holomemId of holomemIds) {
-    await holoworkAchievementsRepository.incrementCountByHolomemsId(holomemId);
-  }
+  // 活動中のメンバーを取得する (もし1人もいなければ異常)
+  const activeHoloworkMembers = await activeHoloworkMembersRepository.findByHoloworksId(id);
+  if(activeHoloworkMembers.length === 0) return context.json({ error: '活動中のメンバーが存在しません' }, httpStatusCode.badRequest);
   
-  await activeHoloworkMembersRepository.deleteByHoloworksId(holoworksId);
+  // ホロワーク完了回数をインクリメントする
+  const holomemsIds = activeHoloworkMembers.map(member => member.holomems_id);
+  for(const holomemsId of holomemsIds) await holoworkAchievementsRepository.incrementCountByHolomemsId(holomemsId);
   
-  return context.json({ result: { holomem_ids: holomemIds } }, httpStatusCode.ok);
+  // 対象のホロワーク ID で活動していたメンバー達を一括で解放する
+  await activeHoloworkMembersRepository.deleteByHoloworksId(id);
+  
+  // 完了し解放されたメンバーの ID を返しておく
+  return context.json({ result: { holomems_ids: holomemsIds } }, httpStatusCode.ok);
 });
 
+/** ホロワーク中断 */
 activeHoloworkMembers.post('/:id/abort', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
-  const holoworksId = Number(context.req.param('id'));
-  if(Number.isNaN(holoworksId)) return context.json({ error: 'ホロワーク ID が不正です' }, httpStatusCode.badRequest);
+  /** ホロワーク ID */
+  const id = Number(context.req.param('id'));
+  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
   
-  const activeHoloworkMembersRepository = new ActiveHoloworkMembersRepository(context.env.DB);
-  await activeHoloworkMembersRepository.deleteByHoloworksId(holoworksId);
-  return context.json({ result: { holoworks_id: holoworksId } }, httpStatusCode.ok);
+  // 対象のホロワーク ID で活動しているメンバー達を一括で開放する
+  new ActiveHoloworkMembersRepository(context.env.DB).deleteByHoloworksId(id);
+  
+  // 操作したホロワーク ID を返しておく
+  return context.json({ result: { id } }, httpStatusCode.ok);
 });

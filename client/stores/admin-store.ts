@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 type AdminState = {
+  /** JWT */
   token: string | null;
   
   setToken: (token: string) => void;

@@ -1,11 +1,19 @@
 @import "tailwindcss";
 
+/**
+ * スタイルガイド
+ * 
+ * - マージンは原則下方向にのみ付与する
+ */
+
 :root {
   --font-sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Noto Sans CJK JP", Meiryo, sans-serif, "Apple Color Emoji", "Noto Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   --font-mono: "Noto Sans Mono CJK JP", Osaka-mono, "MS Gothic", Menlo, Consolas, Courier, "Courier New"                                                                      , monospace , "Apple Color Emoji", "Noto Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
 @layer base {
+  /* ページ全体 */
+  
   html {
     @apply h-full break-all cursor-default scrollbar-gutter-stable;
     
@@ -15,6 +23,8 @@
   body {
     @apply h-full;
   }
+  
+  /* フォーム */
   
   input[type="text"], input[type="password"], textarea, button {
     @apply border-[2px] border-dashed border-sky-500 py-1 px-2 text-sky-500 font-mono;
@@ -59,7 +69,7 @@
     }
   }
   
-  fieldset {
+  fieldset {  /* TODO : 要らないかも */
     @apply border border-slate-500 pt-2 px-4 pb-4 space-y-4 bg-white;
     
     & > legend {
@@ -75,13 +85,17 @@
     @apply space-y-1;
   }
   
+  /* メイン部分 */
+  
   main {
-    @apply max-w-4xl mx-auto pt-12 px-4 pb-16;
+    @apply pt-12 px-4 pb-16;
   }
   
   h1 {
     @apply mb-8 font-bold text-2xl text-center;
   }
+  
+  /* テーブル */
   
   table {
     @apply w-full border border-slate-500;
@@ -109,6 +123,7 @@
 }
 
 @layer components {
+  /* 本クラスの要素 (div など) 内に配置したフォーム部品は赤色で表示する */
   .form-danger {
     & :is(input[type="text"], input[type="password"], textarea, button) {
       @apply border-rose-500 text-rose-600;
@@ -130,17 +145,20 @@
     }
   }
   
+  /* Text : 文字色変更のみ */
   .text-muted { @apply text-slate-500; }
   
+  /* Alert : 軽く余白を付けた背景色付きのボックス */
   :is(.alert-danger, .alert-warning, .alert-success, .alert-danger) { @apply p-4; }
   .alert-danger  { @apply text-red-600     bg-red-50    ; }
   .alert-warning { @apply text-amber-600   bg-amber-50  ; }
   .alert-success { @apply text-emerald-600 bg-emerald-50; }
   .alert-info    { @apply text-indigo-600  bg-indigo-50 ; }
   
+  /* Label : 太字で文字色変更のみ */
   :is(.label-danger, .label-warning, .label-success, .label-info) { @apply font-bold; }
-  .label-danger  { @apply text-red-600     bg-red-50    ; }
-  .label-warning { @apply text-amber-600   bg-amber-50  ; }
-  .label-success { @apply text-emerald-600 bg-emerald-50; }
-  .label-info    { @apply text-indigo-600  bg-indigo-50 ; }
+  .label-danger  { @apply text-red-600    ; }
+  .label-warning { @apply text-amber-600  ; }
+  .label-success { @apply text-emerald-600; }
+  .label-info    { @apply text-indigo-600 ; }
 }

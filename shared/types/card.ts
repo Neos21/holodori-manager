@@ -1,13 +1,32 @@
+import { blooms, rarities } from '../constants/holodori-constants';
+
+import type { BooleanNumber } from './type-utilities';
+
+/** レア度の型 */
+export type Rarity = (typeof rarities)[number];
+/** 開花度の型 */
+export type Bloom = (typeof blooms)[number];
+
+/** カード */
 export type Card = {
+  /** ID */
   id: number;
+  /** ホロメン ID */
   holomems_id: number;
-  rarity: 3 | 4 | 5;
+  /** レア度 */
+  rarity: Rarity;
+  /** カード名称 (通常版・イベント限定版などの識別に使用する) */
   name: string;
-  is_owned: 0 | 1;
+  /** 所有しているか否か */
+  is_owned: BooleanNumber;
+  /** レベル */
   level: number;
-  bloom: 0 | 1 | 2 | 3 | 4 | 5;
+  /** 開花度 */
+  bloom: Bloom;
 };
 
+/** フロントエンド表示用の型 */
 export type CardDisplay = Card & {
+  /** タレント名 (`holomems.name`) */
   holomem_name: string;
 };

@@ -13,7 +13,7 @@
 
 ## 現状サマリ
 
-- サーバ側の主要 API (認証、holomems, cards, board-nodes, holowork-achievements, holoworks, active-holowork-members, candidates, memo) はバックエンド実装済み
+- サーバ側の主要 API (認証、holomems, cards, board-nodes, holowork-achievements, holoworks, active-holowork-members, candidates, memo) はバックエンド実装済
 - フロントエンドの画面・UX は未完成 (一覧画面、編集画面、ホロワーク管理 UI 等)
 
 
@@ -68,7 +68,7 @@
 - 狙い : ホロメン / カード / ボードノード / ホロワークの CRUD UI
 - チェックリスト :
   - [x] `/holomems` 一覧・編集 (`sort_order`, `is_active`, note)
-  - [ ] `/cards` 一覧・編集 (所持フラグ、レベル、開花)
+  - [ ] `/cards` 一覧・編集 (所有フラグ、レベル、開花)
   - [ ] `/board-nodes` 一覧・編集 (カテゴリ別表示、編集)
   - [ ] `/holoworks` 管理ページ (開始/完了/中断、候補表示、優先度選択)
 

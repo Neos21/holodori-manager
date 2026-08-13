@@ -1,5 +1,6 @@
-import { rarities } from '../../shared/constants/holodori-constants';
-import { buildUpdateQuery } from '../helpers/update-query';
+import { bloom0, rarities } from '../../shared/constants/holodori-constants';
+import { booleanNumberFalse } from '../../shared/types/type-utilities';
+import { buildUpdateQuery } from '../helpers/build-update-query';
 
 import type { Card, CardDisplay } from '../../shared/types/card';
 
@@ -7,6 +8,9 @@ export class CardsRepository {
   constructor(private readonly db: D1Database) { }
   
   public async findAll(): Promise<Array<CardDisplay>> {
+    // タレント名も表示したいのでテーブル結合して CardDisplay を返す
+    // `holomems.sort_order` 順 → レア度が高い順 → ID 順 (同レア度の場合は後から追加されたカードが後に来る)
+    // TODO : グループ名も取得する
     const result = await this.db
       .prepare(`
         SELECT
@@ -26,6 +30,7 @@ export class CardsRepository {
     return result.results ?? [];
   }
   
+  // TODO : 現状未使用
   public async findById(id: number): Promise<CardDisplay | null> {
     return await this.db
       .prepare(`
@@ -55,21 +60,23 @@ export class CardsRepository {
     return result.meta.last_row_id;
   }
   
+  /** 新規ホロメン追加時に通常版の星3・4・5カードを自動追加するために使用する */
   public async createDefaultCards(holomemId: number): Promise<void> {
+    const defaultLevel = 1;  // カードのデフォルト Lv (TODO : 一応共通化しておきたいかも)
     const cardStatements = rarities.map(rarity => this.db
       .prepare('INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (?, ?, ?, ?, ?, ?)')
-      .bind(holomemId, rarity, '通常版', 0, 1, 0));
+      .bind(holomemId, rarity, '通常版', booleanNumberFalse, defaultLevel, bloom0));
     await this.db.batch(cardStatements);
   }
   
   public async update(id: number, card: Partial<Card>): Promise<void> {
     const { sets, values } = buildUpdateQuery([
       { column: 'holomems_id', value: card.holomems_id },
-      { column: 'rarity', value: card.rarity },
-      { column: 'name', value: card.name },
-      { column: 'is_owned', value: card.is_owned },
-      { column: 'level', value: card.level },
-      { column: 'bloom', value: card.bloom }
+      { column: 'rarity'     , value: card.rarity      },
+      { column: 'name'       , value: card.name        },
+      { column: 'is_owned'   , value: card.is_owned    },
+      { column: 'level'      , value: card.level       },
+      { column: 'bloom'      , value: card.bloom       }
     ]);
     
     if(sets.length === 0) return;

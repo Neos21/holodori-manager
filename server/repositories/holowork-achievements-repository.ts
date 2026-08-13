@@ -1,4 +1,4 @@
-import { buildUpdateQuery } from '../helpers/update-query';
+import { buildUpdateQuery } from '../helpers/build-update-query';
 
 import type { HoloworkAchievement } from '../../shared/types/holowork-achievement';
 
@@ -19,6 +19,7 @@ export class HoloworkAchievementsRepository {
       .first<HoloworkAchievement>();
   }
   
+  /** インクリメント対象の存在をチェックするために使用する */
   public async findByHolomemsId(holomems_id: number): Promise<HoloworkAchievement | null> {
     return await this.db
       .prepare('SELECT id, holomems_id, current_count, note FROM holowork_achievements WHERE holomems_id = ? LIMIT 1')
@@ -29,16 +30,16 @@ export class HoloworkAchievementsRepository {
   public async create(achievement: Partial<HoloworkAchievement>): Promise<number> {
     const result = await this.db
       .prepare('INSERT INTO holowork_achievements (holomems_id, current_count, note) VALUES (?, ?, ?)')
-      .bind(achievement.holomems_id, achievement.current_count ?? 0, achievement.note ?? null)
+      .bind(achievement.holomems_id, achievement.current_count, achievement.note)
       .run();
     return result.meta.last_row_id;
   }
   
   public async update(id: number, achievement: Partial<HoloworkAchievement>): Promise<void> {
     const { sets, values } = buildUpdateQuery([
-      { column: 'holomems_id', value: achievement.holomems_id },
+      { column: 'holomems_id'  , value: achievement.holomems_id   },
       { column: 'current_count', value: achievement.current_count },
-      { column: 'note', value: achievement.note, shouldInclude: (value: unknown): boolean => value !== undefined }
+      { column: 'note'         , value: achievement.note          }
     ]);
     
     if(sets.length === 0) return;
@@ -50,10 +51,12 @@ export class HoloworkAchievementsRepository {
       .run();
   }
   
+  /** ホロワーク完了時に「ホロワーク完了回数」をインクリメントする */
   public async incrementCountByHolomemsId(holomems_id: number): Promise<void> {
+    // 万が一インクリメント対象のホロメンデータがなければ新規追加とする
     const existing = await this.findByHolomemsId(holomems_id);
     if(existing == null) {
-      await this.create({ holomems_id, current_count: 1 });
+      await this.create({ holomems_id, current_count: 1 });  // `note` カラムは Null 許容している・`undefined` が渡った場合は自動的に Null が Bind されるため `note` プロパティは記載不要
       return;
     }
     

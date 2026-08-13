@@ -2,7 +2,7 @@ import z from 'zod';
 
 import { preprocessOneLineString } from './schema-utilities';
 
-export const holoworkNameDisplayName = '枠名' as const;
+export const holoworkNameDisplayName = '枠の名前' as const;
 
 export const holoworkSchema = z.object({
   name: z.preprocess(

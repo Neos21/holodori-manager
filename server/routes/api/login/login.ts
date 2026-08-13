@@ -12,7 +12,7 @@ export const login = new Hono<{ Bindings: HonoBindings; }>();
 export const loginPath = '/login';
 
 login.post('/', async context => {
-  // NOTE : エラー理由を正直にレスポンスすると脆弱性に繋がるためレスポンスメッセージは濁しておく
+  // エラー理由を正直にレスポンスすると脆弱性に繋がるためレスポンスメッセージは濁しておく
   if(isEmpty(context.env.ADMIN_PASSWORD) || isEmpty(context.env.ADMIN_JWT_SECRET)) return context.json({ error: 'エラーが発生しました' }, httpStatusCode.internalServerError);
   
   const body = await context.req.json().catch(() => null);

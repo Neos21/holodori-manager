@@ -15,7 +15,8 @@ export default function Index(): ReactElement {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   
-  const onChange = (event: ChangeEvent<HTMLInputElement>): void => {
+  /** パスワード入力時・同時にエラーメッセージも適宜削除する */
+  const onChangePassword = (event: ChangeEvent<HTMLInputElement>): void => {
     setPassword(event.target.value);
     if(!isEmpty(errorMessage)) setErrorMessage('');
   };
@@ -42,19 +43,19 @@ export default function Index(): ReactElement {
   
   return (
     <main>
-      <h1>ログイン</h1>
+      <h1>Holodori Manager</h1>
       
       <form onSubmit={onSubmit}>
         <input
           type="password"
           value={password}
-          onChange={onChange}
+          onChange={onChangePassword}
           placeholder="Password"
           autoComplete="current-password"
           disabled={isSubmitting}
         />
         
-        {errorMessage && (
+        {!isEmpty(errorMessage) && (
           <div className="alert-danger">{errorMessage}</div>
         )}
         

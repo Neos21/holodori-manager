@@ -4,23 +4,23 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { isEmpty } from '../../shared/helpers/is-empty';
 import { useAdminStore } from '../stores/admin-store';
 
+/** ログイン後の全画面共通のレイアウト */
 export default function AdminLayout(): ReactElement {
   const navigate = useNavigate();
   const location = useLocation();
   const token = useAdminStore(state => state.token);
   
+  // JWT がなければトップページに遷移する
   useEffect(() => {
-    if(isEmpty(token)) {
-      navigate('/', { replace: true });
-    }
+    if(isEmpty(token)) navigate('/', { replace: true });
   }, [navigate, token]);
   
-  const navItems = [
-    { to: '/home', label: 'ホーム' },
-    { to: '/holomems', label: 'ホロメン' },
-    { to: '/cards', label: 'カード' },
-    { to: '/board-nodes', label: 'ボードノード' },
-    { to: '/holoworks', label: 'ホロワーク' }
+  const menuItems = [
+    { to: '/home'       , label: 'ホーム'         },
+    { to: '/holomems'   , label: 'ホロメン'       },
+    { to: '/cards'      , label: 'カード'         },
+    { to: '/board-nodes', label: 'ホロメンボード' },
+    { to: '/holoworks'  , label: 'ホロワーク'     }
   ];
   
   // TODO : モバイル向けにハンバーガーメニューボタンを表示し、広い画面では常時サイドメニューを表示しっぱなしにする。
@@ -32,12 +32,9 @@ export default function AdminLayout(): ReactElement {
     <div className="min-h-screen bg-slate-50">
       <div className="flex min-h-screen">
         <aside className="w-72 shrink-0 border-r border-slate-200 bg-white p-6">
-          <div className="mb-8 text-xl font-bold text-sky-700">HoloDori</div>
-          
           <nav className="space-y-2">
-            {navItems.map(item => {
+            {menuItems.map(item => {
               const isActive = location.pathname === item.to;
-              
               return (
                 <Link
                   key={item.to}
