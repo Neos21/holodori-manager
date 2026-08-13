@@ -81,8 +81,8 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactElement
   }
   
   return (
-    <main className="alert alert-error alert-soft alert-vertical m-4">
-      <h1 className="text-2xl font-bold">{title}</h1>
+    <main className="alert alert-error alert-soft alert-vertical my-4 mx-3">
+      <h1>{title}</h1>
       <p>{text}</p>
       
       <p><Link to="/" className="hover:underline">トップへ戻る</Link></p>

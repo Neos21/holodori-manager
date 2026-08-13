@@ -56,7 +56,7 @@ export class HoloworkAchievementsRepository {
     // 万が一インクリメント対象のホロメンデータがなければ新規追加とする
     const existing = await this.findByHolomemsId(holomems_id);
     if(existing == null) {
-      await this.create({ holomems_id, current_count: 1 });  // `note` カラムは Null 許容している・`undefined` が渡った場合は自動的に Null が Bind されるため `note` プロパティは記載不要
+      await this.create({ holomems_id, current_count: 1, note: null });
       return;
     }
     

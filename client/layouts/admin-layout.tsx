@@ -38,7 +38,7 @@ export default function AdminLayout(): ReactElement {
         </header>
         
         {/* コンテンツ部分 */}
-        <div className="min-h-screen p-4">
+        <div className="min-h-screen py-4 px-3">
           <Outlet />
         </div>
       </div>
@@ -48,7 +48,7 @@ export default function AdminLayout(): ReactElement {
         <label htmlFor="admin-sidebar" className="drawer-overlay" />
         
         {/* サイドメニュー */}
-        <aside className="w-72 min-h-full border-r border-base-300 p-4 text-base-content bg-base-200">
+        <aside className="w-72 min-h-full border-r border-base-300 py-4 px-3 text-base-content bg-base-200">
           <div className="mb-6 text-xl font-bold">Holodori Manager</div>
           <nav>
             <ul className="menu w-full p-0 gap-2">

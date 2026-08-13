@@ -43,7 +43,7 @@ export default function Index(): ReactElement {
   
   return (
     <main className="m-4">
-      <h1 className="mb-8 text-2xl font-bold">Holodori Manager</h1>
+      <h1>Holodori Manager</h1>
       
       <form onSubmit={onSubmit} className="space-y-4">
         <input

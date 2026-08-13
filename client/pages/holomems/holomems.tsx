@@ -29,21 +29,25 @@ const createEmptyFormValues = (): HolomemFormState => ({
 });
 
 export default function HolomemsPage(): ReactElement {
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [holomems , setHolomems ] = useState<Array<Holomem>>([]);
+  const [isLoading             , setIsLoading             ] = useState<boolean>(true);
+  const [holomems              , setHolomems              ] = useState<Array<Holomem>>([]);
+  const [expandedNoteHolomemIds, setExpandedNoteHolomemIds] = useState<Array<number>>([]);  // メモ欄を開いた状態を保持するための State
+  const [listError             , setListError             ] = useState<string>('');
   
+  const [isModalOpen , setIsModalOpen ] = useState<boolean>(false);
   const [form        , setForm        ] = useState<HolomemFormState>(createEmptyFormValues());
   const [editingId   , setEditingId   ] = useState<number | null>(null);  // `null` なら新規追加としてフォームを扱う
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [formError   , setFormError   ] = useState<string>('');
   
   const onLoadHolomems = async (): Promise<void> => {
+    setListError('');
     try {
       const response = await adminApi.get('/api/holomems').json<{ result: Array<Holomem>; }>();
       setHolomems(response.result);
     }
     catch(error) {
-      setErrorMessage(extractApiErrorMessage(error, 'ホロメン一覧の取得に失敗しました'));
+      setListError(extractApiErrorMessage(error, 'ホロメン一覧の取得に失敗しました'));
     }
   };
   
@@ -60,7 +64,21 @@ export default function HolomemsPage(): ReactElement {
     })();
   }, []);
   
-  const onStartEditHolomem = (holomem: Holomem): void => {
+  /** フォーム情報をリセットする */
+  const resetForm = (): void => {
+    setEditingId(null);
+    setForm(createEmptyFormValues());
+  };
+  
+  /** 新規追加ボタン押下時 */
+  const onStartCreate = (): void => {
+    resetForm();
+    setFormError('');
+    setIsModalOpen(true);
+  };
+  
+  /** 編集ボタン押下時 */
+  const onStartEdit = (holomem: Holomem): void => {
     setEditingId(holomem.id);
     setForm({
       sort_order: String(holomem.sort_order),
@@ -69,7 +87,8 @@ export default function HolomemsPage(): ReactElement {
       note      : holomem.note ?? '',
       is_active : String(holomem.is_active) as BooleanString
     });
-    setErrorMessage('');
+    setFormError('');
+    setIsModalOpen(true);
   };
   
   const onChangeForm = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
@@ -77,18 +96,26 @@ export default function HolomemsPage(): ReactElement {
     setForm(prevForm => ({ ...prevForm, [name]: value } as HolomemFormState));
   };
   
-  const onResetForm = (): void => {
-    setEditingId(null);
-    setForm(createEmptyFormValues());
+  const onCloseModal = (): void => {
+    resetForm();
+    setFormError('');
+    setIsModalOpen(false);
+  };
+  
+  /** メモ欄の開閉を管理する */
+  const onToggleNote = (holomemId: number): void => {
+    setExpandedNoteHolomemIds(prevExpandedNoteHolomemIds => prevExpandedNoteHolomemIds.includes(holomemId)
+      ? prevExpandedNoteHolomemIds.filter(id => id !== holomemId)
+      : [...prevExpandedNoteHolomemIds, holomemId]);
   };
   
   const onSubmit = async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
-    setErrorMessage('');
+    setFormError('');
     
     const payload = { ...form };
     const parsed = holomemSchema.safeParse(payload);
-    if(!parsed.success) return setErrorMessage(mergeIssues(parsed.error));
+    if(!parsed.success) return setFormError(mergeIssues(parsed.error));
     
     setIsSubmitting(true);
     try {
@@ -100,11 +127,12 @@ export default function HolomemsPage(): ReactElement {
         await adminApi.patch(`/api/holomems/${editingId}`, { json: parsed.data });
       }
       
-      await onLoadHolomems();
-      onResetForm();
+      setIsModalOpen(false);  // 先にモーダルを閉じる
+      resetForm();  // フォームをリセットしておく
+      await onLoadHolomems();  // 一覧を再読込する
     }
     catch(error) {
-      setErrorMessage(extractApiErrorMessage(error, editingId == null ? 'ホロメンの追加に失敗しました' : 'ホロメンの更新に失敗しました'));
+      setFormError(extractApiErrorMessage(error, editingId == null ? 'ホロメンの追加に失敗しました' : 'ホロメンの更新に失敗しました'));
     }
     finally {
       setIsSubmitting(false);
@@ -115,80 +143,99 @@ export default function HolomemsPage(): ReactElement {
     <main>
       <h1>ホロメン一覧</h1>
       
-      <section>
-        <h2>{editingId == null ? '新規追加' : '編集'}</h2>
-        
-        <form onSubmit={onSubmit}>
-          <div>
-            <label>
-              {sortOrderDisplayName}
-              <input name="sort_order" type="number" min={1} value={form.sort_order} onChange={onChangeForm} required />
-            </label>
-            
-            <label>
-              {groupNameDisplayName}
-              <input name="group_name" type="text" value={form.group_name} onChange={onChangeForm} required />
-            </label>
-            
-            <label>
-              {nameDisplayName}
-              <input name="name" type="text" value={form.name} onChange={onChangeForm} required />
-            </label>
-            
-            <label>
-              {noteDisplayName}
-              <textarea name="note" value={form.note} onChange={onChangeForm} />
-            </label>
-            
-            <label>
-              {isActiveDisplayName}
-              <select name="is_active" value={form.is_active} onChange={onChangeForm}>
-                <option value={booleanStringTrue}>有効</option>
-                <option value={booleanStringFalse}>卒業</option>
-              </select>
-            </label>
-          </div>
-          
-          <div>
-            <button type="submit" disabled={isSubmitting}>{editingId == null ? '追加する' : '更新する'}</button>
-            
-            <button type="button" onClick={onResetForm} disabled={isSubmitting}>キャンセル</button>
-          </div>
-        </form>
-      </section>
-      
-      {!isEmpty(errorMessage) && (
-        <div className="alert-danger">{errorMessage}</div>
+      {!isEmpty(listError) && (
+        <div className="alert alert-error alert-soft mb-4">{listError}</div>
       )}
       
       {isLoading ? (
-        <div className="label-warning">読込中…</div>
+        <div className="text-center">
+          <span className="loading loading-spinner text-warning" />
+        </div>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>No</th>
-              <th>{groupNameDisplayName}</th>
-              <th>{nameDisplayName}</th>
-              <th>{isActiveDisplayName}</th>
-              <th>{noteDisplayName}</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {/* TODO : note は pre-wrap 表示にしつつ行数がかさんでたら開閉できるようにする */}
-            {holomems.map(holomem => (
-              <tr key={holomem.id}>
-                <td>{holomem.sort_order}</td>
-                <td>{holomem.group_name}</td>
-                <td>{holomem.name}</td>
-                <td>{holomem.is_active === booleanNumberTrue ? '-' : '卒業'}</td>
-                <td>{holomem.note ?? '—'}</td>
-                <td><button type="button" onClick={() => onStartEditHolomem(holomem)}>編集</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <>
+          {holomems.length === 0 ? (
+            <p className="mb-4">登録されているホロメンはありません。</p>
+          ) : (
+            <div className="mb-4 overflow-x-auto">
+              <table className="table table-xs w-full">
+                <thead>
+                  <tr className="text-center">
+                    <th className="w-px           pl-0 pr-1 whitespace-nowrap">No</th>
+                    <th className="w-px           px-1      whitespace-nowrap">{groupNameDisplayName}</th>
+                    <th className="w-px           px-1      whitespace-nowrap">{nameDisplayName}</th>
+                    <th className="w-full min-w-0 pl-1 pr-0">メモ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {holomems.map(holomem => (
+                    <tr key={holomem.id} className={`[&>td] : align-top ${holomem.is_active === booleanNumberTrue ? '' : 'bg-base-200'}`}>
+                      <td className="w-px pl-0 pr-1 text-center whitespace-nowrap">
+                        <button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(holomem)}>{holomem.sort_order}</button>
+                      </td>
+                      <td className="w-px px-1 whitespace-nowrap">{holomem.group_name}</td>
+                      <td className="w-px px-1 whitespace-nowrap">{holomem.name}</td>
+                      <td className="w-full min-w-40 pl-1 pr-0">
+                        {isEmpty(holomem.note) ? '-' : (
+                          <div
+                            className={`cursor-pointer ${expandedNoteHolomemIds.includes(holomem.id) ? 'whitespace-pre-wrap' : 'line-clamp-1'}`}
+                            onClick={() => onToggleNote(holomem.id)}
+                          >
+                            {holomem.note}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          
+          <div className="text-right">
+            <button type="button" className="btn btn-info" onClick={onStartCreate}>新規ホロメン追加</button>
+          </div>
+        </>
+      )}
+      
+      {isModalOpen && (
+        <div className="modal modal-open">
+          <div className="modal-box max-w-xl">
+            <h2 className="mb-4 text-lg font-bold">{editingId == null ? '新規ホロメン追加' : `ホロメン編集 (ID : ${editingId})`}</h2>
+            
+            {!isEmpty(formError) && (
+              <div className="alert alert-error alert-soft mb-4">{formError}</div>
+            )}
+            
+            <form onSubmit={onSubmit}>
+              <fieldset className="fieldset">
+                <label className="fieldset-label">{sortOrderDisplayName}</label>
+                <input className="input w-full" name="sort_order" type="number" min={1} value={form.sort_order} onChange={onChangeForm} required />
+                
+                <label className="fieldset-label">{groupNameDisplayName}</label>
+                <input className="input w-full" name="group_name" type="text" value={form.group_name} onChange={onChangeForm} required />
+                
+                <label className="fieldset-label">{nameDisplayName}</label>
+                <input className="input w-full" name="name" type="text" value={form.name} onChange={onChangeForm} required />
+                
+                <label className="fieldset-label">{noteDisplayName}</label>
+                <textarea className="textarea w-full min-h-32" name="note" value={form.note} onChange={onChangeForm} />
+                
+                <label className="fieldset-label">{isActiveDisplayName}</label>
+                <select className="select w-full" name="is_active" value={form.is_active} onChange={onChangeForm}>
+                  <option value={booleanStringTrue}>有効</option>
+                  <option value={booleanStringFalse}>卒業</option>
+                </select>
+              </fieldset>
+              
+              <div className="modal-action justify-between">
+                <button type="button" className="btn" onClick={onCloseModal} disabled={isSubmitting}>キャンセル</button>
+                <button type="submit" className="btn btn-info" disabled={isSubmitting}>{editingId == null ? '追加する' : '更新する'}</button>
+              </div>
+            </form>
+          </div>
+          
+          <div className="modal-backdrop" onClick={onCloseModal} />
+        </div>
       )}
     </main>
   );

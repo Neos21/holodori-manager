@@ -16,3 +16,7 @@ html {
 body {
   @apply h-full;
 }
+
+h1 {
+  @apply mb-6 text-2xl font-bold;
+}
