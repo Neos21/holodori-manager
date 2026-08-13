@@ -21,3 +21,13 @@ export type BoardNode = {
   /** コネクトマスによる増幅率 (%)。未設定なら `null` */
   connect_rate: number | null;
 };
+
+/** フロントエンド表示用の型 */
+export type BoardNodeDisplay = BoardNode & {
+  /** グループ (`holomems.group`) */
+  holomem_group: string;
+  /** タレント名 (`holomems.name`) */
+  holomem_name: string;
+  /** 自由記入欄 (`holomems.note`) */
+  holomem_note: string | null | undefined;
+};

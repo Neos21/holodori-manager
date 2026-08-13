@@ -13,18 +13,24 @@ export class CardsRepository {
     const result = await this.db
       .prepare(`
         SELECT
-          cards.id,
-          cards.holomems_id,
           holomems.group AS holomem_group,
           holomems.name  AS holomem_name,
+          
+          cards.id,
+          cards.holomems_id,
           cards.rarity,
           cards.name,
           cards.is_owned,
           cards.level,
           cards.bloom
         FROM cards
-        INNER JOIN holomems ON holomems.id = cards.holomems_id
-        ORDER BY holomems.sort_order ASC, cards.rarity DESC, cards.id ASC
+        INNER JOIN holomems
+          ON holomems.id = cards.holomems_id
+        ORDER BY
+          holomems.sort_order ASC,
+          holomems.id         ASC,
+          cards.rarity        DESC,
+          cards.id            ASC
       `)
       .all<CardDisplay>();
     return result.results ?? [];

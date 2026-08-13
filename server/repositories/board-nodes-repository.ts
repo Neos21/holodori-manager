@@ -1,26 +1,44 @@
 import { boardNodeCategories } from '../../shared/constants/holodori-constants';
 import { buildUpdateQuery } from '../helpers/build-update-query';
 
-import type { BoardNode } from '../../shared/types/board-node';
+import type { BoardNode, BoardNodeDisplay } from '../../shared/types/board-node';
 
 export class BoardNodesRepository {
   constructor(private readonly db: D1Database) { }
   
-  public async findAll(): Promise<Array<BoardNode>> {
+  public async findAll(): Promise<Array<BoardNodeDisplay>> {
+    // ホロメン情報も表示したいのでテーブル結合して BoardNodeDisplay を返す
     // ホロメンボードのマスは黄 → 緑 → 赤 → 青の順にグルーピング・ソートして表示する
+    // TODO : `holomems.note` も画面で参照・編集可能にしたいので取得しているが、ノードごとに重複して持ってくる必要もなさそう…。画面上での扱い方も含めて後ほど再検討する
     const buildCategoryCase = (): string => {
       const clauses = boardNodeCategories.map((bardNodeCategory, index) => `WHEN '${bardNodeCategory}' THEN ${index + 1}`).join(' ');
       return `CASE category ${clauses} END ASC`;
     };
     const result = await this.db
       .prepare(`
-        SELECT id, holomems_id, category, yellow_target, description, is_unlocked, amount, connect_rate
+        SELECT
+          holomems.group AS holomem_group,
+          holomems.name  AS holomem_name,
+          holomems.note  AS holomem_note,
+          
+          board_nodes.id,
+          board_nodes.holomems_id,
+          board_nodes.category,
+          board_nodes.yellow_target,
+          board_nodes.description,
+          board_nodes.is_unlocked,
+          board_nodes.amount,
+          board_nodes.connect_rate
         FROM board_nodes
+        INNER JOIN holomems
+          ON holomems.id = board_nodes.holomems_id
         ORDER BY
+          holomems.sort_order ASC,
+          holomems.id         ASC,
           ${buildCategoryCase()},
-          id ASC
+          board_nodes.id      ASC
       `)
-      .all<BoardNode>();
+      .all<BoardNodeDisplay>();
     return result.results ?? [];
   }
   

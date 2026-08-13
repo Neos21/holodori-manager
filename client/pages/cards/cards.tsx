@@ -11,9 +11,7 @@ import { extractApiErrorMessage } from '../../helpers/extract-api-error-message'
 
 import type { BooleanString } from '../../../shared/types/boolean-types';
 import type { CardDisplay } from '../../../shared/types/card';
-
-/** Number 型の項目を String 型で扱うための型定義 */
-type NumberToStringValue = `${number}` | '';
+import type { NumberToStringValue } from '../../../shared/types/number-types';
 
 /** カードの新規追加・編集フォームの型定義 */
 type CardFormState = {
@@ -131,6 +129,7 @@ export default function CardsPage(): ReactElement {
         
         <form onSubmit={onSubmit}>
           <div>
+            {/* TODO : 新規追加時にホロメン ID (内部番号) を手入力はキツい。セレクトボックスでホロメン一覧から選択する方針にしたい */}
             <label>
               {holomemsIdDisplayName}
               <input name="holomems_id" type="number" min={1} value={form.holomems_id} onChange={onChangeForm} required />
@@ -197,7 +196,7 @@ export default function CardsPage(): ReactElement {
               <th>{nameDisplayName}</th>
               <th>{rarityDisplayName}</th>
               <th>{cardNameDisplayName}</th>
-              <th>{isOwnedDisplayName}</th>
+              <th>所有状況の初期値は「未所有」にしておく</th>
               <th>{levelDisplayName}</th>
               <th>{bloomDisplayName}</th>
               <th>操作</th>
@@ -210,7 +209,7 @@ export default function CardsPage(): ReactElement {
                 <td>{card.holomem_name}</td>
                 <td>{card.rarity}</td>
                 <td>{card.name}</td>
-                <td>{card.is_owned === booleanNumberTrue ? '所有' : '未所有'}</td>
+                <td>{card.is_owned === booleanNumberTrue ? '◯' : '×'}</td>
                 <td>{card.level}</td>
                 <td>{card.bloom}</td>
                 <td><button type="button" onClick={() => onStartEditCard(card)}>編集</button></td>
