@@ -3,7 +3,7 @@ import { type ChangeEvent, type ReactElement, type SubmitEvent, useEffect, useSt
 import { booleanNumberTrue, booleanStringFalse, booleanStringTrue } from '../../../shared/constants/boolean-constants';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
-import { holomemSchema } from '../../../shared/schemas/holomem-schema';
+import { groupDisplayName, isActiveDisplayName, nameDisplayName, noteDisplayName, sortOrderDisplayName, holomemSchema } from '../../../shared/schemas/holomem-schema';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 
@@ -119,30 +119,29 @@ export default function HolomemsPage(): ReactElement {
         <h2>{editingId == null ? '新規追加' : '編集'}</h2>
         
         <form onSubmit={onSubmit}>
-          {/* TODO : 項目名は holomem-schema.ts の定数 DisplayName を参照する */}
           <div>
             <label>
-              表示順
+              {sortOrderDisplayName}
               <input name="sort_order" type="number" min={1} value={form.sort_order} onChange={onChangeForm} required />
             </label>
             
             <label>
-              グループ
+              {groupDisplayName}
               <input name="group" type="text" value={form.group} onChange={onChangeForm} required />
             </label>
             
             <label>
-              タレント名
+              {nameDisplayName}
               <input name="name" type="text" value={form.name} onChange={onChangeForm} required />
             </label>
             
             <label>
-              自由記入欄
+              {noteDisplayName}
               <textarea name="note" value={form.note} onChange={onChangeForm} />
             </label>
             
             <label>
-              状態
+              {isActiveDisplayName}
               <select name="is_active" value={form.is_active} onChange={onChangeForm}>
                 <option value={booleanStringTrue}>有効</option>
                 <option value={booleanStringFalse}>卒業</option>
@@ -169,20 +168,21 @@ export default function HolomemsPage(): ReactElement {
           <thead>
             <tr>
               <th>No</th>
-              <th>グループ</th>
-              <th>タレント名</th>
-              <th>状態</th>
-              <th>自由記入欄</th>
+              <th>{groupDisplayName}</th>
+              <th>{nameDisplayName}</th>
+              <th>{isActiveDisplayName}</th>
+              <th>{noteDisplayName}</th>
               <th>操作</th>
             </tr>
           </thead>
           <tbody>
+            {/* TODO : note は pre-wrap 表示にしつつ行数がかさんでたら開閉できるようにする */}
             {holomems.map(holomem => (
               <tr key={holomem.id}>
                 <td>{holomem.sort_order}</td>
                 <td>{holomem.group}</td>
                 <td>{holomem.name}</td>
-                <td>{holomem.is_active === booleanNumberTrue ? '卒業' : '-'}</td>
+                <td>{holomem.is_active === booleanNumberTrue ? '-' : '卒業'}</td>
                 <td>{holomem.note ?? '—'}</td>
                 <td><button type="button" onClick={() => onStartEditHolomem(holomem)}>編集</button></td>
               </tr>

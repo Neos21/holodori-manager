@@ -4,7 +4,8 @@ import { booleanNumberTrue, booleanStringFalse, booleanStringTrue } from '../../
 import { bloom0, blooms, rarities, star5 } from '../../../shared/constants/holodori-constants';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
-import { cardSchema } from '../../../shared/schemas/card-schema';
+import { bloomDisplayName, cardNameDisplayName, cardSchema, holomemsIdDisplayName, isOwnedDisplayName, levelDisplayName, rarityDisplayName } from '../../../shared/schemas/card-schema';
+import { groupDisplayName, nameDisplayName } from '../../../shared/schemas/holomem-schema';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 
@@ -84,6 +85,10 @@ export default function CardsPage(): ReactElement {
     setForm(prevForm => ({ ...prevForm, [name]: value } as CardFormState));
   };
   
+  const onChangeOwned = (event: ChangeEvent<HTMLInputElement>): void => {
+    setForm(prevForm => ({ ...prevForm, is_owned: event.target.checked ? booleanStringTrue : booleanStringFalse }));
+  };
+  
   const onResetForm = (): void => {
     setEditingId(null);
     setForm(createEmptyFormValues());
@@ -127,12 +132,12 @@ export default function CardsPage(): ReactElement {
         <form onSubmit={onSubmit}>
           <div>
             <label>
-              ホロメン ID
+              {holomemsIdDisplayName}
               <input name="holomems_id" type="number" min={1} value={form.holomems_id} onChange={onChangeForm} required />
             </label>
             
             <label>
-              レア度
+              {rarityDisplayName}
               <select name="rarity" value={form.rarity} onChange={onChangeForm}>
                 {rarities.map(rarity => (
                   <option key={rarity} value={String(rarity)}>{rarity}</option>
@@ -141,26 +146,27 @@ export default function CardsPage(): ReactElement {
             </label>
             
             <label>
-              カード名
+              {cardNameDisplayName}
               <input name="name" type="text" value={form.name} onChange={onChangeForm} required />
             </label>
             
-            {/* TODO : チェックボックスにしたい */}
             <label>
-              所有状況
-              <select name="is_owned" value={form.is_owned} onChange={onChangeForm}>
-                <option value={booleanStringTrue}>所有</option>
-                <option value={booleanStringFalse}>未所有</option>
-              </select>
+              {isOwnedDisplayName}
+              <input
+                type="checkbox"
+                name="is_owned"
+                checked={form.is_owned === booleanStringTrue}
+                onChange={onChangeOwned}
+              />
             </label>
             
             <label>
-              レベル
+              {levelDisplayName}
               <input name="level" type="number" min={1} value={form.level} onChange={onChangeForm} required />
             </label>
             
             <label>
-              開花度
+              {bloomDisplayName}
               <select name="bloom" value={form.bloom} onChange={onChangeForm}>
                 {blooms.map(bloom => (
                   <option key={bloom} value={String(bloom)}>{bloom}</option>
@@ -187,13 +193,13 @@ export default function CardsPage(): ReactElement {
         <table>
           <thead>
             <tr>
-              <th>グループ</th>
-              <th>ホロメン</th>
-              <th>レア度</th>
-              <th>カード名</th>
-              <th>所有</th>
-              <th>レベル</th>
-              <th>開花度</th>
+              <th>{groupDisplayName}</th>
+              <th>{nameDisplayName}</th>
+              <th>{rarityDisplayName}</th>
+              <th>{cardNameDisplayName}</th>
+              <th>{isOwnedDisplayName}</th>
+              <th>{levelDisplayName}</th>
+              <th>{bloomDisplayName}</th>
               <th>操作</th>
             </tr>
           </thead>

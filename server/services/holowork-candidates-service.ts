@@ -1,4 +1,5 @@
 import { candidatePriorityCount } from '../../shared/constants/app-constants';
+import { booleanNumberTrue } from '../../shared/constants/boolean-constants';
 import { holoworkAchievements } from '../../shared/constants/holodori-constants';
 
 import type { CandidatePriority } from '../../shared/types/app-types';
@@ -18,7 +19,7 @@ export class HoloworkCandidatesService {
    * Priority と対応する `yellow_target` を見て「合計最終レート」が高いホロメンを順に取得する
    * 合計最終レートが 0% (効果なし) のホロメンは含まない
    *
-   * いずれも、卒業等による無効化がされたホロメンは含まれない
+   * いずれも、卒業等による無効化がされているホロメンは含まれない
    */
   public async getCandidates(holoworkId: number, priority: CandidatePriority): Promise<HoloworkCandidates> {
     if(priority === candidatePriorityCount) {
@@ -37,7 +38,8 @@ export class HoloworkCandidatesService {
   
   /** 完了回数重視の場合の優先ホロメン候補を取得する */
   private async getCountCandidates(holoworkId: number): Promise<Array<HoloworkCountCandidate>> {
-    // TODO : holomems.is_active = 0 なホロメンは除外すること・`400` がマジックナンバーとして登場しているので直す
+    /** アチーブメント最大回数 */
+    const maxCountThreshold = holoworkAchievements[holoworkAchievements.length - 1];
     const sql = `
       SELECT
         holomems.id   AS holomems_id,
@@ -54,7 +56,8 @@ export class HoloworkCandidatesService {
         ON active_members.holomems_id = holomems.id
       WHERE
           active_members.holomems_id IS NULL
-      AND COALESCE(holowork_achievements.current_count, 0) < 400
+      AND holomems.is_active = ${booleanNumberTrue}
+      AND COALESCE(holowork_achievements.current_count, 0) < ${maxCountThreshold}
       ORDER BY
         remaining_count ASC,
         next_threshold  ASC,
@@ -79,7 +82,6 @@ export class HoloworkCandidatesService {
   /** アイテム獲得量重視の場合の優先ホロメン候補を取得する */
   private async getRateCandidates(holoworkId: number, priority: Exclude<CandidatePriority, typeof candidatePriorityCount>): Promise<Array<HoloworkRateCandidate>> {
     // 合計最終レートが 0% (効果なし) のホロメンは含まないよう HAVING 句で除外している
-    // TODO : holomems.is_active = 0 なホロメンは除外すること
     const sql = `
       SELECT
         holomems.id   AS holomems_id,
@@ -99,6 +101,7 @@ export class HoloworkCandidatesService {
         ON active_members.holomems_id = holomems.id
       WHERE
           active_members.holomems_id IS NULL
+      AND holomems.is_active = ${booleanNumberTrue}
       GROUP BY holomems.id
       HAVING total_rate > 0
       ORDER BY
