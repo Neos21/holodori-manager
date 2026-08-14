@@ -3,10 +3,12 @@ import { type ChangeEvent, type ReactElement, type SubmitEvent, useEffect, useSt
 import { boardNodeYellowTargets } from '../../../shared/constants/app-constants';
 import { booleanNumberTrue, booleanStringFalse, booleanStringTrue } from '../../../shared/constants/boolean-constants';
 import { boardNodeCategories, boardNodeCategoryYellow } from '../../../shared/constants/holodori-constants';
+import { formatDecimal } from '../../../shared/helpers/format-decimal';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { amountDisplayName, boardNodeSchema, categoryDisplayName, connectRateDisplayName, descriptionDisplayName, holomemsIdDisplayName, isUnlockedDisplayName, yellowTargetDisplayName } from '../../../shared/schemas/board-node-schema';
 import { holomemSchema, noteDisplayName } from '../../../shared/schemas/holomem-schema';
+import { BoardNodesService } from '../../../shared/services/board-nodes-service';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 
@@ -78,12 +80,6 @@ const createEmptyFormValues = (): BoardNodeFormState => ({
   amount       : '',
   connect_rate : ''
 });
-
-/** 小数第2位まで固定表示する */
-const formatDecimal = (value: number): string => value.toFixed(2);
-
-/** 「基礎効果量 (`amount`)」と「コネクトマスによる増幅率 (`connect_rate`)」を考慮して「最終レート」を算出する */
-const calcFinalRate = (amount: number, connectRate: number | null): number => amount * (1 + (connectRate ?? 0) / 100);
 
 /** ボードノード一覧ページ */
 export default function BoardNodesPage(): ReactElement {
@@ -353,7 +349,7 @@ export default function BoardNodesPage(): ReactElement {
                                       <td className={`${category === boardNodeCategoryYellow ? 'px-1' : 'pl-0 pr-1'} min-w-0 px-1 whitespace-pre-wrap`}>{node.description}</td>
                                       <td className="px-1 whitespace-nowrap text-right">{formatDecimal(node.amount)}</td>
                                       <td className="px-1 whitespace-nowrap text-right">{node.connect_rate == null ? '-' : `${node.connect_rate}%`}</td>
-                                      <td className="px-1 whitespace-nowrap text-right font-bold">{formatDecimal(calcFinalRate(node.amount, node.connect_rate))}</td>
+                                      <td className="px-1 whitespace-nowrap text-right font-bold">{formatDecimal(BoardNodesService.calcFinalRate(node.amount, node.connect_rate))}</td>
                                       <td className="px-1 py-0 !align-middle whitespace-nowrap text-center">
                                         <button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(node)}>編集</button>
                                       </td>
