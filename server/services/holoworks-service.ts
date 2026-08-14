@@ -3,11 +3,53 @@ import { ActiveHoloworkMembersRepository } from '../repositories/active-holowork
 import { HolomemsRepository } from '../repositories/holomems-repository';
 import { HoloworksRepository } from '../repositories/holoworks-repository';
 
+import type { HoloworkDisplay } from '../../shared/types/holowork-display';
 import type { Result } from '../../shared/types/result';
+import type { HoloworkDisplayRow } from '../types/holowork-display-row';
 
-/** ホロワーク枠の操作を扱うサービス */
+/** ホロワーク枠の表示モデル作成と操作を扱うサービス */
 export class HoloworksService {
   constructor(private readonly db: D1Database) { }
+  
+  /** 活動中メンバーを含むホロワーク枠一覧を取得する */
+  public async findAll(): Promise<Array<HoloworkDisplay>> {
+    const sql = `
+      SELECT
+        holoworks.id        AS id,
+        holoworks.name      AS name,
+        holomems.id         AS holomems_id,
+        holomems.sort_order AS holomems_sort_order,
+        holomems.group_name AS holomems_group_name,
+        holomems.name       AS holomems_name
+      FROM holoworks
+      LEFT JOIN active_holowork_members
+        ON active_holowork_members.holoworks_id = holoworks.id
+      LEFT JOIN holomems
+        ON holomems.id = active_holowork_members.holomems_id
+      ORDER BY
+        holoworks.id        ASC,
+        holomems.sort_order ASC,
+        holomems.id         ASC
+    `;
+    const result = await this.db.prepare(sql).all<HoloworkDisplayRow>();
+    const holoworks = new Map<number, HoloworkDisplay>();
+    
+    for(const row of result.results ?? []) {
+      let holowork = holoworks.get(row.id);
+      if(holowork == null) {
+        holowork = { id: row.id, name: row.name, active_members: [] };
+        holoworks.set(row.id, holowork);
+      }
+      if(row.holomems_id == null || row.holomems_sort_order == null || row.holomems_group_name == null || row.holomems_name == null) continue;
+      holowork.active_members.push({
+        holomems_id        : row.holomems_id,
+        holomems_sort_order: row.holomems_sort_order,
+        holomems_group_name: row.holomems_group_name,
+        holomems_name      : row.holomems_name
+      });
+    }
+    return [...holoworks.values()];
+  }
   
   /** 対象枠で指定のホロメンの活動を開始する */
   public async start(holoworkId: number, holomemsIds: Array<number>): Promise<Result<Array<number>>> {

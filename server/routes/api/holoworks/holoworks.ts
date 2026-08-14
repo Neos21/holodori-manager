@@ -22,11 +22,10 @@ export const holoworksPath = '/holoworks' as const;
 holoworks.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next));
 
 /** Result のエラーに指定された HTTP ステータスコードを取得する */
-const getResultHttpStatusCode = (result: Result<unknown>): typeof httpStatusCode.badRequest | typeof httpStatusCode.notFound =>
-  result.httpStatusCode === httpStatusCode.notFound ? httpStatusCode.notFound : httpStatusCode.badRequest;
+const getResultHttpStatusCode = (result: Result<unknown>): typeof httpStatusCode.badRequest | typeof httpStatusCode.notFound => result.httpStatusCode === httpStatusCode.notFound ? httpStatusCode.notFound : httpStatusCode.badRequest;
 
 holoworks.get('/', async context => {
-  const holoworks = await new HoloworksRepository(context.env.DB).findAll();
+  const holoworks = await new HoloworksService(context.env.DB).findAll();
   return context.json({ result: holoworks }, httpStatusCode.ok);
 });
 
