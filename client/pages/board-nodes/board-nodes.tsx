@@ -474,7 +474,7 @@ export default function BoardNodesPage(): ReactElement {
                 <textarea className="textarea w-full min-h-24" name="note" value={holomemNoteForm.note} onChange={onChangeNoteForm} />
               </fieldset>
               
-              <div className="modal-action">
+              <div className="modal-action justify-between">
                 <button type="button" className="btn" onClick={onCloseNoteModal} disabled={isSubmittingNote}>キャンセル</button>
                 <button type="submit" className="btn btn-info" disabled={isSubmittingNote}>更新する</button>
               </div>
