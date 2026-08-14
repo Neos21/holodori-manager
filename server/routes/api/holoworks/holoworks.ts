@@ -9,6 +9,7 @@ import { holoworkSchema } from '../../../../shared/schemas/holowork-schema';
 import { ActiveHoloworkMembersRepository } from '../../../repositories/active-holowork-members-repository';
 import { HoloworksRepository } from '../../../repositories/holoworks-repository';
 import { HoloworkCandidatesService } from '../../../services/holowork-candidates-service';
+import { HoloworkMemberStatusesService } from '../../../services/holowork-member-statuses-service';
 
 import type { CandidatePriority } from '../../../../shared/types/app-types';
 import type { HonoBindings } from '../../../types/hono-bindings';
@@ -21,6 +22,12 @@ holoworks.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg
 holoworks.get('/', async context => {
   const holoworks = await new HoloworksRepository(context.env.DB).findAll();
   return context.json({ result: holoworks }, httpStatusCode.ok);
+});
+
+/** 有効なホロメンのホロワーク達成状況・活動状況・黄マス情報を取得する */
+holoworks.get('/member-statuses', async context => {
+  const memberStatuses = await new HoloworkMemberStatusesService(context.env.DB).findAll();
+  return context.json({ result: memberStatuses }, httpStatusCode.ok);
 });
 
 holoworks.post('/', async context => {
