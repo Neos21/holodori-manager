@@ -2,7 +2,7 @@ import { type ChangeEvent, type ReactElement, type SubmitEvent, useEffect, useSt
 
 import { boardNodeYellowTargets } from '../../../shared/constants/app-constants';
 import { booleanNumberTrue, booleanStringFalse, booleanStringTrue } from '../../../shared/constants/boolean-constants';
-import { boardNodeCategories, boardNodeCategoryBlue, boardNodeCategoryGreen, boardNodeCategoryRed, boardNodeCategoryYellow } from '../../../shared/constants/holodori-constants';
+import { boardNodeCategories, boardNodeCategoryYellow } from '../../../shared/constants/holodori-constants';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { amountDisplayName, boardNodeSchema, categoryDisplayName, connectRateDisplayName, descriptionDisplayName, holomemsIdDisplayName, isUnlockedDisplayName, yellowTargetDisplayName } from '../../../shared/schemas/board-node-schema';
@@ -107,18 +107,24 @@ export default function BoardNodesPage(): ReactElement {
   const [isSubmittingNote , setIsSubmittingNote ] = useState<boolean>(false);
   const [noteFormError    , setNoteFormError    ] = useState<string>('');
   
-  const onLoadData = async (): Promise<void> => {
+  const onLoadBoardNodes = async (): Promise<void> => {
     setListError('');
     try {
-      const [boardNodesResponse, holomemsResponse] = await Promise.all([
-        adminApi.get('/api/board-nodes').json<{ result: Array<BoardNode>; }>(),
-        adminApi.get('/api/holomems').json<{ result: Array<Holomem>; }>()
-      ]);
+      const boardNodesResponse = await adminApi.get('/api/board-nodes').json<{ result: Array<BoardNode>; }>();
       setBoardNodes(boardNodesResponse.result);
-      setHolomems(holomemsResponse.result);
     }
     catch(error) {
       setListError(extractApiErrorMessage(error, 'ボードノード一覧の取得に失敗しました'));
+    }
+  };
+  
+  const onLoadHolomems = async (): Promise<void> => {
+    try {
+      const holomemsResponse = await adminApi.get('/api/holomems').json<{ result: Array<Holomem>; }>();
+      setHolomems(holomemsResponse.result);
+    }
+    catch(error) {
+      setListError(extractApiErrorMessage(error, 'ホロメン一覧の取得に失敗しました'));
     }
   };
   
@@ -127,7 +133,7 @@ export default function BoardNodesPage(): ReactElement {
     (async () => {
       setIsLoading(true);
       try {
-        await onLoadData();
+        await Promise.all([onLoadBoardNodes(), onLoadHolomems()]);
       }
       finally {
         setIsLoading(false);
@@ -206,7 +212,7 @@ export default function BoardNodesPage(): ReactElement {
       
       setIsModalOpen(false);  // 先にモーダルを閉じる
       resetForm();  // フォームをリセットしておく
-      await onLoadData();  // 一覧を再読込する TODO : board-nodes だけで良い気がする
+      await onLoadBoardNodes();  // 一覧を再読込する
     }
     catch(error) {
       setFormError(extractApiErrorMessage(error, editingId == null ? 'マスの追加に失敗しました' : 'マスの更新に失敗しました'));
@@ -227,7 +233,7 @@ export default function BoardNodesPage(): ReactElement {
       
       setIsModalOpen(false);  // 先にモーダルを閉じる
       resetForm();  // フォームをリセットしておく
-      await onLoadData();  // 一覧を再読込する TODO : board-nodes だけで良い気がする
+      await onLoadBoardNodes();  // 一覧を再読込する
     }
     catch(error) {
       setFormError(extractApiErrorMessage(error, 'マスの削除に失敗しました'));
@@ -270,7 +276,7 @@ export default function BoardNodesPage(): ReactElement {
     try {
       await adminApi.patch(`/api/holomems/${noteTargetHolomem.id}`, { json: parsed.data });
       onCloseNoteModal();  // 先にモーダルを閉じる
-      await onLoadData();  // TODO : `holomems` State だけ API コールして更新すれば、`board-nodes` の方は再読込要らないんじゃない？
+      await onLoadHolomems();  // ホロメンを再読込する
     }
     catch(error) {
       setNoteFormError(extractApiErrorMessage(error, 'ホロメンメモの更新に失敗しました'));
@@ -318,8 +324,8 @@ export default function BoardNodesPage(): ReactElement {
                         </h3>
                         
                         <div className="overflow-x-auto">
-                          {/* TODO : スマホ幅にした時に「マス効果」列が広すぎ・ホロメンメモ列ももうちょっとだけ狭めたい */}
-                          <div className="grid min-w-240 grid-cols-[minmax(0,3fr)_minmax(12rem,1fr)]">
+                          {/* 全体の最小幅を `min-w` で決め、「ホロメンメモ」列を `15rem` に固定して残りを「マス効果」列に割り当てるよう `minmax` 指定をしている */}
+                          <div className="grid min-w-180 grid-cols-[minmax(0,1fr)_15rem]">
                             <div>
                               <table className="table table-xs">
                                 <colgroup>
