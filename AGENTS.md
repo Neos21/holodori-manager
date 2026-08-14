@@ -32,6 +32,7 @@
     - Repository の命名は複数形にする。例 : `holomems-repository.ts`・`class HolomemsRepository`。ファイル名とクラス名の単複は一致させる
     - Repository のメソッド名は `findAll`・`findById`・`create`・`update` のように、一覧取得・単体取得の命名を明確にする
 - サーバサイドロジックは `server/services/` 配下に作成し、サーバサイドロジック内でのみ使う型定義は `server/types/` 配下に作成する
+- 想定されるエラーの表現に例外オブジェクト・`throw`・`onError` ミドルウェアを使用せず、`shared/types/result.ts` の `Result` 型を利用して Controller で正常・異常レスポンスを明示的に分岐する
 - ルーティングコントローラ
     - `context.req.json()` は常に `await context.req.json().catch(() => null)` で受け、`body == null` の場合は 400 エラーを返す
     - 正常レスポンスは必ずトップレベルを `result` のみとし、エラーはトップレベル `error` を使う

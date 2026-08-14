@@ -12,6 +12,9 @@ import type { CandidatePriority } from '../../../shared/types/app-types';
 import type { Holomem } from '../../../shared/types/holomem';
 import type { Holowork } from '../../../shared/types/holowork';
 import type { HoloworkCandidate, HoloworkCandidates } from '../../../shared/types/holowork-candidate';
+import type { HoloworkMemberStatus } from '../../../shared/types/holowork-member-status';
+
+type ActiveHoloworkAssignment = Pick<ActiveHoloworkMember, 'holoworks_id' | 'holomems_id'>;
 
 const candidatePriorityDisplayNames: Record<CandidatePriority, string> = {
   count     : '完了回数重視',
@@ -24,7 +27,7 @@ export default function HoloworksPage(): ReactElement {
   const [isLoading            , setIsLoading            ] = useState<boolean>(true);
   const [holoworks            , setHoloworks            ] = useState<Array<Holowork>>([]);
   const [holomems             , setHolomems             ] = useState<Array<Holomem>>([]);
-  const [activeHoloworkMembers, setActiveHoloworkMembers] = useState<Array<ActiveHoloworkMember>>([]);
+  const [activeHoloworkMembers, setActiveHoloworkMembers] = useState<Array<ActiveHoloworkAssignment>>([]);
   
   const [holoworkName, setHoloworkName] = useState<string>('');
   const [startingHoloworkId, setStartingHoloworkId] = useState<number | null>(null);
@@ -45,11 +48,13 @@ export default function HoloworksPage(): ReactElement {
       const [holoworksResponse, holomemsResponse, activeHoloworkMembersResponse] = await Promise.all([
         adminApi.get('/api/holoworks').json<{ result: Array<Holowork>; }>(),
         adminApi.get('/api/holomems').json<{ result: Array<Holomem>; }>(),
-        adminApi.get('/api/active-holowork-members').json<{ result: Array<ActiveHoloworkMember>; }>()
+        adminApi.get('/api/holoworks/member-statuses').json<{ result: Array<HoloworkMemberStatus>; }>()
       ]);
       setHoloworks(holoworksResponse.result);
       setHolomems(holomemsResponse.result);
-      setActiveHoloworkMembers(activeHoloworkMembersResponse.result);
+      setActiveHoloworkMembers(activeHoloworkMembersResponse.result
+        .filter(memberStatus => memberStatus.active_holoworks_id != null)
+        .map(memberStatus => ({ holoworks_id: memberStatus.active_holoworks_id!, holomems_id: memberStatus.holomems_id })));
     }
     catch(error) {
       setErrorMessage(extractApiErrorMessage(error, 'ホロワーク情報の取得に失敗しました'));
@@ -121,7 +126,7 @@ export default function HoloworksPage(): ReactElement {
     
     setIsSubmitting(true);
     try {
-      await adminApi.post(`/api/active-holowork-members/${startingHoloworkId}/start`, { json: { holomems_ids: selectedHolomemsIds } });
+      await adminApi.post(`/api/holoworks/${startingHoloworkId}/start`, { json: { holomems_ids: selectedHolomemsIds } });
       await onLoadData();
       onCancelStart();
     }
@@ -137,7 +142,7 @@ export default function HoloworksPage(): ReactElement {
     setErrorMessage('');
     setIsSubmitting(true);
     try {
-      await adminApi.post(`/api/active-holowork-members/${holoworkId}/${action}`);
+      await adminApi.post(`/api/holoworks/${holoworkId}/${action}`);
       await onLoadData();
     }
     catch(error) {

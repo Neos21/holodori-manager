@@ -27,6 +27,17 @@ export class ActiveHoloworkMembersRepository {
       .first<ActiveHoloworkMember>();
   }
   
+  /** 指定したホロメンのうち、いずれかの枠で活動中のメンバーを取得する */
+  public async findByHolomemsIds(holomemsIds: Array<number>): Promise<Array<ActiveHoloworkMember>> {
+    if(holomemsIds.length === 0) return [];
+    const placeholders = holomemsIds.map(() => '?').join(', ');
+    const result = await this.db
+      .prepare(`SELECT id, holoworks_id, holomems_id FROM active_holowork_members WHERE holomems_id IN (${placeholders}) ORDER BY id ASC`)
+      .bind(...holomemsIds)
+      .all<ActiveHoloworkMember>();
+    return result.results ?? [];
+  }
+  
   public async create(member: Partial<ActiveHoloworkMember>): Promise<number> {
     const result = await this.db
       .prepare('INSERT INTO active_holowork_members (holoworks_id, holomems_id) VALUES (?, ?)')

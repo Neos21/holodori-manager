@@ -6,18 +6,24 @@ import { httpStatusCode } from '../../../../shared/constants/http-status-code';
 import { isEmpty } from '../../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
 import { holoworkSchema } from '../../../../shared/schemas/holowork-schema';
-import { ActiveHoloworkMembersRepository } from '../../../repositories/active-holowork-members-repository';
+import { startHoloworkSchema } from '../../../../shared/schemas/start-holowork-schema';
 import { HoloworksRepository } from '../../../repositories/holoworks-repository';
 import { HoloworkCandidatesService } from '../../../services/holowork-candidates-service';
 import { HoloworkMemberStatusesService } from '../../../services/holowork-member-statuses-service';
+import { HoloworksService } from '../../../services/holoworks-service';
 
 import type { CandidatePriority } from '../../../../shared/types/app-types';
+import type { Result } from '../../../../shared/types/result';
 import type { HonoBindings } from '../../../types/hono-bindings';
 
 export const holoworks = new Hono<{ Bindings: HonoBindings; }>();
 export const holoworksPath = '/holoworks' as const;
 
 holoworks.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next));
+
+/** Result のエラーに指定された HTTP ステータスコードを取得する */
+const getResultHttpStatusCode = (result: Result<unknown>): typeof httpStatusCode.badRequest | typeof httpStatusCode.notFound =>
+  result.httpStatusCode === httpStatusCode.notFound ? httpStatusCode.notFound : httpStatusCode.badRequest;
 
 holoworks.get('/', async context => {
   const holoworks = await new HoloworksRepository(context.env.DB).findAll();
@@ -51,16 +57,47 @@ holoworks.post('/', async context => {
   return context.json({ result: { id } }, httpStatusCode.created);
 });
 
+/** ホロワークを開始する */
+holoworks.post('/:id/start', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
+  const id = Number(context.req.param('id'));
+  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
+  
+  const body = await context.req.json().catch(() => null);
+  if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);
+  
+  const parsed = startHoloworkSchema.safeParse(body);
+  if(!parsed.success) return context.json({ error: mergeIssues(parsed.error) }, httpStatusCode.badRequest);
+  
+  const startResult = await new HoloworksService(context.env.DB).start(id, parsed.data.holomems_ids);
+  if(startResult.error != null) return context.json({ error: startResult.error }, getResultHttpStatusCode(startResult));
+  return context.json({ result: { active_holowork_member_ids: startResult.result } }, httpStatusCode.created);
+});
+
+/** ホロワークを完了する */
+holoworks.post('/:id/complete', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
+  const id = Number(context.req.param('id'));
+  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
+  
+  const completeResult = await new HoloworksService(context.env.DB).complete(id);
+  if(completeResult.error != null) return context.json({ error: completeResult.error }, getResultHttpStatusCode(completeResult));
+  return context.json({ result: { holomems_ids: completeResult.result } }, httpStatusCode.ok);
+});
+
+/** ホロワークを中断する */
+holoworks.post('/:id/abort', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
+  const id = Number(context.req.param('id'));
+  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
+  
+  const abortResult = await new HoloworksService(context.env.DB).abort(id);
+  if(abortResult.error != null) return context.json({ error: abortResult.error }, getResultHttpStatusCode(abortResult));
+  return context.json({ result: { id } }, httpStatusCode.ok);
+});
+
 holoworks.delete('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
   if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
   
-  const holowork = await new HoloworksRepository(context.env.DB).findById(id);
-  if(holowork == null) return context.json({ error: '指定のホロワークが見つかりません' }, httpStatusCode.notFound);
-  
-  const activeHoloworkMembers = await new ActiveHoloworkMembersRepository(context.env.DB).findByHoloworksId(id);
-  if(activeHoloworkMembers.length > 0) return context.json({ error: '活動中のメンバーがいるため削除できません' }, httpStatusCode.badRequest);
-  
-  await new HoloworksRepository(context.env.DB).delete(id);
+  const deleteResult = await new HoloworksService(context.env.DB).delete(id);
+  if(deleteResult.error != null) return context.json({ error: deleteResult.error }, getResultHttpStatusCode(deleteResult));
   return context.json({ result: { id } }, httpStatusCode.ok);
 });

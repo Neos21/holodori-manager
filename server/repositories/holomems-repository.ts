@@ -1,3 +1,4 @@
+import { booleanNumberTrue } from '../../shared/constants/boolean-constants';
 import { buildUpdateQuery } from '../helpers/build-update-query';
 
 import type { Holomem } from '../../shared/types/holomem';
@@ -18,6 +19,17 @@ export class HolomemsRepository {
       .prepare('SELECT id, sort_order, group_name, name, note, is_active FROM holomems WHERE id = ? LIMIT 1')
       .bind(id)
       .first<Holomem>();
+  }
+  
+  /** 指定した ID に一致する有効なホロメンを取得する */
+  public async findActiveByIds(ids: Array<number>): Promise<Array<Holomem>> {
+    if(ids.length === 0) return [];
+    const placeholders = ids.map(() => '?').join(', ');
+    const result = await this.db
+      .prepare(`SELECT id, sort_order, group_name, name, note, is_active FROM holomems WHERE is_active = ${booleanNumberTrue} AND id IN (${placeholders}) ORDER BY id ASC`)
+      .bind(...ids)
+      .all<Holomem>();
+    return result.results ?? [];
   }
   
   public async create(holomem: Partial<Holomem>): Promise<number> {
