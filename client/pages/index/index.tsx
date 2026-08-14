@@ -1,6 +1,6 @@
 import ky from 'ky';
 import { type ChangeEvent, type ReactElement, type SubmitEvent, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
@@ -9,7 +9,10 @@ import { extractApiErrorMessage } from '../../helpers/extract-api-error-message'
 import { useAdminStore } from '../../stores/admin-store';
 
 export default function Index(): ReactElement {
+  const location = useLocation();
   const navigate = useNavigate();
+  
+  const shouldRequestRelogin = location.state?.shouldRequestRelogin === true;  // `root.tsx` にてリダイレクト処理された際にメッセージ表示をさせるためのフラグが飛んでくる
   
   const [password    , setPassword    ] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -44,6 +47,10 @@ export default function Index(): ReactElement {
   return (
     <main className="m-4">
       <h1>Holodori Manager</h1>
+      
+      {shouldRequestRelogin && (
+        <div className="alert alert-warning alert-soft mb-4">再度ログインしてください</div>
+      )}
       
       <form onSubmit={onSubmit} className="space-y-4">
         <input

@@ -1,5 +1,5 @@
 import { type ReactElement, type ReactNode, useEffect } from 'react';
-import { isRouteErrorResponse, Link, Links, Outlet, Scripts, ScrollRestoration } from 'react-router';
+import { isRouteErrorResponse, Link, Links, Outlet, Scripts, ScrollRestoration, useLocation, useNavigate } from 'react-router';
 
 import { useAdminStore } from './stores/admin-store';
 import { isEmpty } from '../shared/helpers/is-empty';
@@ -9,15 +9,27 @@ import type { Route } from './+types/root';
 import './styles.css';
 
 export function Layout({ children }: { children: ReactNode }): ReactElement {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  const token = useAdminStore(state => state.token);
+  
   // JWT の有無でログイン済か否かをチェックし適宜リダイレクトする
   useEffect((): void => {
-    const token = useAdminStore.getState().token;
-    const path = window.location.pathname;
     const isAuthenticated = !isEmpty(token);
     
-    if(isAuthenticated  && path === '/'    ) return (window.location.href = '/home') as unknown as void;
-    if(!isAuthenticated && path === '/home') return (window.location.href = '/'    ) as unknown as void;
-  }, []);
+    if(isAuthenticated && location.pathname === '/') {
+      navigate('/home', { replace: true });
+      return;
+    }
+    if(!isAuthenticated && location.pathname !== '/') {
+      navigate('/', {
+        replace: true,
+        state: { shouldRequestRelogin: true }  // トップページにメッセージを表示するための State を渡す
+      });
+      return;
+    }
+  }, [location.pathname, navigate, token]);
   
   return (
     <html lang="ja">
