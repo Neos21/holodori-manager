@@ -9,7 +9,7 @@ import { isEmpty } from '../../../shared/helpers/is-empty';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 
-import type { HoloworkDisplay } from '../../../shared/types/holowork-display';
+import type { HoloworkDisplay } from '../../../shared/types/holowork';
 import type { HoloworkMemberStatus } from '../../../shared/types/holowork-member-status';
 
 /** ホロワーク管理ページ */

@@ -7,8 +7,8 @@ import { adminApi } from '../../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../../helpers/extract-api-error-message';
 
 import type { CandidatePriority } from '../../../../shared/types/app-types';
+import type { HoloworkDisplay } from '../../../../shared/types/holowork';
 import type { HoloworkCandidate, HoloworkCandidates } from '../../../../shared/types/holowork-candidate';
-import type { HoloworkDisplay } from '../../../../shared/types/holowork-display';
 
 type StartHoloworkModalProps = {
   holowork : HoloworkDisplay;
@@ -105,7 +105,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
         {'current_count' in candidate ? (
           <>
             <td className="whitespace-nowrap text-right">{candidate.current_count}</td>
-            <td className="whitespace-nowrap text-right">{candidate.next_threshold ?? '全達成'}</td>
+            <td className="whitespace-nowrap text-right">{candidate.next_threshold ?? '-'}</td>
             <td className="whitespace-nowrap text-right">{candidate.remaining_count ?? '-'}</td>
           </>
         ) : (

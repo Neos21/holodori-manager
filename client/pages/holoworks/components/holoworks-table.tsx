@@ -1,4 +1,4 @@
-import type { HoloworkDisplay } from '../../../../shared/types/holowork-display';
+import type { HoloworkDisplay } from '../../../../shared/types/holowork';
 import type { ReactElement } from 'react';
 
 type HoloworksTableProps = {
