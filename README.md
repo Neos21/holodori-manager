@@ -217,7 +217,7 @@ DDL は [create-tables.sql](./migrations/create-tables.sql) に記載してい�
 | ホロメン                     | `GET・POST /api/holomems`・`PATCH /api/holomems/:id`                                                 |
 | カード                       | `GET・POST /api/cards`・`PATCH /api/cards/:id`                                                       |
 | ホロメンボードノード         | `GET・POST /api/board-nodes`・`PATCH・DELETE /api/board-nodes/:id`                                   |
-| ホロワーク達成状況           | `GET /api/holowork-achievements`・`PATCH /api/holowork-achievements/:id`                             |
+| ホロワーク達成状況           | `PATCH /api/holowork-achievements/:id`                                                               |
 | ホロワーク枠                 | `GET・POST /api/holoworks`・`DELETE /api/holoworks/:id`                                              |
 | ホロメン別ホロワーク状況     | `GET /api/holoworks/member-statuses`                                                                 |
 | ホロワーク候補               | `GET /api/holoworks/candidates?priority=count\|cube\|training\|lesson_pt`                            |
