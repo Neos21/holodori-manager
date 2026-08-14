@@ -1,6 +1,7 @@
 import { type ReactElement, useEffect, useState } from 'react';
 
 import { CreateHoloworkModal } from './components/create-holowork-modal';
+import { HoloworkAchievementModal } from './components/holowork-achievement-modal';
 import { HoloworkMemberStatusesTable } from './components/holowork-member-statuses-table';
 import { HoloworksTable } from './components/holoworks-table';
 import { StartHoloworkModal } from './components/start-holowork-modal';
@@ -17,10 +18,13 @@ export default function HoloworksPage(): ReactElement {
   const [holoworks     , setHoloworks     ] = useState<Array<HoloworkDisplay>>([]);
   const [memberStatuses, setMemberStatuses] = useState<Array<HoloworkMemberStatus>>([]);
   const [listError     , setListError     ] = useState<string>('');
+  const [actionError   , setActionError   ] = useState<string>('');  // 完了・中断時のエラー表示
   
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
-  const [startingHolowork , setStartingHolowork ] = useState<HoloworkDisplay | null>(null);
-  const [isSubmitting     , setIsSubmitting     ] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);  // 画面全体の Submit 系ボタンを非活性にするための State
+  
+  const [isCreateModalOpen  , setIsCreateModalOpen  ] = useState<boolean>(false);
+  const [startingHolowork   , setStartingHolowork   ] = useState<HoloworkDisplay | null>(null);
+  const [editingMemberStatus, setEditingMemberStatus] = useState<HoloworkMemberStatus | null>(null);
   
   const onLoadHoloworks = async (): Promise<void> => {
     try {
@@ -60,30 +64,37 @@ export default function HoloworksPage(): ReactElement {
     })();
   }, []);
   
-  const onSubmitAction = async (holoworkId: number, action: 'complete' | 'abort'): Promise<void> => {
-    setListError('');
+  const onSubmitAction = async (holowork: HoloworkDisplay, action: 'complete' | 'abort'): Promise<void> => {
+    const confirmationMessage = action === 'complete'
+      ? `「${holowork.name}」を完了しますか？\n活動中メンバー全員のホロワーク完了回数が 1 増えます。`
+      : `「${holowork.name}」を中断しますか？\n中断ではホロワーク完了回数は増えません。`;
+    if(!window.confirm(confirmationMessage)) return;
+    
+    setActionError('');
     setIsSubmitting(true);
     try {
-      await adminApi.post(`/api/holoworks/${holoworkId}/${action}`);
+      await adminApi.post(`/api/holoworks/${holowork.id}/${action}`);
       await onLoadData();
     }
     catch(error) {
-      setListError(extractApiErrorMessage(error, action === 'complete' ? 'ホロワークの完了に失敗しました' : 'ホロワークの中断に失敗しました'));
+      setActionError(extractApiErrorMessage(error, action === 'complete' ? 'ホロワークの完了に失敗しました' : 'ホロワークの中断に失敗しました'));
     }
     finally {
       setIsSubmitting(false);
     }
   };
   
-  const onDeleteHolowork = async (holoworkId: number): Promise<void> => {
-    setListError('');
+  const onDeleteHolowork = async (holowork: HoloworkDisplay): Promise<void> => {
+    if(!window.confirm('このホロワーク枠を削除しますか？')) return;
+    
+    setActionError('');
     setIsSubmitting(true);
     try {
-      await adminApi.delete(`/api/holoworks/${holoworkId}`);
+      await adminApi.delete(`/api/holoworks/${holowork.id}`);
       await onLoadData();
     }
     catch(error) {
-      setListError(extractApiErrorMessage(error, 'ホロワーク枠の削除に失敗しました'));
+      setActionError(extractApiErrorMessage(error, 'ホロワーク枠の削除に失敗しました'));
     }
     finally {
       setIsSubmitting(false);
@@ -98,33 +109,49 @@ export default function HoloworksPage(): ReactElement {
         <div className="alert alert-error alert-soft mb-4">{listError}</div>
       )}
       
+      {/* 完了・中止・削除時のエラー表示 */}
+      {!isEmpty(actionError) && (
+        <div className="alert alert-error alert-soft mb-4">{actionError}</div>
+      )}
+      
       {isLoading ? (
         <div className="text-center">
           <span className="loading loading-spinner text-warning" />
         </div>
       ) : (
         <>
+          {/* ホロワーク枠一覧テーブル*/}
           <HoloworksTable
             holoworks={holoworks}
             isDisabled={isSubmitting}
             onStart={setStartingHolowork}
-            onComplete={holoworkId => onSubmitAction(holoworkId, 'complete')}
-            onAbort={holoworkId => onSubmitAction(holoworkId, 'abort')}
-            onDelete={holoworkId => onDeleteHolowork(holoworkId)}
+            onComplete={holowork => onSubmitAction(holowork, 'complete')}
+            onAbort={holowork => onSubmitAction(holowork, 'abort')}
+            onDelete={onDeleteHolowork}
           />
-          <HoloworkMemberStatusesTable memberStatuses={memberStatuses} />
+          
+          {/* ホロメン別ホロワーク達成状況・黄マス情報テーブル */}
+          <HoloworkMemberStatusesTable memberStatuses={memberStatuses} onEdit={setEditingMemberStatus} />
+          
           <div className="mb-8 text-right">
             <button type="button" className="btn btn-info" onClick={() => setIsCreateModalOpen(true)} disabled={isSubmitting}>ホロワークの枠追加</button>
           </div>
         </>
       )}
       
+      {/* 新規ホロワーク枠追加モーダル */}
       {isCreateModalOpen && (
-        <CreateHoloworkModal onClose={() => setIsCreateModalOpen(false)} onCreated={onLoadHoloworks} />
+        <CreateHoloworkModal onClose={() => setIsCreateModalOpen(false)} onCreated={onLoadData} />
       )}
       
+      {/* ホロワーク開始モーダル */}
       {startingHolowork != null && (
         <StartHoloworkModal holowork={startingHolowork} onClose={() => setStartingHolowork(null)} onStarted={onLoadData} />
+      )}
+      
+      {/* ホロワーク達成状況編集モーダル */}
+      {editingMemberStatus != null && (
+        <HoloworkAchievementModal memberStatus={editingMemberStatus} onClose={() => setEditingMemberStatus(null)} onUpdated={onLoadMemberStatuses} />
       )}
     </main>
   );

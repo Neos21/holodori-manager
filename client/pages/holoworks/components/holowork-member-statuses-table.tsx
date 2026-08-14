@@ -7,10 +7,11 @@ import type { ReactElement } from 'react';
 
 type HoloworkMemberStatusesTableProps = {
   memberStatuses: Array<HoloworkMemberStatus>;
+  onEdit        : (memberStatus: HoloworkMemberStatus) => void;
 };
 
 /** ホロメン別ホロワーク達成状況・黄マス情報テーブル */
-export const HoloworkMemberStatusesTable = ({ memberStatuses }: HoloworkMemberStatusesTableProps): ReactElement => (
+export const HoloworkMemberStatusesTable = ({ memberStatuses, onEdit }: HoloworkMemberStatusesTableProps): ReactElement => (
   <section className="mb-8">
     <h2 className="mb-4 text-lg font-bold">ホロメン別ホロワーク達成状況・黄マス情報</h2>
     
@@ -38,10 +39,10 @@ export const HoloworkMemberStatusesTable = ({ memberStatuses }: HoloworkMemberSt
               <tr key={memberStatus.holomems_id}>
                 <td className="whitespace-nowrap">{memberStatus.holomems_group_name}</td>
                 <td className="whitespace-nowrap">{memberStatus.holomems_name}</td>
-                <td className="whitespace-nowrap text-right">{memberStatus.current_count}</td>
+                <td className="cursor-pointer whitespace-nowrap text-right" onClick={() => onEdit(memberStatus)}>{memberStatus.current_count}</td>
                 <td className="whitespace-nowrap text-right">{memberStatus.next_threshold ?? '-'}</td>
                 <td className="whitespace-nowrap text-right">{memberStatus.remaining_count ?? '-'}</td>
-                <td className="min-w-48 whitespace-pre-wrap">{isEmpty(memberStatus.achievement_note) ? '-' : memberStatus.achievement_note}</td>
+                <td className="min-w-48 cursor-pointer whitespace-pre-wrap" onClick={() => onEdit(memberStatus)}>{isEmpty(memberStatus.achievement_note) ? '-' : memberStatus.achievement_note}</td>
                 <td className="whitespace-nowrap text-center">{memberStatus.active_holoworks_id == null ? '-' : '◯'}</td>
                 <td className="whitespace-nowrap text-right">{formatDecimal(memberStatus.cube_total_rate)}</td>
                 <td className="whitespace-nowrap text-right">{formatDecimal(memberStatus.training_total_rate)}</td>
