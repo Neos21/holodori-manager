@@ -1,15 +1,13 @@
-/** ホロワーク枠表示用 SQL の1行を表す内部型 */
-export type HoloworkDisplayRow = {
-  /** ID */
-  id: number;
-  /** 枠の名前 */
-  name: string;
-  /** ホロメン ID (`holomems.id`) */
-  holomems_id: number | null;
-  /** ホロメン表示順 (`holomems.sort_order`) */
-  holomems_sort_order: number | null;
-  /** グループ (`holomems.group_name`) */
-  holomems_group_name: string | null;
-  /** タレント名 (`holomems.name`) */
-  holomems_name: string | null;
-};
+import type { Holowork, HoloworkMember } from '../../shared/types/holowork';
+
+/** `LEFT JOIN` でメンバーが存在しない枠も取得するため、ホロメン基本情報を Nullable にした型 */
+type NullableHoloworkMember = { [Property in keyof HoloworkMember]: HoloworkMember[Property] | null; };
+
+/**
+ * ホロワーク枠表示用 SQL の1行を表す内部型
+ * 
+ * 1行に最大1人しか含まれない SQL 結果を Service が枠単位に集約して `HoloworkDisplay` を作るため、配列を持つフロントエンド用モデルとは分けて扱う
+ * 
+ * @see {@link HoloworkDisplay} 集約済の型・コチラをフロントエンドで使用する
+ */
+export type HoloworkDisplayRow = Holowork & NullableHoloworkMember;

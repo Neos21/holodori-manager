@@ -3,6 +3,16 @@
 スマホゲーム「ホロドリ (hololive Dreams)」における育成状況・ホロワークの管理を省力化する、個人利用向け Web アプリ。
 
 
+## ドキュメントの役割
+
+- `README.md` : 現在実装されている画面・API・データ仕様の入口とする
+- `AGENTS.md` : AI を含む実装担当者が常に守る作業手順・コーディングルールだけを簡潔に記す
+- `TASKS.md` : 実行順が必要な未完了タスクと、将来別の作業単位で扱う改善項目を記す
+- `docs/` : 機能固有の設計意図、判断理由、ロードマップなど、README や AGENTS に収めると長くなる情報を分離して記す
+
+同じ説明を複数ファイルに重複させず、詳細は該当ドキュメントへのリンクで参照する。今後もこの役割分担を基準に、AI が必要な文書だけを読める簡潔な構成へ段階的に整理する。
+
+
 ## 技術スタック
 
 - フロントエンド : React + React Router v7 (SPA モード)
@@ -103,8 +113,8 @@ $ echo 'VALUE' | wrangler secret put ADMIN_JWT_SECRET --name holodori-manager
 - 1枠につき1人以上、最大5人のホロメンを選んで「開始」する
 - すでに活動中のホロメンは他の枠に同時採用できない (重複不可)
 - 「完了」と「中断」は別の操作となる
-    - **完了** : 5人を解放し、各ホロメンの「ホロワーク完了回数」をインクリメントする
-    - **中断** : 5人を解放するのみ。カウントは増えない
+    - **完了** : 活動中の全員を解放し、各ホロメンの「ホロワーク完了回数」をインクリメントする
+    - **中断** : 活動中の全員を解放するのみ。カウントは増えない
 
 ### ホロワーク完了回数のアチーブメント閾値
 
@@ -158,7 +168,7 @@ DDL は [create-tables.sql](./migrations/create-tables.sql) に記載してい�
 
 - 未ログイン時 : パスワード欄 + Login ボタンのみ。環境変数のパスワードと照合し JWT を発行する (LocalStorage 管理で良い)
     - JWT が無効と判断された場合はコチラにリダイレクトし、「再度ログインしてください」のメッセージを表示する
-- ログイン済 : メインページへリダイレクトする
+- ログイン済 : メインページにリダイレクトする
 
 ### メインページ (`/home`)
 
@@ -187,28 +197,32 @@ DDL は [create-tables.sql](./migrations/create-tables.sql) に記載してい�
 
 ### ホロワーク管理 (`/holoworks`)
 
-- `holoworks` ごとに `active_holowork_members` を表示し、「開始」「完了」「中断」操作を提供する
+- `holoworks` ごとに `active_holowork_members` を表示し、「開始」「完了」「中断」「削除」操作を提供する
 - 開始時に「完了回数重視」「キューブ獲得量重視」「特訓アイテム獲得量重視」「レッスン Pt 獲得量重視」(将来的に「S ランク重視」も追加予定) のいずれかを選び、その方針に沿った優先ホロメン候補を上位表示する
     - この選択自体は DB に永続化しない (選択ロジックのみに使用する)
-    - 他枠で活動中のホロメンは候補として取得せず一覧には非活性表示 or 非表示にする (TODO : どちらが UI 的に良いかは要検討)
-    - 「完了回数重視」を選択時は、各ホロメンの「現在のホロワーク完了回数」とアチーブメント閾値を比較し、より少ない回数でアチーブメント閾値に到達できるホロメンを上位表示する
-- 下部にホロメン一覧を表示し、`holowork_achievements` (現在回数・次の閾値・残り回数)、`board_nodes` の黄マス情報、`cards` から分かる所有・レベル状況を確認できるようにする
-- ホロワーク完了時のインクリメントはアプリ側で自動的に処理されるが、ゲームと同期してアプリの更新作業ができなかった時のために、ホロメン一覧では「ホロワーク完了回数」を手修正可能にする
+    - 卒業済み、またはいずれかの枠で活動中のホロメンは候補 API から除外する
+    - API が「優先候補」と重複しない「その他の選択可能なホロメン」に区分し、画面では任意の1〜5人を両方の一覧から選択する
+    - 5人未満で開始する場合は確認ダイアログを表示する
+    - 「完了回数重視」は残り回数の少ない順、同値なら現在回数の多い順、以降は次回閾値・ホロメン表示順・ID 順で表示する。全アチーブメント達成済みのホロメンはその他候補に表示する
+    - アイテム獲得量重視は、解放済み黄マスの合計最終レートが高い順で表示する。対象効果が0以下のホロメンはその他候補に表示する
+- 下部にホロメン一覧を表示し、`holowork_achievements` の現在回数・次の閾値・残り回数、活動中の枠、`board_nodes` の解放済み黄マスから算出した対象別合計最終レートを確認できるようにする
+- ホロワーク完了時の回数加算はアプリ側で自動処理する。同期できなかった場合に備え、現在回数または達成状況メモのセルから手動編集できるようにする
 
 
 ## API 一覧 (`/api` 配下、RESTful)
 
-| リソース             | エンドポイント一覧                                                                                                                       |
-|----------------------|------------------------------------------------------------------------------------------------------------------------------------------|
-| 認証                 | `POST /api/login`                                                                                                                        |
-| ホロメン             | `GET・POST /api/holomems`・`PATCH /api/holomems/:id`                                                                                     |
-| カード               | `GET・POST /api/cards`・`PATCH /api/cards/:id`                                                                                           |
-| ホロメンボードノード | `GET・POST /api/board-nodes`・`PATCH /api/board-nodes/:id`                                                                               |
-| ホロワーク達成状況   | `GET /api/holowork-achievements`・`PATCH /api/holowork-achievements/:id`                                                                 |
-| ホロワーク枠         | `GET・POST /api/holoworks`・`DELETE /api/holoworks/:id` (`active_holowork_members` が空の場合のみ許可する)                               |
-| 活動中メンバー       | `GET /api/active-holowork-members`・`POST /api/holoworks/:id/start`・`POST /api/holoworks/:id/complete`・`POST /api/holoworks/:id/abort` |
-| 優先候補算出         | `GET /api/holoworks/:id/candidates?priority=count\|lesson_pt\|cube\|training`                                                            |
-| メモ                 | `GET・PATCH /api/memo`                                                                                                                   |
+| リソース                     | エンドポイント一覧                                                                                   |
+|------------------------------|------------------------------------------------------------------------------------------------------|
+| 認証                         | `POST /api/login`                                                                                    |
+| ホロメン                     | `GET・POST /api/holomems`・`PATCH /api/holomems/:id`                                                 |
+| カード                       | `GET・POST /api/cards`・`PATCH /api/cards/:id`                                                       |
+| ホロメンボードノード         | `GET・POST /api/board-nodes`・`PATCH・DELETE /api/board-nodes/:id`                                   |
+| ホロワーク達成状況           | `GET /api/holowork-achievements`・`PATCH /api/holowork-achievements/:id`                             |
+| ホロワーク枠                 | `GET・POST /api/holoworks`・`DELETE /api/holoworks/:id`                                              |
+| ホロメン別ホロワーク状況     | `GET /api/holoworks/member-statuses`                                                                 |
+| ホロワーク候補               | `GET /api/holoworks/candidates?priority=count\|cube\|training\|lesson_pt`                            |
+| ホロワーク開始・完了・中断   | `POST /api/holoworks/:id/start`・`POST /api/holoworks/:id/complete`・`POST /api/holoworks/:id/abort` |
+| メモ                         | `GET・PATCH /api/memo`                                                                               |
 
 
 ## 将来的な構想 (現段階ではスコープ外)

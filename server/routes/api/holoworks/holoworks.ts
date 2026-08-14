@@ -24,6 +24,7 @@ holoworks.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg
 /** Result のエラーに指定された HTTP ステータスコードを取得する */
 const getResultHttpStatusCode = (result: Result<unknown>): typeof httpStatusCode.badRequest | typeof httpStatusCode.notFound => result.httpStatusCode === httpStatusCode.notFound ? httpStatusCode.notFound : httpStatusCode.badRequest;
 
+/** 活動中メンバーを含むホロワーク枠一覧を取得する */
 holoworks.get('/', async context => {
   const holoworks = await new HoloworksService(context.env.DB).findAll();
   return context.json({ result: holoworks }, httpStatusCode.ok);
@@ -45,6 +46,7 @@ holoworks.get('/candidates', async context => {
   return context.json({ result: candidates }, httpStatusCode.ok);
 });
 
+/** 新規ホロワーク枠を追加する */
 holoworks.post('/', async context => {
   const body = await context.req.json().catch(() => null);
   if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);
@@ -92,6 +94,7 @@ holoworks.post('/:id/abort', async context => {  // eslint-disable-line neos-esl
   return context.json({ result: { id } }, httpStatusCode.ok);
 });
 
+/** 活動中メンバーがいないホロワーク枠を削除する */
 holoworks.delete('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
   if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);

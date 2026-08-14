@@ -1,8 +1,10 @@
 import type { Holowork } from '../../shared/types/holowork';
 
+/** `holoworks` テーブルの永続化操作 */
 export class HoloworksRepository {
   constructor(private readonly db: D1Database) { }
   
+  /** ID が一致するホロワーク枠を取得する・存在しない場合は `null` */
   public async findById(id: number): Promise<Holowork | null> {
     return await this.db
       .prepare('SELECT id, name FROM holoworks WHERE id = ? LIMIT 1')
@@ -10,6 +12,7 @@ export class HoloworksRepository {
       .first<Holowork>();
   }
   
+  /** ホロワーク枠を追加して採番 ID を返す */
   public async create(holowork: Partial<Holowork>): Promise<number> {
     const result = await this.db
       .prepare('INSERT INTO holoworks (name) VALUES (?)')

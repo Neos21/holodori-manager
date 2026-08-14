@@ -193,7 +193,7 @@ export default function BoardNodesPage(): ReactElement {
     setFormError('');
     
     const payload = { ...form };
-    if(payload.category !== boardNodeCategoryYellow) payload.yellow_target = '';  // 黄マス以外の場合に `yellow_target` へ不正値が入らないように最終調整する
+    if(payload.category !== boardNodeCategoryYellow) payload.yellow_target = '';  // 黄マス以外の場合に `yellow_target` に不正値が入らないように最終調整する
     const parsed = boardNodeSchema.safeParse(payload);
     if(!parsed.success) return setFormError(mergeIssues(parsed.error));
     

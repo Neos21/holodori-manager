@@ -21,6 +21,8 @@ export class HoloworkCandidatesService {
   /** 完了回数重視の候補を取得する */
   private async getCountCandidates(priority: typeof candidatePriorityCount): Promise<HoloworkCandidates> {
     const rows = await this.findCountCandidateRows();
+    
+    // DB から得た現在回数に進捗計算結果を加え、クライアントへと返す完成済み候補モデルを作る
     const candidates = rows.map((row): HoloworkCountCandidate => {
       const progress = HoloworkAchievementsService.calcProgress(row.current_count);
       return {
@@ -34,6 +36,8 @@ export class HoloworkCandidatesService {
         remaining_count    : progress.remaining_count
       };
     });
+    
+    // 少ない回数で到達できる候補を優先し、同じ残り回数ならより大きな閾値に近い現在回数の多い候補を優先する
     const priorityCandidates = candidates
       .filter(candidate => candidate.next_threshold != null)
       .sort((candidateA, candidateB) =>
@@ -42,6 +46,8 @@ export class HoloworkCandidatesService {
         (candidateA.next_threshold ?? 0) - (candidateB.next_threshold ?? 0) ||
         this.compareHolomemOrder(candidateA, candidateB)
       );
+    
+    // 全達成済みの候補だけを差集合に残し、2つのレスポンス配列で同じ ID が重複しないようにする
     const priorityCandidateIds = new Set(priorityCandidates.map(candidate => candidate.holomems_id));
     const otherCandidates = candidates.filter(candidate => !priorityCandidateIds.has(candidate.holomems_id));
     this.sortByHolomemOrder(otherCandidates);
@@ -56,7 +62,8 @@ export class HoloworkCandidatesService {
   /** アイテム獲得量重視の候補を取得する */
   private async getRateCandidates(priority: Exclude<CandidatePriority, typeof candidatePriorityCount>): Promise<HoloworkCandidates> {
     const rows = await this.findRateCandidateRows(priority);
-    // SQL は対象の黄マス情報の行数だけ重複取得されるのでホロメン単位に統合する
+    
+    // SQL は対象の黄マス情報の行数だけ同じホロメンを返すため、ID ごとに合計レートを集約する
     const candidatesByHolomemsId = new Map<number, HoloworkRateCandidate>();
     
     for(const row of rows) {
@@ -77,9 +84,13 @@ export class HoloworkCandidatesService {
     }
     
     const candidates = [...candidatesByHolomemsId.values()];
+    
+    // 効果量が正数の候補を合計レート降順で優先し、同率の場合だけ通常のホロメン表示順を使用する
     const priorityCandidates = candidates
       .filter(candidate => candidate.total_rate > 0)
       .sort((candidateA, candidateB) => candidateB.total_rate - candidateA.total_rate || this.compareHolomemOrder(candidateA, candidateB));
+    
+    // 効果量が0以下の候補だけを差集合に残し、優先候補との重複を構造的に防ぐ
     const priorityCandidateIds = new Set(priorityCandidates.map(candidate => candidate.holomems_id));
     const otherCandidates = candidates.filter(candidate => !priorityCandidateIds.has(candidate.holomems_id));
     this.sortByHolomemOrder(otherCandidates);

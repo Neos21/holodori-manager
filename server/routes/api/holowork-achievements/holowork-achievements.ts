@@ -13,11 +13,13 @@ export const holoworkAchievementsPath = '/holowork-achievements' as const;
 
 holoworkAchievements.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next));
 
+/** ホロワーク達成状況を一覧で取得する */  // TODO : 呼び出し箇所ないかも？
 holoworkAchievements.get('/', async context => {
   const achievements = await new HoloworkAchievementsRepository(context.env.DB).findAll();
   return context.json({ result: achievements }, httpStatusCode.ok);
 });
 
+/** 指定したホロワーク達成状況を更新する */
 holoworkAchievements.patch('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
   if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);

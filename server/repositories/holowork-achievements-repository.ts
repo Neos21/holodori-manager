@@ -2,9 +2,11 @@ import { buildUpdateQuery } from '../helpers/build-update-query';
 
 import type { HoloworkAchievement } from '../../shared/types/holowork-achievement';
 
+/** `holowork_achievements` テーブルの永続化操作 */
 export class HoloworkAchievementsRepository {
   constructor(private readonly db: D1Database) { }
   
+  /** 全ホロメンの達成状況を ID 順で取得する */  // TODO : これを呼び出してるルーティングコントローラ自体が、画面から呼び出されないから未使用かも？
   public async findAll(): Promise<Array<HoloworkAchievement>> {
     const result = await this.db
       .prepare('SELECT id, holomems_id, current_count, note FROM holowork_achievements ORDER BY id ASC')
@@ -12,6 +14,7 @@ export class HoloworkAchievementsRepository {
     return result.results ?? [];
   }
   
+  /** ID が一致する達成状況を取得する・存在しない場合は `null` */  // TODO : 呼び出し箇所ないかも
   public async findById(id: number): Promise<HoloworkAchievement | null> {
     return await this.db
       .prepare('SELECT id, holomems_id, current_count, note FROM holowork_achievements WHERE id = ? LIMIT 1')
@@ -19,7 +22,7 @@ export class HoloworkAchievementsRepository {
       .first<HoloworkAchievement>();
   }
   
-  /** インクリメント対象の存在をチェックするために使用する */
+  /** インクリメント対象の存在をチェックするために使用する */  // TODO : private でいいかも
   public async findByHolomemsId(holomems_id: number): Promise<HoloworkAchievement | null> {
     return await this.db
       .prepare('SELECT id, holomems_id, current_count, note FROM holowork_achievements WHERE holomems_id = ? LIMIT 1')
@@ -27,6 +30,7 @@ export class HoloworkAchievementsRepository {
       .first<HoloworkAchievement>();
   }
   
+  /** 達成状況を追加して採番 ID を返す */
   public async create(achievement: Partial<HoloworkAchievement>): Promise<number> {
     const result = await this.db
       .prepare('INSERT INTO holowork_achievements (holomems_id, current_count, note) VALUES (?, ?, ?)')
@@ -35,6 +39,7 @@ export class HoloworkAchievementsRepository {
     return result.meta.last_row_id;
   }
   
+  /** 指定された項目だけを更新する・更新項目がなければ SQL を実行しない */
   public async update(id: number, achievement: Partial<HoloworkAchievement>): Promise<void> {
     const { sets, values } = buildUpdateQuery([
       { column: 'holomems_id'  , value: achievement.holomems_id   },

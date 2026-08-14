@@ -6,19 +6,24 @@ import { holoworkNameDisplayName, holoworkSchema } from '../../../../shared/sche
 import { adminApi } from '../../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../../helpers/extract-api-error-message';
 
+/** 新規ホロワーク枠追加モーダルに渡す値と完了通知 */
 type CreateHoloworkModalProps = {
+  /** モーダルを閉じる */
   onClose  : () => void;
+  /** 追加成功後に親コンポーネントで一覧を再取得する */
   onCreated: () => Promise<void>;
 };
 
 /** 新規ホロワーク枠追加モーダル */
 export const CreateHoloworkModal = ({ onClose, onCreated }: CreateHoloworkModalProps): ReactElement => {
-  const [holoworkName, setHoloworkName] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [formError   , setFormError   ] = useState<string>('');
+  const [holoworkName, setHoloworkName] = useState<string>('');   // 入力中の枠名
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);  // 二重送信防止用に参照する Submit 中か否か
+  const [formError   , setFormError   ] = useState<string>('');  // バリデーション・API エラー
   
+  /** 枠名の入力値を State に反映する */
   const onChangeHoloworkName = (event: ChangeEvent<HTMLInputElement>): void => setHoloworkName(event.target.value);
   
+  /** 入力値を検証してホロワーク枠を追加する */
   const onSubmit = async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     setFormError('');
@@ -29,6 +34,7 @@ export const CreateHoloworkModal = ({ onClose, onCreated }: CreateHoloworkModalP
     setIsSubmitting(true);
     try {
       await adminApi.post('/api/holoworks', { json: parsed.data }).json<{ result: { id: number; }; }>();
+      // 先にモーダルを破棄してから再取得処理を呼び出す
       setIsSubmitting(false);
       onClose();
       await onCreated();

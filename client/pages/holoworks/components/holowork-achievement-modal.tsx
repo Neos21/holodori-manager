@@ -9,33 +9,43 @@ import { extractApiErrorMessage } from '../../../helpers/extract-api-error-messa
 import type { HoloworkMemberStatus } from '../../../../shared/types/holowork-member-status';
 import type { NumberToStringValue } from '../../../../shared/types/number-types';
 
+/** ホロワーク達成状況編集モーダルに渡す対象と完了通知 */
 type HoloworkAchievementModalProps = {
+  /** 編集対象のホロメン別ステータス */
   memberStatus: HoloworkMemberStatus;
+  /** モーダルを閉じる */
   onClose     : () => void;
+  /** 更新成功後に親コンポーネントでメンバー状況を再取得する */
   onUpdated   : () => Promise<void>;
 };
 
+/** ホロワーク達成状況編集フォームの型定義 */
 type AchievementFormState = {
+  /** 編集中のホロワーク完了回数 */
   current_count: NumberToStringValue;
+  /** 編集中の達成状況メモ・未入力時は空文字 */
   note         : string;
 };
 
+/** 達成状況編集で更新を許可する項目だけに限定したスキーマ */
 const achievementFormSchema = holoworkAchievementSchema.pick({ current_count: true, note: true });
 
 /** ホロワーク達成状況編集モーダル */
 export const HoloworkAchievementModal = ({ memberStatus, onClose, onUpdated }: HoloworkAchievementModalProps): ReactElement => {
-  const [form, setForm] = useState<AchievementFormState>({
+  const [form, setForm] = useState<AchievementFormState>({  // 編集対象の現在値から生成するフォーム
     current_count: String(memberStatus.current_count) as NumberToStringValue,
     note         : memberStatus.achievement_note ?? ''
   });
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [formError   , setFormError   ] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);  // 二重送信防止用に参照する Submit 中か否か
+  const [formError   , setFormError   ] = useState<string>('');  // バリデーション・API エラー
   
+  /** 完了回数またはメモの入力値をフォーム State に反映する */
   const onChangeForm = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     const { name, value } = event.target;
     setForm(prevForm => ({ ...prevForm, [name]: value }) as AchievementFormState);
   };
   
+  /** 入力値を検証して対象の達成状況を更新する */
   const onSubmit = async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     setFormError('');
@@ -47,7 +57,7 @@ export const HoloworkAchievementModal = ({ memberStatus, onClose, onUpdated }: H
     try {
       await adminApi.patch(`/api/holowork-achievements/${memberStatus.holowork_achievements_id}`, { json: parsed.data });
       setIsSubmitting(false);
-      // 再表示時に最新値からフォームを作り直せるよう、更新後は先にモーダルを破棄する
+      // 先にモーダルを破棄してから再取得処理を呼び出す
       onClose();
       await onUpdated();
     }

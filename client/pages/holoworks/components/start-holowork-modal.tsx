@@ -11,12 +11,17 @@ import type { CandidatePriority } from '../../../../shared/types/app-types';
 import type { HoloworkDisplay } from '../../../../shared/types/holowork';
 import type { HoloworkCandidate, HoloworkCandidates } from '../../../../shared/types/holowork-candidate';
 
+/** ホロワーク開始モーダルに渡す対象枠と完了通知 */
 type StartHoloworkModalProps = {
+  /** 開始対象のホロワーク枠 */
   holowork : HoloworkDisplay;
+  /** モーダルを閉じる */
   onClose  : () => void;
+  /** 開始成功後に親コンポーネントで一覧を再取得する */
   onStarted: () => Promise<void>;
 };
 
+/** 優先モードのセレクトボックス表示名 */
 const candidatePriorityDisplayNames: Record<CandidatePriority, string> = {
   count    : '完了回数重視',
   cube     : 'キューブ獲得量重視',
@@ -24,8 +29,9 @@ const candidatePriorityDisplayNames: Record<CandidatePriority, string> = {
   lesson_pt: 'レッスン Pt 獲得量重視'
 };
 
+/** アイテム獲得量重視で比較列に表示する合計最終レート名 */
 const candidateRateDisplayNames: Record<CandidatePriority, string> = {
-  count    : '',
+  count    : '',  // 「アイテム獲得量重視」の際は未使用のため空欄としておく
   cube     : 'キューブ合計最終レート',
   training : '特訓アイテム合計最終レート',
   lesson_pt: 'レッスン Pt 合計最終レート'
@@ -33,23 +39,27 @@ const candidateRateDisplayNames: Record<CandidatePriority, string> = {
 
 /** ホロワーク開始モーダル */
 export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHoloworkModalProps): ReactElement => {
-  const [priority, setPriority] = useState<CandidatePriority | ''>('');
-  const [priorityCandidates, setPriorityCandidates] = useState<Array<HoloworkCandidate>>([]);
-  const [otherCandidates, setOtherCandidates] = useState<Array<HoloworkCandidate>>([]);
-  const [selectedHolomemsIds, setSelectedHolomemsIds] = useState<Array<number>>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [formError, setFormError] = useState<string>('');
+  const [priority , setPriority ] = useState<CandidatePriority | ''>('');  // 優先モードの選択値・空文字は未選択を表す
+  const [isLoading, setIsLoading] = useState<boolean>(false);  // 優先モード変更時の候補取得中か否か
   
+  const [priorityCandidates, setPriorityCandidates] = useState<Array<HoloworkCandidate>>([]);  // API が優先条件に合致すると判定した候補
+  const [otherCandidates   , setOtherCandidates   ] = useState<Array<HoloworkCandidate>>([]);  // API が返す、優先候補と重複しない選択可能候補
+  
+  const [selectedHolomemsIds, setSelectedHolomemsIds] = useState<Array<number>>([]);  // 両候補テーブルで共有する選択済みのメンバー ID
+  const [isSubmitting       , setIsSubmitting       ] = useState<boolean>(false);  // 二重送信防止用に参照する Submit 中か否か
+  const [formError          , setFormError          ] = useState<string>('');  // 候補取得・入力・開始 API のエラー
+  
+  /** 優先モードを切り替え、対応する候補2区分を取得する */
   const onChangePriority = async (event: ChangeEvent<HTMLSelectElement>): Promise<void> => {
     const selectedPriority = event.target.value as CandidatePriority | '';
     setPriority(selectedPriority);
-    // 優先モードが変わると候補集合と比較条件も変わるため、旧モードでの選択は引き継がない
-    setSelectedHolomemsIds([]);
+    
+    setSelectedHolomemsIds([]);  // 優先モードが変わると候補集合と比較条件も変わるため、旧モードでの選択は引き継がない
     setPriorityCandidates([]);
     setOtherCandidates([]);
     setFormError('');
-    if(isEmpty(selectedPriority)) return;
+    
+    if(isEmpty(selectedPriority)) return;  // 未選択に戻した場合は API コールしない
     
     setIsLoading(true);
     try {
@@ -65,15 +75,17 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
     }
   };
   
+  /** 両候補テーブルで共有するホロメン選択を最大人数以内で更新する */
   const onChangeSelectedHolomem = (event: ChangeEvent<HTMLInputElement>): void => {
     const holomemId = Number(event.target.value);
     if(event.target.checked) {
-      if(selectedHolomemsIds.length >= maximumHoloworkMemberCount) return;
+      if(selectedHolomemsIds.length >= maximumHoloworkMemberCount) return;  // 最大人数を超える場合はメンバー選択しない
       return setSelectedHolomemsIds(prevHolomemsIds => [...prevHolomemsIds, holomemId]);
     }
-    setSelectedHolomemsIds(prevHolomemsIds => prevHolomemsIds.filter(id => id !== holomemId));
+    setSelectedHolomemsIds(prevHolomemsIds => prevHolomemsIds.filter(id => id !== holomemId));  // 選択したメンバーを解除する
   };
   
+  /** 選択人数を確認してホロワークを開始する */
   const onSubmit = async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     setFormError('');
@@ -85,7 +97,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
     try {
       await adminApi.post(`/api/holoworks/${holowork.id}/start`, { json: { holomems_ids: selectedHolomemsIds } });
       setIsSubmitting(false);
-      // 開始後は候補情報が古くなるため、再取得より先にモーダルを破棄する
+      // 開始後は候補情報が古くなるため、先にモーダルを破棄してから再取得する
       onClose();
       await onStarted();
     }
@@ -95,6 +107,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
     }
   };
   
+  /** 候補の種類に応じて完了回数または合計最終レートを持つテーブル行を描画する */
   const renderCandidate = (candidate: HoloworkCandidate): ReactElement => {
     const isSelected = selectedHolomemsIds.includes(candidate.holomems_id);
     return (
@@ -102,6 +115,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
         <td className="text-center"><input className="checkbox checkbox-sm" type="checkbox" value={candidate.holomems_id} checked={isSelected} onChange={onChangeSelectedHolomem} disabled={isSubmitting || (!isSelected && selectedHolomemsIds.length >= maximumHoloworkMemberCount)} /></td>
         <td className="whitespace-nowrap">{candidate.holomems_group_name}</td>
         <td className="whitespace-nowrap">{candidate.holomems_name}</td>
+        {/* 判別用プロパティにより Candidate の Union 型を絞り込み、優先モードに対応する比較値を表示する */}
         {'current_count' in candidate ? (
           <>
             <td className="whitespace-nowrap text-right">{candidate.current_count}</td>
@@ -116,9 +130,11 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
     );
   };
   
+  /** API が排他的に返した候補区分を、同じ列構成のテーブルとして描画する */
   const renderCandidatesTable = (title: string, candidates: Array<HoloworkCandidate>): ReactElement => (
     <section className="mb-4">
       <h3 className="mb-2 font-bold">{title}</h3>
+      
       {candidates.length === 0 ? (
         <p>対象のホロメンはいません。</p>
       ) : (
@@ -141,7 +157,9 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
                 <th className="min-w-48">達成状況メモ</th>
               </tr>
             </thead>
-            <tbody>{candidates.map(renderCandidate)}</tbody>
+            <tbody>
+              {candidates.map(renderCandidate)}
+            </tbody>
           </table>
         </div>
       )}

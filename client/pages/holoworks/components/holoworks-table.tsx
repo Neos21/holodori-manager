@@ -1,12 +1,19 @@
 import type { HoloworkDisplay } from '../../../../shared/types/holowork';
 import type { ReactElement } from 'react';
 
+/** ホロワーク枠テーブルに渡す一覧と枠操作 */
 type HoloworksTableProps = {
+  /** 活動中メンバーを含む枠一覧 */
   holoworks : Array<HoloworkDisplay>;
+  /** API 操作中に全枠の操作ボタンを非活性にする */
   isDisabled: boolean;
+  /** 活動メンバーがいない枠の開始モーダルを開く */
   onStart   : (holowork: HoloworkDisplay) => void;
+  /** 活動中の枠を完了する */
   onComplete: (holowork: HoloworkDisplay) => void;
+  /** 活動中の枠を回数加算せず中断する */
   onAbort   : (holowork: HoloworkDisplay) => void;
+  /** 活動メンバーがいない枠を削除する */
   onDelete  : (holowork: HoloworkDisplay) => void;
 };
 
@@ -32,6 +39,7 @@ export const HoloworksTable = ({ holoworks, isDisabled, onStart, onComplete, onA
           </thead>
           <tbody>
             {holoworks.map(holowork => {
+              /** 1枠に対する活動中メンバーの有無・ボタンの活性・非活性処理に利用する */
               const hasActiveMembers = holowork.active_members.length > 0;
               return (
                 <tr key={holowork.id}>

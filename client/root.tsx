@@ -85,7 +85,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactElement
       <h1>{title}</h1>
       <p>{text}</p>
       
-      <p><Link to="/" className="hover:underline">トップへ戻る</Link></p>
+      <p><Link to="/" className="hover:underline">トップに戻る</Link></p>
     </main>
   );
 }

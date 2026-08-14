@@ -14,12 +14,14 @@ export class HoloworkMemberStatusesService {
   /** 有効なホロメンのホロワーク達成状況・活動状況・黄マス情報を一覧で取得する */
   public async findAll(): Promise<Array<HoloworkMemberStatus>> {
     const rows = await this.findAllRows();
-    // SQL は黃マス情報の行数だけ重複取得されるのでそれを統合する
+    
+    // SQL は黄マス情報の行数だけ同じホロメンを返すため、ID ごとにフロントエンド用モデルを1件へ集約する
     const statuses = new Map<number, HoloworkMemberStatus>();
     
     for(const row of rows) {
       let status = statuses.get(row.holomems_id);
       if(status == null) {
+        // ホロメンごとの先頭行で、未計算の進捗と黄マス合計値を含む集約先を初期化する
         const progress = HoloworkAchievementsService.calcProgress(row.current_count);
         status = {
           holomems_id             : row.holomems_id,
@@ -42,18 +44,18 @@ export class HoloworkMemberStatusesService {
       
       if(row.yellow_target == null || row.amount == null) continue;
       
-      // 合計最終レートを加算していく
+      // 同じホロメンの後続行では、黄マスの対象アイテム別に最終レートだけを加算する
       const finalRate = BoardNodesService.calcFinalRate(row.amount, row.connect_rate);
       if(row.yellow_target === boardNodeYellowTargetCube    ) status.cube_total_rate      += finalRate;
       if(row.yellow_target === boardNodeYellowTargetTraining) status.training_total_rate  += finalRate;
       if(row.yellow_target === boardNodeYellowTargetLessonPt) status.lesson_pt_total_rate += finalRate;
     }
     
-    // 表示順どおりに改めてソートして配列で返す
+    // Map は SQL 行の集約を目的としているため、レスポンス化の際に表示順と ID で順序を確定する
     return [...statuses.values()].sort((statusA, statusB) => statusA.holomems_sort_order - statusB.holomems_sort_order || statusA.holomems_id - statusB.holomems_id);
   }
   
-  /** 画面用の複数テーブル JOIN 結果を取得する */
+  /** フロントエンド用の複数テーブル `JOIN` 結果を取得する */
   private async findAllRows(): Promise<Array<HoloworkMemberStatusRow>> {
     const sql = `
       SELECT

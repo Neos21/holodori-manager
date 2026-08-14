@@ -1,8 +1,10 @@
 import type { ActiveHoloworkMember } from '../../shared/types/active-holowork-member';
 
+/** `active_holowork_members` テーブルの永続化操作 */
 export class ActiveHoloworkMembersRepository {
   constructor(private readonly db: D1Database) { }
   
+  /** 活動中メンバーを枠順・ID 順で取得する */  // TODO : 呼び出し箇所ないかも？
   public async findAll(): Promise<Array<ActiveHoloworkMember>> {
     const result = await this.db
       .prepare('SELECT id, holoworks_id, holomems_id FROM active_holowork_members ORDER BY holoworks_id ASC, id ASC')
@@ -27,7 +29,7 @@ export class ActiveHoloworkMembersRepository {
       .first<ActiveHoloworkMember>();
   }
   
-  /** 指定したホロメンのうち、いずれかの枠で活動中のメンバーを取得する */
+  /** 指定したホロメンたちのうち、いずれかの枠で活動中のメンバーを取得する */
   public async findByHolomemsIds(holomemsIds: Array<number>): Promise<Array<ActiveHoloworkMember>> {
     if(holomemsIds.length === 0) return [];
     const placeholders = holomemsIds.map(() => '?').join(', ');
@@ -38,6 +40,7 @@ export class ActiveHoloworkMembersRepository {
     return result.results ?? [];
   }
   
+  /** 活動中メンバーを追加して採番 ID を返す */
   public async create(member: Partial<ActiveHoloworkMember>): Promise<number> {
     const result = await this.db
       .prepare('INSERT INTO active_holowork_members (holoworks_id, holomems_id) VALUES (?, ?)')
@@ -46,7 +49,7 @@ export class ActiveHoloworkMembersRepository {
     return result.meta.last_row_id;
   }
   
-  /** ホロワーク完了 or 中断時に使用する */
+  /** 対象のホロワークで活動中のメンバーを一括解放する : ホロワーク完了 or 中断時に使用する */
   public async deleteByHoloworksId(holoworks_id: number): Promise<void> {
     await this.db
       .prepare('DELETE FROM active_holowork_members WHERE holoworks_id = ?')

@@ -5,8 +5,11 @@ import { isEmpty } from '../../../../shared/helpers/is-empty';
 import type { HoloworkMemberStatus } from '../../../../shared/types/holowork-member-status';
 import type { ReactElement } from 'react';
 
+/** ホロメン別ステータステーブルに渡す一覧と編集操作 */
 type HoloworkMemberStatusesTableProps = {
+  /** 表示するホロメン別ステータス一覧 */
   memberStatuses: Array<HoloworkMemberStatus>;
+  /** ホロワーク達成状況編集モーダルを開くため、編集対象を親コンポーネントに通知する */
   onEdit        : (memberStatus: HoloworkMemberStatus) => void;
 };
 

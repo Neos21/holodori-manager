@@ -14,18 +14,19 @@ import type { HoloworkMemberStatus } from '../../../shared/types/holowork-member
 
 /** ホロワーク管理ページ */
 export default function HoloworksPage(): ReactElement {
-  const [isLoading     , setIsLoading     ] = useState<boolean>(true);
-  const [holoworks     , setHoloworks     ] = useState<Array<HoloworkDisplay>>([]);
-  const [memberStatuses, setMemberStatuses] = useState<Array<HoloworkMemberStatus>>([]);
-  const [listError     , setListError     ] = useState<string>('');
-  const [actionError   , setActionError   ] = useState<string>('');  // 完了・中断時のエラー表示
+  const [isLoading     , setIsLoading     ] = useState<boolean>(true);  // 初回の枠一覧・メンバー状況取得中であるか否か
+  const [holoworks     , setHoloworks     ] = useState<Array<HoloworkDisplay>>([]);  // 活動中メンバーを含む枠一覧
+  const [memberStatuses, setMemberStatuses] = useState<Array<HoloworkMemberStatus>>([]);  // 達成状況・活動状況・黄マス集計一覧
+  const [listError     , setListError     ] = useState<string>('');  // 一覧取得時のエラー
+  const [actionError   , setActionError   ] = useState<string>('');  // 完了・中断時のエラー
   
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);  // 画面全体の Submit 系ボタンを非活性にするための State
   
-  const [isCreateModalOpen  , setIsCreateModalOpen  ] = useState<boolean>(false);
-  const [startingHolowork   , setStartingHolowork   ] = useState<HoloworkDisplay | null>(null);
-  const [editingMemberStatus, setEditingMemberStatus] = useState<HoloworkMemberStatus | null>(null);
+  const [isCreateModalOpen  , setIsCreateModalOpen  ] = useState<boolean>(false);  // 枠追加モーダルを表示中か否か
+  const [startingHolowork   , setStartingHolowork   ] = useState<HoloworkDisplay | null>(null);  // `null` は開始対象未選択を表す
+  const [editingMemberStatus, setEditingMemberStatus] = useState<HoloworkMemberStatus | null>(null);  // `null` は達成状況の編集対象未選択を表す
   
+  /** 活動中メンバーを含むホロワーク枠一覧を取得する */
   const onLoadHoloworks = async (): Promise<void> => {
     try {
       const response = await adminApi.get('/api/holoworks').json<{ result: Array<HoloworkDisplay>; }>();
@@ -36,6 +37,7 @@ export default function HoloworksPage(): ReactElement {
     }
   };
   
+  /** ホロメン別の達成状況・活動状況・黄マス集計を取得する */
   const onLoadMemberStatuses = async (): Promise<void> => {
     try {
       const response = await adminApi.get('/api/holoworks/member-statuses').json<{ result: Array<HoloworkMemberStatus>; }>();
@@ -46,6 +48,7 @@ export default function HoloworksPage(): ReactElement {
     }
   };
   
+  /** 枠操作によって相互に変化する2つの一覧を並行して再取得する */
   const onLoadData = async (): Promise<void> => {
     setListError('');
     await Promise.all([onLoadHoloworks(), onLoadMemberStatuses()]);
@@ -64,6 +67,7 @@ export default function HoloworksPage(): ReactElement {
     })();
   }, []);
   
+  /** 確認後に対象枠を完了または中断し、関連する一覧を再取得する */
   const onSubmitAction = async (holowork: HoloworkDisplay, action: 'complete' | 'abort'): Promise<void> => {
     const confirmationMessage = action === 'complete'
       ? `「${holowork.name}」を完了しますか？\n活動中メンバー全員のホロワーク完了回数が 1 増えます。`
@@ -84,6 +88,7 @@ export default function HoloworksPage(): ReactElement {
     }
   };
   
+  /** 確認後に活動中メンバーがいない対象枠を削除する */
   const onDeleteHolowork = async (holowork: HoloworkDisplay): Promise<void> => {
     if(!window.confirm('このホロワーク枠を削除しますか？')) return;
     

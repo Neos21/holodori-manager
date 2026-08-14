@@ -33,6 +33,8 @@ export class HoloworksService {
         holomems.id         ASC
     `;
     const result = await this.db.prepare(sql).all<HoloworkDisplayRow>();
+    
+    /** `LEFT JOIN` の1行を枠 ID ごとにまとめ、フロントエンド用モデルの `active_members` 配列に変換する */
     const holoworks = new Map<number, HoloworkDisplay>();
     
     for(const row of result.results ?? []) {
@@ -41,7 +43,10 @@ export class HoloworksService {
         holowork = { id: row.id, name: row.name, active_members: [] };
         holoworks.set(row.id, holowork);
       }
+      
+      // メンバーがいない枠も `LEFT JOIN` で1行返るため、Nullable なホロメン列は配列に追加しない
       if(row.holomems_id == null || row.holomems_sort_order == null || row.holomems_group_name == null || row.holomems_name == null) continue;
+      
       holowork.active_members.push({
         holomems_id        : row.holomems_id,
         holomems_sort_order: row.holomems_sort_order,
@@ -54,6 +59,7 @@ export class HoloworksService {
   
   /** 対象枠で指定のホロメンの活動を開始する */
   public async start(holoworkId: number, holomemsIds: Array<number>): Promise<Result<Array<number>>> {
+    // 候補取得後に状態が変わる可能性があるため、開始確定時にも枠・ホロメン・活動状況を順番に再検証する
     const holoworkExistsResult = await this.ensureHoloworkExists(holoworkId);
     if(holoworkExistsResult.error != null) return holoworkExistsResult;
     
@@ -68,10 +74,11 @@ export class HoloworksService {
     const alreadyActiveMembers = await activeHoloworkMembersRepository.findByHolomemsIds(holomemsIds);
     if(alreadyActiveMembers.length > 0) return { error: '他枠で活動中のホロメンが含まれています', httpStatusCode: httpStatusCode.badRequest };
     
-    const statements = holomemsIds.map(holomemsId => this.db
-      .prepare('INSERT INTO active_holowork_members (holoworks_id, holomems_id) VALUES (?, ?)')
-      .bind(holoworkId, holomemsId));
     try {
+      // 全メンバーの開始を一括実行し、一部のメンバーだけが活動中になる途中状態を残さない
+      const statements = holomemsIds.map(holomemsId => this.db
+        .prepare('INSERT INTO active_holowork_members (holoworks_id, holomems_id) VALUES (?, ?)')
+        .bind(holoworkId, holomemsId));
       const results = await this.db.batch(statements);
       return { result: results.map(result => result.meta.last_row_id) };
     }
@@ -88,6 +95,7 @@ export class HoloworksService {
     const activeMembers = await new ActiveHoloworkMembersRepository(this.db).findByHoloworksId(holoworkId);
     if(activeMembers.length < minimumHoloworkMemberCount) return { error: '活動中のメンバーが存在しません', httpStatusCode: httpStatusCode.badRequest };
     
+    // 各メンバーの回数加算と枠からの解放を同じ Batch に含め、完了処理を不可分にする
     const holomemsIds = activeMembers.map(activeMember => activeMember.holomems_id);
     const statements = holomemsIds.map(holomemsId => this.db
       .prepare(`

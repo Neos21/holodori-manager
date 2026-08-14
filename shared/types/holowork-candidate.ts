@@ -1,28 +1,15 @@
 import type { CandidatePriority } from './app-types';
+import type { HoloworkMemberWithAchievementNote } from './holowork';
+import type { HoloworkAchievementProgress } from './holowork-achievement-progress';
 
-/** ホロワーク候補者の共通項目 */
-type HoloworkCandidateBase = {
-  /** ホロメン ID (`holomems.id`) */
-  holomems_id: number;
-  /** ホロメン表示順 (`holomems.sort_order`) */
-  holomems_sort_order: number;
-  /** グループ (`holomems.group_name`) */
-  holomems_group_name: string;
-  /** タレント名 (`holomems.name`) */
-  holomems_name: string;
-  /** ホロワーク達成状況の自由記入欄 (`holowork_achievements.note`) */
-  achievement_note: string | null | undefined;
-};
+/** 優先モードにかかわらず候補者レスポンスに含める共通項目 */
+export type HoloworkCandidateBase = HoloworkMemberWithAchievementNote;
 
 /** 完了回数重視を選択した場合の候補者1人を表現した型 */
 export type HoloworkCountCandidate = HoloworkCandidateBase & {
   /** 現在のホロワーク完了回数 (`holowork_achievements.current_count`) */
   current_count: number;
-  /** 次に達成すべきアチーブメント閾値・最大回数以上になっている場合は `null` */
-  next_threshold: number | null;
-  /** 次のアチーブメントまでに必要な残り回数・最大回数以上になっている場合は `null` */
-  remaining_count: number | null;
-};
+} & HoloworkAchievementProgress;
 
 /** アイテム獲得量重視を選択した場合の候補者1人を表現した型 */
 export type HoloworkRateCandidate = HoloworkCandidateBase & {
@@ -30,10 +17,10 @@ export type HoloworkRateCandidate = HoloworkCandidateBase & {
   total_rate: number;
 };
 
-/** ホロワークで優先的に選択すべき候補者を表現した型 */
+/** 選択可能なホロワーク候補者・優先モードに応じて比較情報が異なる */
 export type HoloworkCandidate = HoloworkCountCandidate | HoloworkRateCandidate;
 
-/** ホロワークで優先的に選択すべき候補者を示す型 */
+/** 選択可能な候補者を優先条件への合致有無で排他的に分けたレスポンス */
 export type HoloworkCandidates = {
   /** 選択された優先度 */
   selected_priority: CandidatePriority;

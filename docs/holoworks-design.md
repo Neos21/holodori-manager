@@ -454,6 +454,16 @@ DB の `active_holowork_members.holomems_id UNIQUE` も最終防衛線として�
 
 イベントハンドラは `AGENTS.md` に従い、`onStartCreate`、`onOpenAchievementModal`、`onChangePriority`、`onSubmitStart` のように `on` 接頭辞を使用する。
 
+### 9.1 SQL 行と画面モデルの型境界
+
+`shared/types/` の型は API を介してクライアントにも公開する完成済みの画面モデル、`server/types/` の `*Row` は JOIN 直後かつ集約・計算前の SQL 1行を表す。
+
+- ホロメン ID・表示順・グループ・名前など、意味と nullability が同じ項目は `HoloworkMember` などの共有型を合成して表す。
+- `HoloworkDisplayRow` は LEFT JOIN 先がない場合にホロメン列が `null` となり、Service で `HoloworkDisplay.active_members` へ集約するため、画面モデルと同一型にはしない。
+- 候補・メンバー状況の `*Row` は黄マス1件ごとに同じホロメンが重複し、進捗や合計最終レートも未計算である。Service が Map 等で集約・計算した後の型とは分離する。
+
+この境界を崩して SQL 行を画面モデルとして扱うと、未計算値や JOIN 由来の `null` をクライアントへ誤って公開しやすいため、同じ意味の部分だけを再利用する。
+
 
 ## 10. 確認ダイアログと再読込
 
