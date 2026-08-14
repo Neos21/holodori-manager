@@ -4,7 +4,7 @@ import { booleanNumberTrue, booleanStringFalse, booleanStringTrue } from '../../
 import { bloom0, blooms, defaultCardLevel, rarities, star5 } from '../../../shared/constants/holodori-constants';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
-import { bloomDisplayName, cardNameDisplayName, cardSchema, holomemsIdDisplayName, isOwnedDisplayName, levelDisplayName, rarityDisplayName } from '../../../shared/schemas/card-schema';
+import { bloomDisplayName, cardNameDisplayName, cardSchema, isOwnedDisplayName, levelDisplayName, rarityDisplayName } from '../../../shared/schemas/card-schema';
 import { groupNameDisplayName, nameDisplayName } from '../../../shared/schemas/holomem-schema';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
@@ -183,7 +183,7 @@ export default function CardsPage(): ReactElement {
             <p className="mb-4">登録されているカードはありません。</p>
           ) : (
             <div className="mb-4 overflow-x-auto">
-              <table className="table table-xs w-full">
+              <table className="table table-xs">
                 <thead>
                   <tr className="text-center">
                     <th className="w-px           pl-0 pr-1 whitespace-nowrap">{groupNameDisplayName}</th>
@@ -199,14 +199,14 @@ export default function CardsPage(): ReactElement {
                   {/* 未所有カードの行はグレー背景で表示する */}
                   {cards.map(card => (
                     <tr key={card.id} className={`[&>td]:align-top ${card.is_owned === booleanNumberTrue ? '' : 'bg-base-300'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                      <td className="w-px            pl-0 pr-1 whitespace-nowrap">{card.holomem_group_name}</td>
-                      <td className="w-px            px-1      whitespace-nowrap">{card.holomem_name}</td>
-                      <td className="w-px            px-1      whitespace-nowrap text-center">{card.rarity}</td>
+                      <td className="w-px            pl-0 pr-1      whitespace-nowrap">{card.holomem_group_name}</td>
+                      <td className="w-px            px-1           whitespace-nowrap">{card.holomem_name}</td>
+                      <td className="w-px            px-1           whitespace-nowrap text-center">{card.rarity}</td>
                       <td className="w-full min-w-40 px-1">{card.name}</td>
-                      <td className="w-px            px-1      whitespace-nowrap text-right">{card.level}</td>
-                      <td className="w-px            px-1      whitespace-nowrap text-center">{card.bloom}</td>
-                      <td className="w-px            pl-1 pr-0 whitespace-nowrap">
-                        <button type="button" className="btn btn-xs" onClick={() => onStartEdit(card)}>編集</button>
+                      <td className="w-px            px-1           whitespace-nowrap text-right">{card.level}</td>
+                      <td className="w-px            px-1           whitespace-nowrap text-center">{card.bloom}</td>
+                      <td className="w-px            pl-1 pr-0 py-0 whitespace-nowrap !align-middle">
+                        <button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(card)}>編集</button>
                       </td>
                     </tr>
                   ))}
@@ -233,7 +233,7 @@ export default function CardsPage(): ReactElement {
             <form onSubmit={onSubmit}>
               <fieldset className="fieldset">
                 {/* 新規追加時はホロメンをセレクトボックスで選択・編集時は参照のみで変更不可 */}
-                <label className="fieldset-label">{holomemsIdDisplayName}</label>
+                <label className="fieldset-label">ホロメン</label>
                 {editingId == null ? (
                   <select className="select w-full" name="holomems_id" value={form.holomems_id} onChange={onChangeForm} required>
                     <option value="">(ホロメンを選択してください)</option>

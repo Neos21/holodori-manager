@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "holodori-manager",
-  "compatibility_date": "2026-08-12",
+  "compatibility_date": "2026-08-11",
   "account_id": "07100c21a5c21a0afb93ab435ba46712",
   "main": "./server/index.ts",
   "assets": {

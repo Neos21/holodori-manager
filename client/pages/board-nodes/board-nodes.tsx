@@ -2,7 +2,7 @@ import { type ChangeEvent, type ReactElement, type SubmitEvent, useEffect, useSt
 
 import { boardNodeYellowTargets } from '../../../shared/constants/app-constants';
 import { booleanNumberTrue, booleanStringFalse, booleanStringTrue } from '../../../shared/constants/boolean-constants';
-import { boardNodeCategories, boardNodeCategoryYellow } from '../../../shared/constants/holodori-constants';
+import { boardNodeCategories, boardNodeCategoryBlue, boardNodeCategoryGreen, boardNodeCategoryRed, boardNodeCategoryYellow } from '../../../shared/constants/holodori-constants';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { amountDisplayName, boardNodeSchema, categoryDisplayName, connectRateDisplayName, descriptionDisplayName, holomemsIdDisplayName, isUnlockedDisplayName, yellowTargetDisplayName } from '../../../shared/schemas/board-node-schema';
@@ -33,6 +33,7 @@ type HolomemNoteFormState = {
   note: string;
 };
 
+/** カテゴリ名に対応する画面表記 */
 const categoryDisplayNames: Record<BoardNodeCategory, string> = {
   yellow: '黄マス',
   green : '緑マス',
@@ -40,31 +41,48 @@ const categoryDisplayNames: Record<BoardNodeCategory, string> = {
   blue  : '青マス'
 };
 
-const categoryBadgeClasses: Record<BoardNodeCategory, string> = {
-  yellow: 'badge-warning',
-  green : 'badge-success',
-  red   : 'badge-error',
-  blue  : 'badge-info'
+/** カテゴリに対応する色を表現する CSS クラス名 (関数にすると Tailwind ビルド時にうまく取得されないのでベタ書き必須) */
+const categoryColourClassText: Record<BoardNodeCategory, string> = {
+  yellow: 'text-warning',
+  green : 'text-success',
+  red   : 'text-error',
+  blue  : 'text-info'
+};
+const categoryColourClassBorder: Record<BoardNodeCategory, string> = {
+  yellow: 'border-warning',
+  green : 'border-success',
+  red   : 'border-error',
+  blue  : 'border-info'
+};
+const categoryColourClassSelect: Record<BoardNodeCategory, string> = {
+  yellow: 'select-warning',
+  green : 'select-success',
+  red   : 'select-error',
+  blue  : 'select-info'
 };
 
+/** 報酬アップ対象アイテムの画面表記 */
 const yellowTargetDisplayNames: Record<BoardNodeYellowTarget, string> = {
   cube     : 'キューブ',
   training : '特訓アイテム',
   lesson_pt: 'レッスン Pt'
 };
 
-/** 空のボードノードフォーム値を返す */
+/** 空のフォーム値を返す */
 const createEmptyFormValues = (): BoardNodeFormState => ({
   holomems_id  : '',
-  category     : boardNodeCategoryYellow,  // 仮で「黄マス」にしておく
+  category     : boardNodeCategoryYellow,
   yellow_target: '',
   description  : '',
-  is_unlocked  : booleanStringFalse,  // デフォルトは未解放にしておく
+  is_unlocked  : booleanStringFalse,
   amount       : '',
   connect_rate : ''
 });
 
-/** 最終レートを計算する */
+/** 小数第2位まで固定表示する */
+const formatDecimal = (value: number): string => value.toFixed(2);
+
+/** 「基礎効果量 (`amount`)」と「コネクトマスによる増幅率 (`connect_rate`)」を考慮して「最終レート」を算出する */
 const calcFinalRate = (amount: number, connectRate: number | null): number => amount * (1 + (connectRate ?? 0) / 100);
 
 /** ボードノード一覧ページ */
@@ -90,6 +108,7 @@ export default function BoardNodesPage(): ReactElement {
   const [noteFormError    , setNoteFormError    ] = useState<string>('');
   
   const onLoadData = async (): Promise<void> => {
+    setListError('');
     try {
       const [boardNodesResponse, holomemsResponse] = await Promise.all([
         adminApi.get('/api/board-nodes').json<{ result: Array<BoardNode>; }>(),
@@ -97,10 +116,9 @@ export default function BoardNodesPage(): ReactElement {
       ]);
       setBoardNodes(boardNodesResponse.result);
       setHolomems(holomemsResponse.result);
-      setListError('');
     }
     catch(error) {
-      setListError(extractApiErrorMessage(error, 'データの取得に失敗しました'));
+      setListError(extractApiErrorMessage(error, 'ボードノード一覧の取得に失敗しました'));
     }
   };
   
@@ -134,15 +152,14 @@ export default function BoardNodesPage(): ReactElement {
   /** 編集ボタン押下時 */
   const onStartEdit = (boardNode: BoardNode): void => {
     setEditingId(boardNode.id);
-    const targetHolomem = holomems.find(holomem => holomem.id === boardNode.holomems_id) ?? null;  // TODO : 万が一 null の時はエラーハンドリング
-    setEditingHolomem(targetHolomem);
+    setEditingHolomem(holomems.find(holomem => holomem.id === boardNode.holomems_id) ?? null);
     setForm({
       holomems_id  : String(boardNode.holomems_id) as NumberToStringValue,
       category     : boardNode.category,
       yellow_target: boardNode.category === boardNodeCategoryYellow ? (boardNode.yellow_target ?? '') : '',
       description  : boardNode.description,
       is_unlocked  : String(boardNode.is_unlocked) as BooleanString,
-      amount       : String(boardNode.amount) as NumberToStringValue,
+      amount       : formatDecimal(boardNode.amount) as NumberToStringValue,
       connect_rate : isEmpty(boardNode.connect_rate) ? '' : String(boardNode.connect_rate) as NumberToStringValue
     });
     setFormError('');
@@ -173,10 +190,9 @@ export default function BoardNodesPage(): ReactElement {
     event.preventDefault();
     setFormError('');
     
-    const formDataToValidate = { ...form };
-    // 黄マス以外の場合に `yellow_target` へ不正値が入らないように最終調整する
-    if(formDataToValidate.category !== boardNodeCategoryYellow) formDataToValidate.yellow_target = '';
-    const parsed = boardNodeSchema.safeParse(formDataToValidate);
+    const payload = { ...form };
+    if(payload.category !== boardNodeCategoryYellow) payload.yellow_target = '';  // 黄マス以外の場合に `yellow_target` へ不正値が入らないように最終調整する
+    const parsed = boardNodeSchema.safeParse(payload);
     if(!parsed.success) return setFormError(mergeIssues(parsed.error));
     
     setIsSubmitting(true);
@@ -201,7 +217,7 @@ export default function BoardNodesPage(): ReactElement {
   };
   
   const onDelete = async (): Promise<void> => {
-    if(editingId == null) return;  // TODO : 万が一 null の時はエラーハンドリング
+    if(editingId == null) return window.alert('異常 : 削除対象のマスが選択されていません');
     if(!window.confirm('このマスを削除しますか？')) return;
     
     setFormError('');
@@ -244,7 +260,7 @@ export default function BoardNodesPage(): ReactElement {
   const onSubmitNote = async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     
-    if(noteTargetHolomem == null) return;  // TODO : 万が一 null の時はエラーハンドリング
+    if(noteTargetHolomem == null) return window.alert('異常 : 更新対象のホロメンが選択されていません');
     setNoteFormError('');
     
     const parsed = holomemSchema.pick({ note: true }).safeParse({ note: holomemNoteForm.note });
@@ -264,15 +280,12 @@ export default function BoardNodesPage(): ReactElement {
     }
   };
   
-  // TODO : JSX 部分未レビュー
   return (
     <main>
       <h1>ホロメンボード一覧</h1>
       
-      <button type="button" className="btn btn-primary" onClick={onStartCreate}>＋ マスを新規追加</button>
-      
       {!isEmpty(listError) && (
-        <div className="alert alert-error mb-4">{listError}</div>
+        <div className="alert alert-error alert-soft mb-4">{listError}</div>
       )}
       
       {isLoading ? (
@@ -280,240 +293,195 @@ export default function BoardNodesPage(): ReactElement {
           <span className="loading loading-spinner text-warning" />
         </div>
       ) : (
-        boardNodeCategories.map(category => {
-          const categoryNodes = boardNodes.filter(n => n.category === category);
-          if(categoryNodes.length === 0) return null;
-          
-          return (
-            <section key={category} className="mb-12 border-b border-base-300 pb-8 last:border-0 last:pb-0">
-              <h2 className="mb-6">
-                <span className={`badge ${categoryBadgeClasses[category]} badge-lg text-lg font-bold py-4 px-6`}>
-                  {categoryDisplayNames[category]}
-                </span>
-              </h2>
+        <>
+          {boardNodes.length === 0 ? (
+            <p className="mb-4">登録されているマスはありません。</p>
+          ) : (
+            boardNodeCategories.map(category => {
+              // 1カテゴリごとに表示する
+              const categoryNodes = boardNodes.filter(boardNode => boardNode.category === category);
+              if(categoryNodes.length === 0) return null;
               
-              <div className="flex flex-col gap-10">
-                {holomems.map(holomem => {
-                  const nodes = categoryNodes.filter(n => n.holomems_id === holomem.id);
-                  if(nodes.length === 0) return null;
+              return (
+                <section key={category} className="mb-8">
+                  <h2 className={`mb-4 text-lg font-bold ${categoryColourClassText[category]}`}>{categoryDisplayNames[category]}</h2>
                   
-                  return (
-                    <div key={holomem.id}>
-                      <h3 className="mb-4 text-xl font-bold border-l-4 border-primary pl-3">
-                        {holomem.group_name} - {holomem.name} <span className="text-sm text-base-content/60 font-normal ml-2">(ID: {holomem.id})</span>
-                      </h3>
-                      
-                      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-                        <div className="xl:col-span-8 overflow-x-auto">
-                          <table className="table table-sm table-pin-rows table-pin-cols w-full">
-                            <thead>
-                              <tr>
-                                {category === boardNodeCategoryYellow && <th className="w-px whitespace-nowrap">{yellowTargetDisplayName}</th>}
-                                <th className="w-full">{descriptionDisplayName}</th>
-                                <th className="w-px whitespace-nowrap">解放</th>
-                                <th className="w-px whitespace-nowrap text-right">{amountDisplayName}</th>
-                                <th className="w-px whitespace-nowrap text-right">{connectRateDisplayName}</th>
-                                <th className="w-px whitespace-nowrap text-right">最終レート</th>
-                                <th className="w-px whitespace-nowrap">操作</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {nodes.map(node => (
-                                <tr key={node.id} className="hover">
-                                  {category === boardNodeCategoryYellow && (
-                                    <td className="w-px whitespace-nowrap">
-                                      {isEmpty(node.yellow_target) ? '—' : yellowTargetDisplayNames[node.yellow_target!]}
-                                    </td>
-                                  )}
-                                  <td className="w-full min-w-48 whitespace-pre-wrap">{node.description}</td>
-                                  <td className="w-px whitespace-nowrap">
-                                    <div className={`badge badge-sm ${node.is_unlocked === booleanNumberTrue ? 'badge-success' : 'badge-ghost'}`}>
-                                      {node.is_unlocked === booleanNumberTrue ? '◯' : '×'}
-                                    </div>
-                                  </td>
-                                  <td className="w-px whitespace-nowrap text-right">{node.amount}</td>
-                                  <td className="w-px whitespace-nowrap text-right">{node.connect_rate ?? '—'}</td>
-                                  <td className="w-px whitespace-nowrap text-right font-bold text-primary">
-                                    {Number(calcFinalRate(node.amount, node.connect_rate).toFixed(2))}
-                                  </td>
-                                  <td className="w-px whitespace-nowrap">
-                                    <button type="button" className="btn btn-xs btn-outline" onClick={() => onStartEdit(node)}>編集</button>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
+                  {/* 1カテゴリ内のホロメンごとに分割して表示する */}
+                  {holomems.map(holomem => {
+                    const nodes = categoryNodes.filter(boardNode => boardNode.holomems_id === holomem.id);
+                    if(nodes.length === 0) return null;
+                    
+                    return (
+                      <section key={holomem.id} className="mb-6">
+                        <h3 className={`border-l-8 pl-2 font-bold ${categoryColourClassBorder[category]}`}>
+                          {holomem.group_name} : {holomem.name} <span className="text-xs font-normal">(ID : {holomem.id})</span>
+                        </h3>
                         
-                        <div className="xl:col-span-4">
-                          <div 
-                            className="card bg-base-200 hover:bg-base-300 transition-colors cursor-pointer shadow-sm border border-base-300 h-full"
-                            onClick={() => onOpenNoteModal(holomem)}
-                          >
-                            <div className="card-body p-4">
-                              <h4 className="card-title text-sm opacity-70 mb-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                </svg>
-                                {noteDisplayName}
-                              </h4>
-                              <p className="whitespace-pre-wrap text-sm">
-                                {isEmpty(holomem.note) ? (
-                                  <span className="opacity-50 italic">メモはありません。クリックして編集</span>
-                                ) : (
-                                  holomem.note
-                                )}
-                              </p>
+                        <div className="overflow-x-auto">
+                          {/* TODO : スマホ幅にした時に「マス効果」列が広すぎ・ホロメンメモ列ももうちょっとだけ狭めたい */}
+                          <div className="grid min-w-240 grid-cols-[minmax(0,3fr)_minmax(12rem,1fr)]">
+                            <div>
+                              <table className="table table-xs">
+                                <colgroup>
+                                  {category === boardNodeCategoryYellow && (<col className="w-px" />)}
+                                  <col />
+                                  <col className="w-px" />
+                                  <col className="w-px" />
+                                  <col className="w-px" />
+                                  <col className="w-px" />
+                                </colgroup>
+                                <thead>
+                                  <tr className="text-center">
+                                    {category === boardNodeCategoryYellow && (<th className="pl-0 pr-1 whitespace-nowrap text-left">報酬 UP 対象</th>)}
+                                    <th className={`${category === boardNodeCategoryYellow ? 'px-1' : 'pl-0 pr-1'} whitespace-nowrap text-left`}>マス効果</th>
+                                    <th className="px-1 whitespace-nowrap text-right">効果量</th>
+                                    <th className="px-1 whitespace-nowrap text-right">コネクト率</th>
+                                    <th className="px-1 whitespace-nowrap text-right">最終レート</th>
+                                    <th className="px-1 whitespace-nowrap">編集</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {nodes.map(node => (
+                                    <tr key={node.id} className={`[&>td]:align-top ${node.is_unlocked === booleanNumberTrue ? '' : 'bg-base-300'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
+                                      {category === boardNodeCategoryYellow && (<td className="pl-0 pr-1 whitespace-nowrap">{isEmpty(node.yellow_target) ? '-' : yellowTargetDisplayNames[node.yellow_target!]}</td>)}
+                                      <td className={`${category === boardNodeCategoryYellow ? 'px-1' : 'pl-0 pr-1'} min-w-0 px-1 whitespace-pre-wrap`}>{node.description}</td>
+                                      <td className="px-1 whitespace-nowrap text-right">{formatDecimal(node.amount)}</td>
+                                      <td className="px-1 whitespace-nowrap text-right">{node.connect_rate == null ? '-' : `${node.connect_rate}%`}</td>
+                                      <td className="px-1 whitespace-nowrap text-right font-bold">{formatDecimal(calcFinalRate(node.amount, node.connect_rate))}</td>
+                                      <td className="px-1 py-0 !align-middle whitespace-nowrap text-center">
+                                        <button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(node)}>編集</button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
                             </div>
+                            
+                            <table className="table table-xs">
+                              <thead>
+                                <tr>
+                                  <th className="pl-1 pr-0 whitespace-nowrap text-left">ホロメンメモ</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td className="pl-1 pr-0 text-xs whitespace-pre-wrap align-top cursor-pointer" onClick={() => onOpenNoteModal(holomem)}>{isEmpty(holomem.note) ? '-' : holomem.note}</td>  { }
+                                </tr>
+                              </tbody>
+                            </table>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          );
-        })
+                      </section>
+                    );
+                  })}
+                </section>
+              );
+            })
+          )}
+          
+          <div className="text-right">
+            <button type="button" className="btn btn-info" onClick={onStartCreate}>新規マス追加</button>
+          </div>
+        </>
       )}
       
-      {/* ボードノード追加・編集モーダル */}
-      <dialog className={`modal ${isModalOpen ? 'modal-open' : ''}`}>
-        <div className="modal-box max-w-2xl">
-          <h3 className="font-bold text-lg mb-6">{editingId == null ? 'マスの新規追加' : 'マスの編集'}</h3>
-          
-          <form onSubmit={onSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="form-control w-full md:col-span-2">
-                <label className="label"><span className="label-text font-bold">{holomemsIdDisplayName}</span></label>
+      {isModalOpen && (
+        <div className="modal modal-open">
+          <div className="modal-box max-w-xl">
+            <h2 className="mb-4 text-lg font-bold">{editingId == null ? '新規マス追加' : `マス編集 (ID : ${editingId})`}</h2>
+            
+            {!isEmpty(formError) && (
+              <div className="alert alert-error alert-soft mb-4">{formError}</div>
+            )}
+            
+            <form onSubmit={onSubmit}>
+              <fieldset className="fieldset">
+                {/* 新規追加時はホロメンをセレクトボックスで選択・編集時は参照のみで変更不可 */}
+                <label className="fieldset-label">{holomemsIdDisplayName}</label>
                 {editingId == null ? (
-                  <select name="holomems_id" className="select select-bordered w-full" value={form.holomems_id} onChange={onChangeForm} required>
-                    <option value="" disabled>ホロメンを選択してください</option>
+                  <select className="select w-full" name="holomems_id" value={form.holomems_id} onChange={onChangeForm} required>
+                    <option value="">(ホロメンを選択してください)</option>
                     {holomems.map(holomem => (
-                      <option key={holomem.id} value={holomem.id}>{holomem.group_name} - {holomem.name}</option>
+                      <option key={holomem.id} value={String(holomem.id)}>{holomem.group_name} : {holomem.name}</option>
                     ))}
                   </select>
                 ) : (
-                  <input type="text" className="input input-bordered w-full" value={editingHolomem ? `${editingHolomem.group_name} - ${editingHolomem.name}` : ''} disabled />
+                  <input
+                    className="input w-full" type="text" readOnly disabled
+                    value={`${editingHolomem!.group_name} : ${editingHolomem!.name} (ID : ${form.holomems_id})`}
+                  />
                 )}
-              </div>
-              
-              <div className="form-control w-full">
-                <label className="label"><span className="label-text font-bold">{categoryDisplayName}</span></label>
-                <select name="category" className="select select-bordered w-full" value={form.category} onChange={onChangeForm}>
+                
+                {/* カテゴリは新規登録時のみ設定可能・編集時は参照のみで変更不可 */}
+                <label className="fieldset-label">{categoryDisplayName}</label>
+                <select className={`select w-full ${categoryColourClassSelect[form.category]}`} name="category" value={form.category} onChange={onChangeForm} disabled={editingId != null}>
                   {boardNodeCategories.map(category => (
                     <option key={category} value={category}>{categoryDisplayNames[category]}</option>
                   ))}
                 </select>
-              </div>
-              
-              <div className="form-control w-full">
-                <label className="label"><span className="label-text font-bold">{yellowTargetDisplayName}</span></label>
-                <select 
-                  name="yellow_target" 
-                  className="select select-bordered w-full" 
-                  value={form.yellow_target} 
-                  onChange={onChangeForm} 
-                  disabled={form.category !== boardNodeCategoryYellow}
-                >
-                  <option value="">選択してください</option>
+                
+                {/* 黃マス時の報酬アップ対象アイテムは新規登録時のみ設定可能・編集時は参照のみで変更不可 */}
+                <label className="fieldset-label">{yellowTargetDisplayName}</label>
+                <select className="select w-full" name="yellow_target" value={form.yellow_target} onChange={onChangeForm} disabled={editingId != null || form.category !== boardNodeCategoryYellow}>
+                  <option value="">(選択してください)</option>
                   {boardNodeYellowTargets.map(yellowTarget => (
                     <option key={yellowTarget} value={yellowTarget}>{yellowTargetDisplayNames[yellowTarget]}</option>
                   ))}
                 </select>
-              </div>
+                
+                <label className="fieldset-label">{descriptionDisplayName}</label>
+                <textarea className="textarea w-full min-h-24" name="description" value={form.description} onChange={onChangeForm} required />
+                
+                <label className="fieldset-label">{amountDisplayName}</label>
+                <input className="input w-full" name="amount" type="number" step="any" value={form.amount} onChange={onChangeForm} required />
+                
+                <label className="fieldset-label">{connectRateDisplayName}</label>
+                <input className="input w-full" name="connect_rate" type="number" step="any" value={form.connect_rate} onChange={onChangeForm} />
+                
+                <label className="fieldset-label">{isUnlockedDisplayName}</label>
+                <input className="checkbox" type="checkbox" name="is_unlocked" checked={form.is_unlocked === booleanStringTrue} onChange={onChangeIsUnlocked} />
+              </fieldset>
               
-              <div className="form-control w-full md:col-span-2">
-                <label className="label"><span className="label-text font-bold">{descriptionDisplayName}</span></label>
-                <textarea name="description" className="textarea textarea-bordered h-24 w-full" value={form.description} onChange={onChangeForm} required />
-              </div>
-              
-              <div className="form-control w-full">
-                <label className="label"><span className="label-text font-bold">{amountDisplayName}</span></label>
-                <input name="amount" type="number" step="any" className="input input-bordered w-full" value={form.amount} onChange={onChangeForm} required />
-              </div>
-              
-              <div className="form-control w-full">
-                <label className="label"><span className="label-text font-bold">{connectRateDisplayName}</span></label>
-                <input name="connect_rate" type="number" step="any" className="input input-bordered w-full" value={form.connect_rate} onChange={onChangeForm} />
-              </div>
-              
-              <div className="form-control w-full md:col-span-2">
-                <label className="label cursor-pointer justify-start gap-4">
-                  <span className="label-text font-bold">{isUnlockedDisplayName}</span>
-                  <input type="checkbox" className="toggle toggle-primary" name="is_unlocked" checked={form.is_unlocked === booleanStringTrue} onChange={onChangeIsUnlocked} />
-                </label>
-              </div>
-            </div>
-            
-            {!isEmpty(formError) && (
-              <div className="alert alert-error mt-6">
-                <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span>{formError}</span>
-              </div>
-            )}
-            
-            <div className={`modal-action ${editingId != null ? 'justify-between' : ''}`}>
-              {editingId != null && (
-                <button type="button" className="btn btn-error" onClick={onDelete} disabled={isSubmitting}>削除する</button>
-              )}
-              <div className="flex gap-2">
+              <div className="modal-action justify-between">
+                {editingId != null && (<button type="button" className="btn btn-error" onClick={onDelete} disabled={isSubmitting}>削除する</button>)}
                 <button type="button" className="btn" onClick={onCloseModal} disabled={isSubmitting}>キャンセル</button>
-                <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                  {isSubmitting && <span className="loading loading-spinner"></span>}
-                  {editingId == null ? '追加する' : '更新する'}
-                </button>
+                <button type="submit" className="btn btn-info" disabled={isSubmitting}>{editingId == null ? '追加する' : '更新する'}</button>
               </div>
-            </div>
-          </form>
-        </div>
-        <form method="dialog" className="modal-backdrop">
-          <button onClick={onCloseModal} disabled={isSubmitting}>閉じる</button>
-        </form>
-      </dialog>
-      
-      {/* ホロメンメモ編集モーダル */}
-      <dialog className={`modal ${isNoteModalOpen ? 'modal-open' : ''}`}>
-        <div className="modal-box">
-          <h3 className="font-bold text-lg mb-6">ホロメンメモ編集</h3>
+            </form>
+          </div>
           
-          <form onSubmit={onSubmitNote}>
-            <div className="form-control w-full mb-4">
-              <label className="label"><span className="label-text font-bold">ホロメン</span></label>
-              <input type="text" className="input input-bordered w-full" value={noteTargetHolomem ? `${noteTargetHolomem.group_name} - ${noteTargetHolomem.name}` : ''} disabled />
-            </div>
-            
-            <div className="form-control w-full mb-6">
-              <label className="label"><span className="label-text font-bold">{noteDisplayName}</span></label>
-              <textarea 
-                name="note" 
-                className="textarea textarea-bordered h-32 w-full" 
-                value={holomemNoteForm.note} 
-                onChange={onChangeNoteForm} 
-                placeholder="ホロメンに関するメモ (空欄可)"
-              />
-            </div>
+          <div className="modal-backdrop" onClick={onCloseModal} />
+        </div>
+      )}
+      
+      {isNoteModalOpen && (
+        <div className="modal modal-open">
+          <div className="modal-box max-w-xl">
+            <h2 className="mb-4 text-lg font-bold">ホロメンメモ編集</h2>
             
             {!isEmpty(noteFormError) && (
-              <div className="alert alert-error mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span>{noteFormError}</span>
-              </div>
+              <div className="alert alert-error alert-soft mb-4">{noteFormError}</div>
             )}
             
-            <div className="modal-action">
-              <button type="button" className="btn" onClick={onCloseNoteModal} disabled={isSubmittingNote}>キャンセル</button>
-              <button type="submit" className="btn btn-primary" disabled={isSubmittingNote}>
-                {isSubmittingNote && <span className="loading loading-spinner"></span>}
-                メモを更新する
-              </button>
-            </div>
-          </form>
+            <form onSubmit={onSubmitNote}>
+              <fieldset className="fieldset">
+                <label className="fieldset-label">ホロメン</label>
+                <input className="input w-full" type="text" readOnly disabled value={noteTargetHolomem == null ? '' : `${noteTargetHolomem.group_name} : ${noteTargetHolomem.name}`} />
+                
+                <label className="fieldset-label">{noteDisplayName}</label>
+                <textarea className="textarea w-full min-h-24" name="note" value={holomemNoteForm.note} onChange={onChangeNoteForm} />
+              </fieldset>
+              
+              <div className="modal-action">
+                <button type="button" className="btn" onClick={onCloseNoteModal} disabled={isSubmittingNote}>キャンセル</button>
+                <button type="submit" className="btn btn-info" disabled={isSubmittingNote}>更新する</button>
+              </div>
+            </form>
+          </div>
+          
+          <div className="modal-backdrop" onClick={onCloseNoteModal} />
         </div>
-        <form method="dialog" className="modal-backdrop">
-          <button onClick={onCloseNoteModal} disabled={isSubmittingNote}>閉じる</button>
-        </form>
-      </dialog>
+      )}
     </main>
   );
 }

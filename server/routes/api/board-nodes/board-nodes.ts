@@ -36,7 +36,8 @@ boardNodes.patch('/:id', async context => {  // eslint-disable-line neos-eslint-
   const body = await context.req.json().catch(() => null);
   if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);
   
-  const parsed = boardNodeSchema.partial().safeParse(body);
+  // `superRefine` を使っているスキーマは `partial()` が使えない・PATCH 操作だが毎回全項目が送られてくるのでココでは `partial()` 不要
+  const parsed = boardNodeSchema.safeParse(body);
   if(!parsed.success) return context.json({ error: mergeIssues(parsed.error) }, httpStatusCode.badRequest);
   
   await new BoardNodesRepository(context.env.DB).update(id, parsed.data);

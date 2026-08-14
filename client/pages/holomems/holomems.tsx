@@ -164,7 +164,7 @@ export default function HolomemsPage(): ReactElement {
             <p className="mb-4">登録されているホロメンはありません。</p>
           ) : (
             <div className="mb-4 overflow-x-auto">
-              <table className="table table-xs w-full">
+              <table className="table table-xs">
                 <thead>
                   <tr className="text-center">
                     <th className="w-px           pl-0 pr-1 whitespace-nowrap">No</th>
@@ -177,7 +177,7 @@ export default function HolomemsPage(): ReactElement {
                   {/* 卒業しているホロメンの行はグレー背景で表示する */}
                   {holomems.map(holomem => (
                     <tr key={holomem.id} className={`[&>td]:align-top ${holomem.is_active === booleanNumberTrue ? '' : 'bg-base-300'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                      <td className="w-px pl-0 pr-1 text-center whitespace-nowrap">
+                      <td className="w-px pl-0 pr-1 py-0 !align-middle whitespace-nowrap">
                         <button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(holomem)}>{holomem.sort_order}</button>
                       </td>
                       <td className="w-px px-1 whitespace-nowrap">{holomem.group_name}</td>
@@ -226,7 +226,7 @@ export default function HolomemsPage(): ReactElement {
                 <input className="input w-full" name="name" type="text" value={form.name} onChange={onChangeForm} required />
                 
                 <label className="fieldset-label">{noteDisplayName}</label>
-                <textarea className="textarea w-full min-h-32" name="note" value={form.note} onChange={onChangeForm} />
+                <textarea className="textarea w-full min-h-24" name="note" value={form.note} onChange={onChangeForm} />
                 
                 <label className="fieldset-label">{isActiveDisplayName}</label>
                 <select className="select w-full" name="is_active" value={form.is_active} onChange={onChangeForm}>
