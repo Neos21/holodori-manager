@@ -1,6 +1,7 @@
 import z from 'zod';
 
 import { zodErrorMessages } from './schema-utilities';
+import { maximumHoloworkMemberCount, minimumHoloworkMemberCount } from '../constants/holodori-constants';
 
 import type { StartHoloworkRequest } from '../types/start-holowork-request';
 
@@ -14,7 +15,7 @@ export const startHoloworkSchema: z.ZodType<StartHoloworkRequest> = z.object({
                     .min(1, { error: `${holomemsIdsDisplayName}の ID には正の整数を指定してください` }),
                   { error: `${holomemsIdsDisplayName}は配列で指定してください` }
                 )
-                .min(1, { error: `${holomemsIdsDisplayName}を1件以上指定してください` })
-                .max(5, { error: `${holomemsIdsDisplayName}は5件以下で指定してください` })
-                .refine(holomemsIds => new Set(holomemsIds).size === holomemsIds.length, { message: `${holomemsIdsDisplayName}に同じ ID は指定できません` })
+                .min(minimumHoloworkMemberCount, { error: `${holomemsIdsDisplayName}を ${minimumHoloworkMemberCount} 人以上指定してください` })
+                .max(maximumHoloworkMemberCount, { error: `${holomemsIdsDisplayName}は ${maximumHoloworkMemberCount} 人以下で指定してください` })
+                .refine(holomemsIds => new Set(holomemsIds).size === holomemsIds.length, { message: `${holomemsIdsDisplayName}に同じホロメンは指定できません` })
 });

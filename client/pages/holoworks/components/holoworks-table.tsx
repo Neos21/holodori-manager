@@ -22,8 +22,8 @@ export const HoloworksTable = ({ holoworks, isDisabled, onStart, onComplete, onA
         <table className="table table-xs">
           <thead>
             <tr className="text-center">
-              <th className="whitespace-nowrap text-left">枠の名前</th>
-              <th className="min-w-48 whitespace-nowrap text-left">活動中メンバー</th>
+              <th className="w-px whitespace-nowrap text-left">枠の名前</th>
+              <th className="     whitespace-nowrap text-left">活動中メンバー</th>
               <th className="w-px whitespace-nowrap">開始</th>
               <th className="w-px whitespace-nowrap">完了</th>
               <th className="w-px whitespace-nowrap">中断</th>
@@ -35,16 +35,16 @@ export const HoloworksTable = ({ holoworks, isDisabled, onStart, onComplete, onA
               const hasActiveMembers = holowork.active_members.length > 0;
               return (
                 <tr key={holowork.id}>
-                  <td className="whitespace-nowrap">{holowork.name}</td>
+                  <td className="w-px whitespace-nowrap">{holowork.name}</td>
                   <td>
                     {hasActiveMembers ? holowork.active_members.map(activeMember => (
-                      <div key={activeMember.holomems_id} className="whitespace-nowrap">{activeMember.holomems_group_name} : {activeMember.holomems_name}</div>
+                      <div key={activeMember.holomems_id}>{activeMember.holomems_group_name} : {activeMember.holomems_name}</div>
                     )) : '-'}
                   </td>
-                  <td className="px-1 text-center"><button type="button" className="btn btn-xs"           onClick={() => onStart(holowork)}    disabled={isDisabled || hasActiveMembers} >開始</button></td>
-                  <td className="px-1 text-center"><button type="button" className="btn btn-xs"           onClick={() => onComplete(holowork)} disabled={isDisabled || !hasActiveMembers}>完了</button></td>
-                  <td className="px-1 text-center"><button type="button" className="btn btn-xs"           onClick={() => onAbort(holowork)}    disabled={isDisabled || !hasActiveMembers}>中断</button></td>
-                  <td className="px-1 text-center"><button type="button" className="btn btn-xs btn-error" onClick={() => onDelete(holowork)}   disabled={isDisabled || hasActiveMembers} >削除</button></td>
+                  <td className="px-1 whitespace-nowrap text-center"><button type="button" className="btn btn-xs"           onClick={() => onStart(holowork)}    disabled={isDisabled || hasActiveMembers} >開始</button></td>
+                  <td className="px-1 whitespace-nowrap text-center"><button type="button" className="btn btn-xs"           onClick={() => onComplete(holowork)} disabled={isDisabled || !hasActiveMembers}>完了</button></td>
+                  <td className="px-1 whitespace-nowrap text-center"><button type="button" className="btn btn-xs"           onClick={() => onAbort(holowork)}    disabled={isDisabled || !hasActiveMembers}>中断</button></td>
+                  <td className="px-1 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-error" onClick={() => onDelete(holowork)}   disabled={isDisabled || hasActiveMembers} >削除</button></td>
                 </tr>
               );
             })}

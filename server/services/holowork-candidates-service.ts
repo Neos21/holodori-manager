@@ -38,6 +38,7 @@ export class HoloworkCandidatesService {
       .filter(candidate => candidate.next_threshold != null)
       .sort((candidateA, candidateB) =>
         (candidateA.remaining_count ?? 0) - (candidateB.remaining_count ?? 0) ||
+        candidateB.current_count - candidateA.current_count ||
         (candidateA.next_threshold ?? 0) - (candidateB.next_threshold ?? 0) ||
         this.compareHolomemOrder(candidateA, candidateB)
       );

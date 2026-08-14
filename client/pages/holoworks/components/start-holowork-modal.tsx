@@ -1,6 +1,7 @@
 import { type ChangeEvent, type ReactElement, type SubmitEvent, useState } from 'react';
 
 import { candidatePriorities } from '../../../../shared/constants/app-constants';
+import { maximumHoloworkMemberCount, minimumHoloworkMemberCount } from '../../../../shared/constants/holodori-constants';
 import { formatDecimal } from '../../../../shared/helpers/format-decimal';
 import { isEmpty } from '../../../../shared/helpers/is-empty';
 import { adminApi } from '../../../helpers/admin-api';
@@ -36,7 +37,6 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
   const [priorityCandidates, setPriorityCandidates] = useState<Array<HoloworkCandidate>>([]);
   const [otherCandidates, setOtherCandidates] = useState<Array<HoloworkCandidate>>([]);
   const [selectedHolomemsIds, setSelectedHolomemsIds] = useState<Array<number>>([]);
-  const [hasLoadedCandidates, setHasLoadedCandidates] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string>('');
@@ -48,7 +48,6 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
     setSelectedHolomemsIds([]);
     setPriorityCandidates([]);
     setOtherCandidates([]);
-    setHasLoadedCandidates(false);
     setFormError('');
     if(isEmpty(selectedPriority)) return;
     
@@ -57,7 +56,6 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
       const response = await adminApi.get('/api/holoworks/candidates', { searchParams: { priority: selectedPriority } }).json<{ result: HoloworkCandidates; }>();
       setPriorityCandidates(response.result.priority_candidates);
       setOtherCandidates(response.result.other_candidates);
-      setHasLoadedCandidates(true);
     }
     catch(error) {
       setFormError(extractApiErrorMessage(error, '優先ホロメン候補の取得に失敗しました'));
@@ -70,7 +68,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
   const onChangeSelectedHolomem = (event: ChangeEvent<HTMLInputElement>): void => {
     const holomemId = Number(event.target.value);
     if(event.target.checked) {
-      if(selectedHolomemsIds.length >= 5) return;
+      if(selectedHolomemsIds.length >= maximumHoloworkMemberCount) return;
       return setSelectedHolomemsIds(prevHolomemsIds => [...prevHolomemsIds, holomemId]);
     }
     setSelectedHolomemsIds(prevHolomemsIds => prevHolomemsIds.filter(id => id !== holomemId));
@@ -79,7 +77,9 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
   const onSubmit = async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     setFormError('');
-    if(selectedHolomemsIds.length < 1) return setFormError('開始するホロメンを 1 人以上選択してください');
+    
+    if(selectedHolomemsIds.length < minimumHoloworkMemberCount) return setFormError(`開始するホロメンを ${minimumHoloworkMemberCount} 人以上選択してください`);
+    if(selectedHolomemsIds.length < maximumHoloworkMemberCount && !window.confirm(`${maximumHoloworkMemberCount} 人選択されていません。このままホロワークを開始しますか？`)) return;
     
     setIsSubmitting(true);
     try {
@@ -99,7 +99,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
     const isSelected = selectedHolomemsIds.includes(candidate.holomems_id);
     return (
       <tr key={candidate.holomems_id}>
-        <td className="text-center"><input className="checkbox checkbox-sm" type="checkbox" value={candidate.holomems_id} checked={isSelected} onChange={onChangeSelectedHolomem} disabled={isSubmitting || (!isSelected && selectedHolomemsIds.length >= 5)} /></td>
+        <td className="text-center"><input className="checkbox checkbox-sm" type="checkbox" value={candidate.holomems_id} checked={isSelected} onChange={onChangeSelectedHolomem} disabled={isSubmitting || (!isSelected && selectedHolomemsIds.length >= maximumHoloworkMemberCount)} /></td>
         <td className="whitespace-nowrap">{candidate.holomems_group_name}</td>
         <td className="whitespace-nowrap">{candidate.holomems_name}</td>
         {'current_count' in candidate ? (
@@ -171,10 +171,10 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
             <div className="mb-4 text-center"><span className="loading loading-spinner text-warning" /></div>
           )}
           
-          {hasLoadedCandidates && (
+          {!isLoading && !isEmpty(priority) && (
             <>
-              <p className="mb-2">選択人数 : {selectedHolomemsIds.length} / 5</p>
-              <p className="mb-4 text-sm">5 人未満でも開始できますが、通常は 5 人選択してください。</p>
+              <p className="mb-2">選択人数 : {selectedHolomemsIds.length} / {maximumHoloworkMemberCount}</p>
+              <p className="mb-4 text-sm">{maximumHoloworkMemberCount} 人未満でも開始できますが、通常は {maximumHoloworkMemberCount} 人選択してください。</p>
               {renderCandidatesTable('優先候補', priorityCandidates)}
               {renderCandidatesTable('その他の選択可能なホロメン', otherCandidates)}
             </>
@@ -186,9 +186,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
           
           <div className="modal-action justify-between">
             <button type="button" className="btn" onClick={onClose} disabled={isSubmitting}>キャンセル</button>
-            {hasLoadedCandidates && (
-              <button type="submit" className="btn btn-info" disabled={isSubmitting}>開始する</button>
-            )}
+            <button type="submit" className="btn btn-info" disabled={isLoading || isSubmitting}>開始する</button>
           </div>
         </form>
       </div>

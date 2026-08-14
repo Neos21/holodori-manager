@@ -1,3 +1,4 @@
+import { minimumHoloworkMemberCount } from '../../shared/constants/holodori-constants';
 import { httpStatusCode } from '../../shared/constants/http-status-code';
 import { ActiveHoloworkMembersRepository } from '../repositories/active-holowork-members-repository';
 import { HolomemsRepository } from '../repositories/holomems-repository';
@@ -59,7 +60,7 @@ export class HoloworksService {
     const activeHoloworkMembersRepository = new ActiveHoloworkMembersRepository(this.db);
     
     const currentMembers = await activeHoloworkMembersRepository.findByHoloworksId(holoworkId);
-    if(currentMembers.length > 0) return { error: '指定のホロワーク枠には活動中のメンバーがいます', httpStatusCode: httpStatusCode.badRequest };
+    if(currentMembers.length >= minimumHoloworkMemberCount) return { error: '指定のホロワーク枠には活動中のメンバーがいます', httpStatusCode: httpStatusCode.badRequest };
     
     const activeHolomems = await new HolomemsRepository(this.db).findActiveByIds(holomemsIds);
     if(activeHolomems.length !== holomemsIds.length) return { error: '存在しない、または卒業済みのホロメンが含まれています', httpStatusCode: httpStatusCode.badRequest };
@@ -85,7 +86,7 @@ export class HoloworksService {
     if(holoworkExistsResult.error != null) return holoworkExistsResult;
     
     const activeMembers = await new ActiveHoloworkMembersRepository(this.db).findByHoloworksId(holoworkId);
-    if(activeMembers.length === 0) return { error: '活動中のメンバーが存在しません', httpStatusCode: httpStatusCode.badRequest };
+    if(activeMembers.length < minimumHoloworkMemberCount) return { error: '活動中のメンバーが存在しません', httpStatusCode: httpStatusCode.badRequest };
     
     const holomemsIds = activeMembers.map(activeMember => activeMember.holomems_id);
     const statements = holomemsIds.map(holomemsId => this.db
@@ -108,7 +109,7 @@ export class HoloworksService {
     const activeHoloworkMembersRepository = new ActiveHoloworkMembersRepository(this.db);
     
     const activeMembers = await activeHoloworkMembersRepository.findByHoloworksId(holoworkId);
-    if(activeMembers.length === 0) return { error: '活動中のメンバーが存在しません', httpStatusCode: httpStatusCode.badRequest };
+    if(activeMembers.length < minimumHoloworkMemberCount) return { error: '活動中のメンバーが存在しません', httpStatusCode: httpStatusCode.badRequest };
     
     await activeHoloworkMembersRepository.deleteByHoloworksId(holoworkId);
     return { result: undefined };

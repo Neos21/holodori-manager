@@ -38,3 +38,8 @@ export const boardNodeCategories = [boardNodeCategoryYellow, boardNodeCategoryGr
 
 /** ホロワーク完了回数のアチーブメント定義 */
 export const holoworkAchievements = [1, 5, 10, 30, 50, 100, 200, 300, 400] as const;
+
+/** ホロワークを開始・完了できる最小メンバー数 */
+export const minimumHoloworkMemberCount = 1 as const;
+/** ホロワークを開始・完了できる最大メンバー数 */
+export const maximumHoloworkMemberCount = 5 as const;
