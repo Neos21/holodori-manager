@@ -1,9 +1,14 @@
 import { type ChangeEvent, type ReactElement, useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router';
+
+import { authenticationRedirectReasonLogout, sessionStorageKeyAuthenticationRedirectReason } from '../../shared/constants/app-constants';
+import { useAdminStore } from '../stores/admin-store';
 
 /** ログイン後の全画面共通のレイアウト */
 export default function AdminLayout(): ReactElement {
   const location = useLocation();
+  const navigate = useNavigate();
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   
   const menuItems = [
@@ -18,6 +23,13 @@ export default function AdminLayout(): ReactElement {
   const onChangeSidebar = (event: ChangeEvent<HTMLInputElement>): void => setIsSidebarOpen(event.target.checked);
   /** サイドメニューのリンクを押下した時にサイドメニューを閉じるためのイベント */
   const onCloseSidebar = (): void => setIsSidebarOpen(false);
+  
+  /** ユーザ操作によるログアウト理由を記録してから JWT を削除し、トップページに遷移する */
+  const onLogout = (): void => {
+    sessionStorage.setItem(sessionStorageKeyAuthenticationRedirectReason, authenticationRedirectReasonLogout);
+    useAdminStore.getState().logout();
+    navigate('/', { replace: true });
+  };
   
   return (
     <div className="drawer lg:drawer-open min-h-screen">
@@ -60,7 +72,7 @@ export default function AdminLayout(): ReactElement {
                   </li>
                 );
               })}
-              {/* TODO : ログアウトメニュー */}
+              <li><button type="button" onClick={onLogout}>ログアウト</button></li>
             </ul>
           </nav>
           

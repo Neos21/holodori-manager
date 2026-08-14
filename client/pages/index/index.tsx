@@ -1,7 +1,8 @@
 import ky from 'ky';
-import { type ChangeEvent, type ReactElement, type SubmitEvent, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { type ChangeEvent, type ReactElement, type SubmitEvent, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 
+import { authenticationRedirectReasonReloginRequired, sessionStorageKeyAuthenticationRedirectReason } from '../../../shared/constants/app-constants';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { loginSchema } from '../../../shared/schemas/login-schema';
@@ -9,10 +10,14 @@ import { extractApiErrorMessage } from '../../helpers/extract-api-error-message'
 import { useAdminStore } from '../../stores/admin-store';
 
 export default function Index(): ReactElement {
-  const location = useLocation();
   const navigate = useNavigate();
   
-  const shouldRequestRelogin = location.state?.shouldRequestRelogin === true;  // `root.tsx` にてリダイレクト処理された際にメッセージ表示をさせるためのフラグが飛んでくる
+  const [shouldRequestRelogin] = useState<boolean>(sessionStorage.getItem(sessionStorageKeyAuthenticationRedirectReason) === authenticationRedirectReasonReloginRequired);  // SessionStorage に再ログイン要求があった場合のみ現在の表示中にメッセージを表示する
+  
+  // 再ログインメッセージの表示有無にかかわらず、表示要求を次回のトップページ表示に持ち越さない
+  useEffect((): void => {
+    sessionStorage.removeItem(sessionStorageKeyAuthenticationRedirectReason);
+  }, []);
   
   const [password    , setPassword    ] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);

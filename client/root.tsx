@@ -2,6 +2,7 @@ import { type ReactElement, type ReactNode, useEffect } from 'react';
 import { isRouteErrorResponse, Link, Links, Outlet, Scripts, ScrollRestoration, useLocation, useNavigate } from 'react-router';
 
 import { useAdminStore } from './stores/admin-store';
+import { authenticationRedirectReasonLogout, authenticationRedirectReasonReloginRequired, sessionStorageKeyAuthenticationRedirectReason } from '../shared/constants/app-constants';
 import { isEmpty } from '../shared/helpers/is-empty';
 
 import type { Route } from './+types/root';
@@ -12,24 +13,27 @@ export function Layout({ children }: { children: ReactNode }): ReactElement {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const token = useAdminStore(state => state.token);
+  const isHydrated = useAdminStore(state => state.isHydrated);
+  const token      = useAdminStore(state => state.token);
   
   // JWT の有無でログイン済か否かをチェックし適宜リダイレクトする
   useEffect((): void => {
+    if(isHydrated !== true) return;  // LocalStorage から Store の復旧が済んでいない段階では何もしない
+    
     const isAuthenticated = !isEmpty(token);
     
-    if(isAuthenticated && location.pathname === '/') {
+    if(isAuthenticated && location.pathname === '/') {  // ログイン済の場合は `/home` に移動する
       navigate('/home', { replace: true });
       return;
     }
-    if(!isAuthenticated && location.pathname !== '/') {
-      navigate('/', {
-        replace: true,
-        state: { shouldRequestRelogin: true }  // トップページにメッセージを表示するための State を渡す
-      });
+    if(!isAuthenticated && location.pathname !== '/') {  // 未ログインの場合に `/` 以外にいる場合は `/` に移動する
+      // JWT 有効期限切れ等の理由の場合は `index.tsx` にメッセージを表示するため、必要に応じて SessionStorage に情報を記録してから遷移する
+      const redirectReason = sessionStorage.getItem(sessionStorageKeyAuthenticationRedirectReason);
+      if(redirectReason !== authenticationRedirectReasonLogout) sessionStorage.setItem(sessionStorageKeyAuthenticationRedirectReason, authenticationRedirectReasonReloginRequired);
+      navigate('/', { replace: true });
       return;
     }
-  }, [location.pathname, navigate, token]);
+  }, [location.pathname, navigate, isHydrated, token]);
   
   return (
     <html lang="ja">
