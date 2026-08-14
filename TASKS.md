@@ -34,7 +34,7 @@
     - [x] `board-nodes.tsx` 内の TODO コメントの内容を修正反映して解消する
 - [x] ページ初期表示時、JWT が無効と判断して `/` にリダイレクトした際に、「再度ログインしてください」のメッセージを `alert alert-warning alert-soft` で表示する
 - [x] ログイン後のサイドメニューに「ログアウト」ボタンを配置する。`useAdminStore` の `logout()` を実行して LocalStorage をクリアし `/` に `navigate()` 遷移する
-- [ ] サイドメニューに `memo` の編集欄を設ける : UI 仕様は README に記載あり
+- [x] サイドメニューに `memo` の編集欄を設ける : UI 仕様は README に記載あり
 - [ ] GET `/api/holomems` を複数画面で呼んでいるので、Store 管理にして API コール回数削減、パフォーマンス向上を狙いたい
 
 ### 優先度低

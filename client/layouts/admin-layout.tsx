@@ -1,6 +1,7 @@
 import { type ChangeEvent, type ReactElement, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 
+import { Memo } from './components/memo';
 import { authenticationRedirectReasonLogout, sessionStorageKeyAuthenticationRedirectReason } from '../../shared/constants/app-constants';
 import { useAdminStore } from '../stores/admin-store';
 
@@ -62,7 +63,7 @@ export default function AdminLayout(): ReactElement {
         {/* サイドメニュー */}
         <aside className="w-72 min-h-full border-r border-base-300 py-4 px-3 text-base-content bg-base-200">
           <div className="mb-6 text-xl font-bold">Holodori Manager</div>
-          <nav>
+          <nav className="mb-6">
             <ul className="menu w-full p-0 gap-2">
               {menuItems.map(item => {
                 const isActive = location.pathname === item.to;
@@ -76,7 +77,8 @@ export default function AdminLayout(): ReactElement {
             </ul>
           </nav>
           
-          {/* TODO : `memo` 編集欄 */}
+          {/* 自由メモ */}
+          <Memo />
         </aside>
       </div>
     </div>
