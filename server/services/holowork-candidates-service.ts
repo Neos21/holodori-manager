@@ -1,54 +1,105 @@
 import { candidatePriorityCount } from '../../shared/constants/app-constants';
 import { booleanNumberTrue } from '../../shared/constants/boolean-constants';
-import { holoworkAchievements } from '../../shared/constants/holodori-constants';
+import { boardNodeCategoryYellow } from '../../shared/constants/holodori-constants';
+import { BoardNodesService } from '../../shared/services/board-nodes-service';
+import { HoloworkAchievementsService } from '../../shared/services/holowork-achievements-service';
 
 import type { CandidatePriority } from '../../shared/types/app-types';
-import type { HoloworkCandidates, HoloworkCountCandidate, HoloworkRateCandidate } from '../../shared/types/holowork-candidate';
+import type { HoloworkCandidate, HoloworkCandidates, HoloworkCountCandidate, HoloworkRateCandidate } from '../../shared/types/holowork-candidate';
+import type { HoloworkCountCandidateRow, HoloworkRateCandidateRow } from '../types/holowork-candidate-row';
 
-/** ホロワークで優先的に選択するべきホロメン候補を取得するためのサービス */
+/** ホロワークで選択可能なホロメン候補を取得するためのサービス */
 export class HoloworkCandidatesService {
   constructor(private readonly db: D1Database) { }
   
-  /**
-   * 優先すべきホロメン候補を優先度順に返す
-   * 
-   * Priority で `count` (完了回数重視) が選択された場合、次のアチーブメント達成までの残り回数が少ない順に取得する
-   * アチーブメント最大回数を超えているホロメンは含まない
-   * 
-   * Priority で `lesson_pt`・`cube`・`training` のいずれか (アイテム獲得量重視) が選択された場合、
-   * Priority と対応する `yellow_target` を見て「合計最終レート」が高いホロメンを順に取得する
-   * 合計最終レートが 0% (効果なし) のホロメンは含まない
-   *
-   * いずれも、卒業等による無効化がされているホロメンは含まれない
-   */
+  /** 選択した優先モードに基づき、優先候補とその他候補を排他的に取得する */
   public async getCandidates(priority: CandidatePriority): Promise<HoloworkCandidates> {
-    if(priority === candidatePriorityCount) {
-      return {
-        selected_priority: priority,
-        candidates       : await this.getCountCandidates()
-      };
-    }
-    else {
-      return {
-        selected_priority: priority,
-        candidates       : await this.getRateCandidates(priority)
-      };
-    }
+    if(priority === candidatePriorityCount) return await this.getCountCandidates(priority);
+    return await this.getRateCandidates(priority);
   }
   
-  /** 完了回数重視の場合の優先ホロメン候補を取得する */
-  private async getCountCandidates(): Promise<Array<HoloworkCountCandidate>> {
-    /** アチーブメント最大回数 */
-    const maxCountThreshold = holoworkAchievements[holoworkAchievements.length - 1];
+  /** 完了回数重視の候補を取得する */
+  private async getCountCandidates(priority: typeof candidatePriorityCount): Promise<HoloworkCandidates> {
+    const rows = await this.findCountCandidateRows();
+    const candidates = rows.map((row): HoloworkCountCandidate => {
+      const progress = HoloworkAchievementsService.calcProgress(row.current_count);
+      return {
+        holomems_id        : row.holomems_id,
+        holomems_sort_order: row.holomems_sort_order,
+        holomems_group_name: row.holomems_group_name,
+        holomems_name      : row.holomems_name,
+        achievement_note   : row.achievement_note,
+        current_count      : row.current_count,
+        next_threshold     : progress.next_threshold,
+        remaining_count    : progress.remaining_count
+      };
+    });
+    const priorityCandidates = candidates
+      .filter(candidate => candidate.next_threshold != null)
+      .sort((candidateA, candidateB) =>
+        (candidateA.remaining_count ?? 0) - (candidateB.remaining_count ?? 0) ||
+        (candidateA.next_threshold ?? 0) - (candidateB.next_threshold ?? 0) ||
+        this.compareHolomemOrder(candidateA, candidateB)
+      );
+    const priorityCandidateIds = new Set(priorityCandidates.map(candidate => candidate.holomems_id));
+    const otherCandidates = candidates.filter(candidate => !priorityCandidateIds.has(candidate.holomems_id));
+    this.sortByHolomemOrder(otherCandidates);
+    
+    return {
+      selected_priority  : priority,
+      priority_candidates: priorityCandidates,
+      other_candidates   : otherCandidates
+    };
+  }
+  
+  /** アイテム獲得量重視の候補を取得する */
+  private async getRateCandidates(priority: Exclude<CandidatePriority, typeof candidatePriorityCount>): Promise<HoloworkCandidates> {
+    const rows = await this.findRateCandidateRows(priority);
+    // SQL は対象の黄マス情報の行数だけ重複取得されるのでホロメン単位に統合する
+    const candidatesByHolomemsId = new Map<number, HoloworkRateCandidate>();
+    
+    for(const row of rows) {
+      let candidate = candidatesByHolomemsId.get(row.holomems_id);
+      if(candidate == null) {
+        candidate = {
+          holomems_id        : row.holomems_id,
+          holomems_sort_order: row.holomems_sort_order,
+          holomems_group_name: row.holomems_group_name,
+          holomems_name      : row.holomems_name,
+          achievement_note   : row.achievement_note,
+          total_rate         : 0
+        };
+        candidatesByHolomemsId.set(row.holomems_id, candidate);
+      }
+      if(row.yellow_target == null || row.amount == null) continue;
+      candidate.total_rate += BoardNodesService.calcFinalRate(row.amount, row.connect_rate);
+    }
+    
+    const candidates = [...candidatesByHolomemsId.values()];
+    const priorityCandidates = candidates
+      .filter(candidate => candidate.total_rate > 0)
+      .sort((candidateA, candidateB) => candidateB.total_rate - candidateA.total_rate || this.compareHolomemOrder(candidateA, candidateB));
+    const priorityCandidateIds = new Set(priorityCandidates.map(candidate => candidate.holomems_id));
+    const otherCandidates = candidates.filter(candidate => !priorityCandidateIds.has(candidate.holomems_id));
+    this.sortByHolomemOrder(otherCandidates);
+    
+    return {
+      selected_priority  : priority,
+      priority_candidates: priorityCandidates,
+      other_candidates   : otherCandidates
+    };
+  }
+  
+  /** 完了回数重視に必要な候補情報だけを取得する */
+  private async findCountCandidateRows(): Promise<Array<HoloworkCountCandidateRow>> {
     const sql = `
       SELECT
-        holomems.id   AS holomems_id,
-        holomems.name AS holomems_name,
-        holomems.note AS holomems_note,
-        
-        COALESCE(holowork_achievements.current_count, 0) AS current_count,
-        ${this.buildNextThresholdCase()}                 AS next_threshold,
-        ${this.buildRemainingCountCase()}                AS remaining_count
+        holomems.id                                      AS holomems_id,
+        holomems.sort_order                              AS holomems_sort_order,
+        holomems.group_name                              AS holomems_group_name,
+        holomems.name                                    AS holomems_name,
+        holowork_achievements.note                       AS achievement_note,
+        COALESCE(holowork_achievements.current_count, 0) AS current_count
       FROM holomems
       LEFT JOIN holowork_achievements
         ON holowork_achievements.holomems_id = holomems.id
@@ -57,58 +108,55 @@ export class HoloworkCandidatesService {
       WHERE
           active_holowork_members.holomems_id IS NULL
       AND holomems.is_active = ${booleanNumberTrue}
-      AND COALESCE(holowork_achievements.current_count, 0) < ${maxCountThreshold}
       ORDER BY
-        remaining_count ASC,
-        next_threshold  ASC,
-        holomems_id     ASC
+        holomems.sort_order ASC,
+        holomems.id         ASC
     `;
-    const result = await this.db.prepare(sql).all<HoloworkCountCandidate>();
+    const result = await this.db.prepare(sql).all<HoloworkCountCandidateRow>();
     return result.results ?? [];
   }
   
-  /** 現在のホロワーク完了回数から見て直近のアチーブメントの値を返すカラムを組み立てる */
-  private buildNextThresholdCase(): string {
-    const clauses = holoworkAchievements.map(achievement => `WHEN COALESCE(holowork_achievements.current_count, 0) < ${achievement} THEN ${achievement}`).join(' ');
-    return `CASE ${clauses} ELSE NULL END`;
-  }
-  
-  /** 直近のアチーブメントに対する残り回数の値を返すカラムを組み立てる */
-  private buildRemainingCountCase(): string {
-    const clauses = holoworkAchievements.map(achievement => `WHEN COALESCE(holowork_achievements.current_count, 0) < ${achievement} THEN ${achievement} - COALESCE(holowork_achievements.current_count, 0)`).join(' ');
-    return `CASE ${clauses} ELSE NULL END`;
-  }
-  
-  /** アイテム獲得量重視の場合の優先ホロメン候補を取得する */
-  private async getRateCandidates(priority: Exclude<CandidatePriority, typeof candidatePriorityCount>): Promise<Array<HoloworkRateCandidate>> {
-    // 合計最終レートが 0% (効果なし) のホロメンは含まないよう HAVING 句で除外している
+  /** 選択したアイテムに該当する解放済み黄マスと候補情報だけを取得する */
+  private async findRateCandidateRows(priority: Exclude<CandidatePriority, typeof candidatePriorityCount>): Promise<Array<HoloworkRateCandidateRow>> {
     const sql = `
       SELECT
-        holomems.id   AS holomems_id,
-        holomems.name AS holomems_name,
-        holomems.note AS holomems_note,
-        
-        SUM(
-          CASE WHEN board_nodes.yellow_target = ?
-            THEN COALESCE(board_nodes.amount, 0) * (1 + COALESCE(board_nodes.connect_rate, 0) / 100.0)
-            ELSE 0
-          END
-        ) AS total_rate
+        holomems.id                AS holomems_id,
+        holomems.sort_order        AS holomems_sort_order,
+        holomems.group_name        AS holomems_group_name,
+        holomems.name              AS holomems_name,
+        holowork_achievements.note AS achievement_note,
+        board_nodes.yellow_target  AS yellow_target,
+        board_nodes.amount         AS amount,
+        board_nodes.connect_rate   AS connect_rate
       FROM holomems
-      LEFT JOIN board_nodes
-        ON board_nodes.holomems_id = holomems.id
+      LEFT JOIN holowork_achievements
+        ON holowork_achievements.holomems_id = holomems.id
       LEFT JOIN active_holowork_members
         ON active_holowork_members.holomems_id = holomems.id
+      LEFT JOIN board_nodes
+        ON  board_nodes.holomems_id = holomems.id
+        AND board_nodes.category = '${boardNodeCategoryYellow}'
+        AND board_nodes.is_unlocked = ${booleanNumberTrue}
+        AND board_nodes.yellow_target = ?
       WHERE
           active_holowork_members.holomems_id IS NULL
       AND holomems.is_active = ${booleanNumberTrue}
-      GROUP BY holomems.id
-      HAVING total_rate > 0
       ORDER BY
-        total_rate  DESC,
-        holomems_id ASC
+        holomems.sort_order ASC,
+        holomems.id         ASC,
+        board_nodes.id      ASC
     `;
-    const result = await this.db.prepare(sql).bind(priority).all<HoloworkRateCandidate>();
+    const result = await this.db.prepare(sql).bind(priority).all<HoloworkRateCandidateRow>();
     return result.results ?? [];
+  }
+  
+  /** ホロメン表示順と ID を比較する */
+  private compareHolomemOrder(candidateA: HoloworkCandidate, candidateB: HoloworkCandidate): number {
+    return candidateA.holomems_sort_order - candidateB.holomems_sort_order || candidateA.holomems_id - candidateB.holomems_id;
+  }
+  
+  /** ホロメン表示順と ID で並べ替える */
+  private sortByHolomemOrder(candidates: Array<HoloworkCandidate>): void {
+    candidates.sort((candidateA, candidateB) => this.compareHolomemOrder(candidateA, candidateB));
   }
 }

@@ -30,6 +30,16 @@ holoworks.get('/member-statuses', async context => {
   return context.json({ result: memberStatuses }, httpStatusCode.ok);
 });
 
+/** 選択した優先モードに基づく優先候補とその他候補を取得する */
+holoworks.get('/candidates', async context => {
+  const priority = context.req.query('priority');
+  if(isEmpty(priority)) return context.json({ error: 'priority パラメータを指定してください' }, httpStatusCode.badRequest);
+  if(!candidatePriorities.includes(priority as CandidatePriority)) return context.json({ error: 'priority の値が不正です' }, httpStatusCode.badRequest);
+  
+  const candidates = await new HoloworkCandidatesService(context.env.DB).getCandidates(priority as CandidatePriority);
+  return context.json({ result: candidates }, httpStatusCode.ok);
+});
+
 holoworks.post('/', async context => {
   const body = await context.req.json().catch(() => null);
   if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);
@@ -53,20 +63,4 @@ holoworks.delete('/:id', async context => {  // eslint-disable-line neos-eslint-
   
   await new HoloworksRepository(context.env.DB).delete(id);
   return context.json({ result: { id } }, httpStatusCode.ok);
-});
-
-/** ホロワークで優先的に選択すべきホロメン候補を取得する */
-holoworks.get('/:id/candidates', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
-  const id = Number(context.req.param('id'));
-  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
-  
-  const priority = context.req.query('priority');
-  if(isEmpty(priority)) return context.json({ error: 'priority パラメータを指定してください' }, httpStatusCode.badRequest);
-  if(!candidatePriorities.includes(priority as CandidatePriority)) return context.json({ error: 'priority の値が不正です' }, httpStatusCode.badRequest);
-  
-  const holowork = await new HoloworksRepository(context.env.DB).findById(id);
-  if(holowork == null) return context.json({ error: '指定のホロワークが見つかりません' }, httpStatusCode.notFound);
-  
-  const candidates = await new HoloworkCandidatesService(context.env.DB).getCandidates(priority as CandidatePriority);
-  return context.json({ result: candidates }, httpStatusCode.ok);
 });

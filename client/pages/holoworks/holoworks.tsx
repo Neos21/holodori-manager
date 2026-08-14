@@ -29,14 +29,16 @@ export default function HoloworksPage(): ReactElement {
   const [holoworkName, setHoloworkName] = useState<string>('');
   const [startingHoloworkId, setStartingHoloworkId] = useState<number | null>(null);
   const [priority, setPriority] = useState<CandidatePriority>(candidatePriorityCount);
-  const [candidates, setCandidates] = useState<Array<HoloworkCandidate>>([]);
+  const [priorityCandidates, setPriorityCandidates] = useState<Array<HoloworkCandidate>>([]);
+  const [otherCandidates, setOtherCandidates] = useState<Array<HoloworkCandidate>>([]);
   const [selectedHolomemsIds, setSelectedHolomemsIds] = useState<Array<number>>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   
   const holomemsById = useMemo((): Map<number, Holomem> => new Map(holomems.map(holomem => [holomem.id, holomem])), [holomems]);
   const activeHolomemsIds = useMemo((): Set<number> => new Set(activeHoloworkMembers.map(member => member.holomems_id)), [activeHoloworkMembers]);
-  const candidateByHolomemsId = useMemo((): Map<number, HoloworkCandidate> => new Map(candidates.map(candidate => [candidate.holomems_id, candidate])), [candidates]);
+  const priorityCandidateByHolomemsId = useMemo((): Map<number, HoloworkCandidate> => new Map(priorityCandidates.map(candidate => [candidate.holomems_id, candidate])), [priorityCandidates]);
+  const otherCandidateByHolomemsId = useMemo((): Map<number, HoloworkCandidate> => new Map(otherCandidates.map(candidate => [candidate.holomems_id, candidate])), [otherCandidates]);
   
   const onLoadData = async (): Promise<void> => {
     try {
@@ -67,10 +69,11 @@ export default function HoloworksPage(): ReactElement {
     })();
   }, []);
   
-  const onLoadCandidates = async (holoworkId: number, selectedPriority: CandidatePriority): Promise<void> => {
+  const onLoadCandidates = async (selectedPriority: CandidatePriority): Promise<void> => {
     try {
-      const response = await adminApi.get(`/api/holoworks/${holoworkId}/candidates`, { searchParams: { priority: selectedPriority } }).json<{ result: HoloworkCandidates; }>();
-      setCandidates(response.result.candidates);
+      const response = await adminApi.get('/api/holoworks/candidates', { searchParams: { priority: selectedPriority } }).json<{ result: HoloworkCandidates; }>();
+      setPriorityCandidates(response.result.priority_candidates);
+      setOtherCandidates(response.result.other_candidates);
     }
     catch(error) {
       setErrorMessage(extractApiErrorMessage(error, '優先ホロメン候補の取得に失敗しました'));
@@ -81,14 +84,14 @@ export default function HoloworksPage(): ReactElement {
     setErrorMessage('');
     setStartingHoloworkId(holoworkId);
     setSelectedHolomemsIds([]);
-    await onLoadCandidates(holoworkId, priority);
+    await onLoadCandidates(priority);
   };
   
   const onChangePriority = async (event: ChangeEvent<HTMLSelectElement>): Promise<void> => {
     const selectedPriority = event.target.value as CandidatePriority;
     setPriority(selectedPriority);
     setSelectedHolomemsIds([]);  // TODO : これ要るかなぁ？
-    if(startingHoloworkId != null) await onLoadCandidates(startingHoloworkId, selectedPriority);
+    if(startingHoloworkId != null) await onLoadCandidates(selectedPriority);
   };
   
   const onChangeSelectedHolomem = (event: ChangeEvent<HTMLInputElement>): void => {
@@ -104,7 +107,8 @@ export default function HoloworksPage(): ReactElement {
   
   const onCancelStart = (): void => {
     setStartingHoloworkId(null);
-    setCandidates([]);
+    setPriorityCandidates([]);
+    setOtherCandidates([]);
     setSelectedHolomemsIds([]);
   };
   
@@ -190,8 +194,8 @@ export default function HoloworksPage(): ReactElement {
   };
   
   const displayedHolomems = [...holomems].sort((firstHolomem, secondHolomem) => {
-    const firstCandidateIndex = candidates.findIndex(candidate => candidate.holomems_id === firstHolomem.id);
-    const secondCandidateIndex = candidates.findIndex(candidate => candidate.holomems_id === secondHolomem.id);
+    const firstCandidateIndex = priorityCandidates.findIndex(candidate => candidate.holomems_id === firstHolomem.id);
+    const secondCandidateIndex = priorityCandidates.findIndex(candidate => candidate.holomems_id === secondHolomem.id);
     if(firstCandidateIndex === -1 && secondCandidateIndex === -1) return firstHolomem.sort_order - secondHolomem.sort_order || firstHolomem.id - secondHolomem.id;
     if(firstCandidateIndex === -1) return 1;
     if(secondCandidateIndex === -1) return -1;
@@ -289,7 +293,7 @@ export default function HoloworksPage(): ReactElement {
                 {displayedHolomems.map(holomem => {
                   const isActive = activeHolomemsIds.has(holomem.id);
                   const isSelected = selectedHolomemsIds.includes(holomem.id);
-                  const candidate = candidateByHolomemsId.get(holomem.id);
+                  const candidate = priorityCandidateByHolomemsId.get(holomem.id) ?? otherCandidateByHolomemsId.get(holomem.id);
                   return (
                     <tr key={holomem.id}>
                       <td><input type="checkbox" value={holomem.id} checked={isSelected} onChange={onChangeSelectedHolomem} disabled={isSubmitting || isActive || (!isSelected && selectedHolomemsIds.length >= 5)} /></td>
