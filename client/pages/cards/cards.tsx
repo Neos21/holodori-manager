@@ -11,7 +11,8 @@ import { extractApiErrorMessage } from '../../helpers/extract-api-error-message'
 import { useHolomemsStore } from '../../stores/holomems-store';
 
 import type { BooleanString } from '../../../shared/types/boolean-types';
-import type { CardDisplay } from '../../../shared/types/card';
+import type { Card, CardDisplay } from '../../../shared/types/card';
+import type { Holomem } from '../../../shared/types/holomem';
 import type { NumberToStringValue } from '../../../shared/types/number-types';
 
 /** カードの新規追加・編集フォームの型定義 */
@@ -34,6 +35,18 @@ const createEmptyFormValues = (): CardFormState => ({
   bloom      : String(bloom0) as `${(typeof blooms)[number]}`
 });
 
+/** カードとホロメンを表示用に合成し、ホロメン表示順・ホロメン ID・レア度の降順・カード ID の優先順位で並べる */
+const createCardDisplays = (cards: Array<Card>, holomems: Array<Holomem>): Array<CardDisplay> => [...holomems]
+  .sort((holomemA, holomemB) => holomemA.sort_order - holomemB.sort_order || holomemA.id - holomemB.id)
+  .flatMap(holomem => cards
+    .filter(card => card.holomems_id === holomem.id)
+    .sort((cardA, cardB) => cardB.rarity - cardA.rarity || cardA.id - cardB.id)
+    .map(card => ({
+      ...card,
+      holomem_group_name: holomem.group_name,
+      holomem_name      : holomem.name
+    })));
+
 /**
  * カード一覧ページ
  * 
@@ -43,9 +56,10 @@ const createEmptyFormValues = (): CardFormState => ({
  */
 export default function CardsPage(): ReactElement {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [cards    , setCards    ] = useState<Array<CardDisplay>>([]);
+  const [cards    , setCards    ] = useState<Array<Card>>([]);
   const [listError, setListError] = useState<string>('');
-  const holomems                  = useHolomemsStore(state => state.holomems);  // 新規カード追加時に参照利用する
+  const holomems                  = useHolomemsStore(state => state.holomems);  // カードの表示情報との合成・新規カード追加時の選択肢に利用する
+  const cardDisplays              = createCardDisplays(cards, holomems);  // API から個別に取得したカードとホロメンから導出する表示用一覧
   
   const [isModalOpen            , setIsModalOpen            ] = useState<boolean>(false);
   const [form                   , setForm                   ] = useState<CardFormState>(createEmptyFormValues());
@@ -58,7 +72,7 @@ export default function CardsPage(): ReactElement {
   const onLoadCards = async (): Promise<void> => {
     setListError('');
     try {
-      const response = await adminApi.get('/api/cards').json<{ result: Array<CardDisplay>; }>();
+      const response = await adminApi.get('/api/cards').json<{ result: Array<Card>; }>();
       setCards(response.result);
     }
     catch(error) {
@@ -174,7 +188,7 @@ export default function CardsPage(): ReactElement {
         </div>
       ) : (
         <>
-          {cards.length === 0 ? (
+          {cardDisplays.length === 0 ? (
             <p className="mb-4">登録されているカードはありません。</p>
           ) : (
             <div className="mb-4 overflow-x-auto">
@@ -192,7 +206,7 @@ export default function CardsPage(): ReactElement {
                 </thead>
                 <tbody>
                   {/* 未所有カードの行はグレー背景で表示する */}
-                  {cards.map(card => (
+                  {cardDisplays.map(card => (
                     <tr key={card.id} className={`[&>td]:align-top ${card.is_owned === booleanNumberTrue ? '' : 'bg-base-300'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
                       <td className="w-px            pl-0 pr-1      whitespace-nowrap">{card.holomem_group_name}</td>
                       <td className="w-px            px-1           whitespace-nowrap">{card.holomem_name}</td>

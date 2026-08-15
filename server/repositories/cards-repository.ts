@@ -2,37 +2,15 @@ import { booleanNumberFalse } from '../../shared/constants/boolean-constants';
 import { bloom0, defaultCardLevel, rarities } from '../../shared/constants/holodori-constants';
 import { buildUpdateQuery } from '../helpers/build-update-query';
 
-import type { Card, CardDisplay } from '../../shared/types/card';
+import type { Card } from '../../shared/types/card';
 
 export class CardsRepository {
   constructor(private readonly db: D1Database) { }
   
-  public async findAll(): Promise<Array<CardDisplay>> {
-    // タレント名も表示したいのでテーブル結合して CardDisplay を返す
-    // `holomems.sort_order` 順 → レア度が高い順 → ID 順 (同レア度の場合は後から追加されたカードが後に来る)
+  public async findAll(): Promise<Array<Card>> {
     const result = await this.db
-      .prepare(`
-        SELECT
-          holomems.group_name AS holomem_group_name,
-          holomems.name       AS holomem_name,
-          
-          cards.id,
-          cards.holomems_id,
-          cards.rarity,
-          cards.name,
-          cards.is_owned,
-          cards.level,
-          cards.bloom
-        FROM cards
-        INNER JOIN holomems
-          ON holomems.id = cards.holomems_id
-        ORDER BY
-          holomems.sort_order ASC,
-          holomems.id         ASC,
-          cards.rarity        DESC,
-          cards.id            ASC
-      `)
-      .all<CardDisplay>();
+      .prepare('SELECT id, holomems_id, rarity, name, is_owned, level, bloom FROM cards ORDER BY id ASC')
+      .all<Card>();
     return result.results ?? [];
   }
   

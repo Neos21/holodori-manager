@@ -19,7 +19,7 @@
 
 ## タスクリスト (上から順に実装していくこと)
 
-- [ ] `cards-repository` に JOIN が発生しているが、画面側で `holomems` を別途取得しており冗長になっている。Repository クラスは単一テーブルの CRUD に揃えるため JOIN をなくしつつ現在の機能・挙動を守る
+- [x] `cards-repository` に JOIN が発生しているが、画面側で `holomems` を別途取得しており冗長になっている。Repository クラスは単一テーブルの CRUD に揃えるため JOIN をなくしつつ現在の機能・挙動を守る
 - [ ] サーバサイドの `error` レスポンスメッセージで共通化できる文言を `server/constants/server-messages.ts` にまとめる
 - [ ] フロントエンドで表示するメッセージ群で共通化できる文言を `client/constants/client-messages.ts` にまとめる
     - [ ] `app-constants.ts` に SessionStorage 関連の定数があるが、これも `client/constants/client-constants.ts` に移動する
