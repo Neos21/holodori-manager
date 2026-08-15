@@ -1,68 +1,43 @@
 # AGENTS.md
 
-**AI はまず [TASKS.md](TASKS.md) を読み、先頭に記載の「実行ルール」に従ってファイル内で最初の未完タスクのみを実行候補として扱う。実行前に必ずユーザに開始確認を取り、実行後は `$ npm run lint && npm run build` を実行して結果を報告する。**
+Holodori Manager で AI エージェントが常に守る作業手順と、作業内容ごとに読む詳細ルールを示す。
 
 
-## 実装の流れとして守るべきルール
+## 作業開始前
 
-- 1タスクごとに実装を行い開発者にレビューを求める
-    - 開発者が全コードをレビューするので、各ステップでの変更量が大きくならないように事前にタスク分解し、1回の実行での実装量を増やしすぎないこと
-- 実装完了時は `$ npm run lint` と `$ npm run build` を実行してエラーがない状態にする
-    - 3回以上修正して Lint・ビルドを実行しても修正しきれないエラーが残る場合は処理を中止し、開発者に報告する
-- レビュー指摘を受けた場合は以下の「コーディングルール」セクションに指摘内容を追記し、再発防止に努める
-- 実行できないコマンド等が発生したら処理を中止し、開発者に報告する
+1. [README.md](./README.md) と [docs/agent-rules/README.md](./docs/agent-rules/README.md) を読む
+2. `TASKS.md` が存在する場合は実行ルールを読み、ファイル内で最初の未完タスクだけを実行候補とする
+    - `TASKS.md` が存在しない場合は、現在ユーザが承認した作業範囲を1タスクとして扱う
+3. [workflow.md](./docs/agent-rules/workflow.md) と [common.md](./docs/agent-rules/common.md) を読む
+4. 作業対象に応じて、次の詳細ルールを読む
+5. 実行前に変更方針と対象範囲を示し、ユーザに開始確認を取る
+
+| 作業対象 | 必ず読む詳細ルール |
+|---|---|
+| `client/` | [frontend.md](./docs/agent-rules/frontend.md) |
+| `server/` | [backend.md](./docs/agent-rules/backend.md) |
+| `shared/` | [shared.md](./docs/agent-rules/shared.md) |
+| Markdown・ドキュメンテーションコメント | [documentation.md](./docs/agent-rules/documentation.md) |
+| レビュー指摘への対応 | [review-feedback.md](./docs/agent-rules/review-feedback.md) と変更対象に対応するルール |
+
+複数領域を変更する場合は、該当するすべての詳細ルールを読む。文書は必要な領域だけを段階的に読み、無関係なルールを作業コンテキストへ追加しない。
 
 
-## やってはいけないこと
+## 常に守る禁止事項
 
-- **Cloudflare D1 への DB マイグレーション、Cloudflare Workers への本番デプロイは開発者が手動で行うため、AI エージェントはいかなる場合も実行しないこと**
-- 修正対象として指示されていない無関係な箇所のコメントを勝手に編集・削除しないこと
+- Cloudflare D1 への DB マイグレーションを実行しない
+- Cloudflare Workers への本番デプロイを実行しない
+- 本番シークレットの登録・変更を実行しない
+- 修正対象でない既存変更、コメント、空白を編集・削除しない
+- ユーザ確認なしに `TASKS.md` の次タスクへ移行しない
+
+D1・デプロイ・シークレットのコマンドは [CONTRIBUTING.md](./CONTRIBUTING.md) に開発者向けの例として記載している。AI エージェントは実行しない。
 
 
-## コーディングルール
+## 作業完了時
 
-- ディレクトリ名、ファイル名、TypeScript のクラス名や変数名は単数形と複数形を正確に区別する
-    - 例 : Controller・Service・Repository は複数概念を扱う命名として扱う
-    - 例 : Type・Schema は単数概念として扱う
-    - 例 : `holomems` は複数レコード集合、`holomem` は単一レコードを表す
-- 共有ロジックはヘルパーに切り出す
-    - Helper を作成する際は `@typescript-eslint/explicit-function-return-type` を考慮し、関数式や arrow 関数の戻り型を明示する
-- ファイル外から利用しない型・定数は `export` せず、公開範囲を必要最小限にする
-- `shared/types/` 配下は、汎用型を `utilities/`、ホロドリ固有の型を `holodori/`、DB テーブルと対になる型を `entities/`、アプリ固有の合成型を `app/` に分類する
-    - ホロワーク表示用の合成型は `app/holowork-display.ts` に定義する
-- DB テーブルの型定義は `shared/types/entities/` 配下にテーブル別に作成する
-- DB 操作部分は `server/repositories/` 配下にテーブル別の Repository として実装する
-    - Repository の命名は複数形にする。例 : `holomems-repository.ts`・`class HolomemsRepository`。ファイル名とクラス名の単複は一致させる
-    - Repository のメソッド名は `findAll`・`findById`・`create`・`update` のように、一覧取得・単体取得の命名を明確にする
-    - `update` では対象テーブルの関連先など、変更を許可しない項目を更新対象に含めない
-- 複数テーブルへの作成処理を不可分にする必要がある場合は D1 の `batch()` を使用し、途中失敗時に全体をロールバックできるようにする
-- サーバサイドロジックは `server/services/` 配下に作成し、サーバサイドロジック内でのみ使う型定義は `server/types/` 配下に作成する
-- 想定されるエラーの表現に例外オブジェクト・`throw`・`onError` ミドルウェアを使用せず、`shared/types/utilities/result.ts` の `Result` 型を利用して Controller で正常・異常レスポンスを明示的に分岐する
-- ルーティングコントローラ
-    - `context.req.json()` は常に `await context.req.json().catch(() => null)` で受け、`body == null` の場合は 400 エラーを返す
-    - 正常レスポンスは必ずトップレベルを `result` のみとし、エラーはトップレベル `error` を使う
-    - ルートパス文字列に `/:id` のようにコロンを含む場合、`comment-colon-spacing` ESLint ルールの影響を避けるため `// eslint-disable-line neos-eslint-plugin/comment-colon-spacing` を付ける
-- 言語仕様全般
-    - 複数レイヤーで使用する業務上の上限・下限はマジックナンバーとして重複させず、共有定数として定義する
-    - 関数・型・主要なオブジェクトとそのプロパティには、役割や値の意味を示すドキュメンテーションコメントを記述する
-        - 型だけでは分からない `null` の条件、処理順、ソートの優先順位、Map による集約理由などは実装意図をコメントで補足する
-        - `useState` は行末コメントを利用し、State の用途や `null`・空文字などの特殊状態を明示する
-        - 型から明らかな `@param` などのアノテーションは過剰に追加しない
-    - 正規表現は必ず `(/.../)` とカッコで囲む
-    - **文字列の空文字・Null 判定にはヘルパー関数 `isEmpty()` を積極的に利用する**
-    - 暗黙型変換を使った `if(!condition)` は避け、`== null` や `=== ''` のように明示比較する
-- フロントエンド実装ルール
-    - 既存 State から導出できる表示状態のために重複した State を追加せず、元の State から条件を組み立てる
-    - 初期読込中も入力欄の位置と見た目を維持する場合は、スピナーへの置き換えや `disabled` によるグレーアウトを避け、空の入力欄を `readOnly` で表示する。入力欄の位置をずらしたくない可変メッセージは入力欄より後に配置する
-    - LocalStorage で永続化した認証情報は Store の復元完了後に判定する。認証状態の変更を監視してリダイレクトする場合、JWT を削除する前にリダイレクト理由を SessionStorage に保存する。表示側で読み取った理由は必ず削除し、通常遷移や再読み込み後に残留させない
-    - 既存コメントを削除・変更する場合は事前にユーザ確認を取り、実装上不要になった場合も「なぜその実装になっているのか」が分かるコメントへ置き換える
-    - 他画面で採用されていない Hook を単なる Lint 回避のために導入せず、既存画面の実装パターンとの一貫性を優先する
-    - イベントハンドラは `onSubmit`・`onLoadFoo`・`onChangeBar` のように `on` を接頭辞にした関数名に統一し、`handleHoge` 系の命名は避ける
-    - UX で発火する処理は `SubmitEvent` (`react` より Type インポート) を必ず使い、`FormEvent` は絶対に使用してはならない (非推奨のため)
-    - `ky` の `json<T>()` は `json<{ result: Array<Holomem>; }>()` のように型引数の最後にセミコロンを必ず付ける
-    - API 呼び出しの例外は `try`・`catch` の中に閉じ込み、`.then()` や `.catch()` は使わない
-    - 「取得・追加・更新・削除に失敗しました」の定型文言は `client/constants/client-messages.ts` のメッセージ生成関数を使用する。使用箇所が1箇所だけの固定文言は定数化せず、呼び出し元に直接記述する
-    - 入力バリデーションは共有の Zod Schema を使う。空文字チェックが必要なときは `isEmpty()` のみを使い、`=== ''` などで比較しない
-    - 条件付き JSX は `{condition && ( ... )}` のように必ず JSX 部分をカッコで囲み、改行・インデントして記述する
-    - `aria-*` 属性および `role` 属性は使用しない
-    - マージンは下方向にのみ付与し、上方向のマージンは使用しない
+1. 変更差分と `git diff --check` を確認する
+2. `$ npm run lint && npm run build` を実行する
+3. 変更内容、検証結果、残る注意事項を報告して開発者のレビューを求める
+
+3回以上修正しても Lint・ビルドエラーを解消できない場合、または必要なコマンドを実行できない場合は処理を中止して報告する。
