@@ -117,7 +117,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
         ) : (
           <td className="px-1 whitespace-nowrap text-right">{candidate.total_rate > 0 ? formatDecimal(candidate.total_rate) + '%' : '-'}</td>
         )}
-        <td className="min-w-35 pl-1 pr-0 whitespace-pre-wrap">{isEmpty(candidate.achievement_note) ? '-' : candidate.achievement_note}</td>
+        <td className="pl-1 pr-0 whitespace-pre-wrap">{isEmpty(candidate.achievement_note) ? '-' : candidate.achievement_note}</td>
       </tr>
     );
   };
@@ -136,7 +136,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
               <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
                 <th className="pl-0 pr-1 w-px text-center">選択</th>
                 <th className="px-1      w-px            ">グループ</th>
-                <th className="px-1      w-px            ">タレント名</th>
+                <th className="px-1      w-px            ">名前</th>
                 {priority === 'count' ? (
                   <>
                     <th className="px-1 w-px text-right">完了</th>
@@ -161,7 +161,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
   return (
     <div className="modal modal-open">
       {/* テーブルのためにスマホ向けでも最大限画面幅を使えるように広げる */}
-      <div className="modal-box w-[97%] max-w-full px-4">
+      <div className="modal-box w-[95%] max-w-full px-4">
         <h2 className="mb-4 text-lg font-bold">ホロワーク開始 : {holowork.name}</h2>
         
         <form onSubmit={onSubmit}>

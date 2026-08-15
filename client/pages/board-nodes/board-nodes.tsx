@@ -335,7 +335,7 @@ export default function BoardNodesPage(): ReactElement {
                         
                         <div className="overflow-x-auto">
                           {/* 全体の最小幅を `min-w` で決め、「ホロメンメモ」列を `15rem` に固定して残りを「マス効果」列に割り当てるよう `minmax` 指定をしている */}
-                          <div className="grid min-w-180 grid-cols-[minmax(0,1fr)_15rem]">
+                          <div className="grid min-w-175 grid-cols-[minmax(0,1fr)_15rem]">
                             <div>
                               <table className="table table-xs">
                                 <colgroup>
@@ -348,11 +348,11 @@ export default function BoardNodesPage(): ReactElement {
                                 </colgroup>
                                 <thead>
                                   <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                                    {category === boardNodeCategoryYellow && (<th className="pl-0 pr-1">報酬 UP 対象</th>)}
+                                    {category === boardNodeCategoryYellow && (<th className="pl-0 pr-1">報酬 UP</th>)}
                                     <th className={category === boardNodeCategoryYellow ? 'px-1' : 'pl-0 pr-1'}>マス効果</th>
-                                    <th className="px-1 text-right ">効果量</th>
-                                    <th className="px-1 text-right ">コネクト率</th>
-                                    <th className="px-1 text-right ">最終レート</th>
+                                    <th className="px-1 text-right ">効果</th>
+                                    <th className="px-1 text-right ">コネクト</th>
+                                    <th className="px-1 text-right ">合計</th>
                                     <th className="px-1 text-center">編集</th>
                                   </tr>
                                 </thead>

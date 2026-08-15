@@ -23,3 +23,8 @@ body {
 h1 {
   @apply mb-6 text-2xl font-bold;
 }
+
+/* iPhone Safari などモバイルブラウザでモーダルが画面上下にはみ出てしまう場合がある・操作バーを除いた表示領域内にモーダルを収めるよう調整する */
+.modal-box {
+  max-height: calc(100svh - 1rem);
+}

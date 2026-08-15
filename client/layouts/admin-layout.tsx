@@ -29,6 +29,8 @@ export default function AdminLayout(): ReactElement {
   
   /** ユーザ操作によるログアウト理由を記録してから JWT と共有キャッシュを削除し、トップページに遷移する */
   const onLogout = (): void => {
+    if(!window.confirm('ログアウトしますか？')) return;  // スマホで誤タップしそうなので確認ダイアログを置いておく
+    
     sessionStorage.setItem(sessionStorageKeyAuthenticationRedirectReason, authenticationRedirectReasonLogout);
     useAdminStore.getState().logout();
     useHolomemsStore.getState().clearHolomems();
@@ -54,7 +56,7 @@ export default function AdminLayout(): ReactElement {
         </header>
         
         {/* コンテンツ部分 */}
-        <div className="min-h-screen py-4 px-3">
+        <div className="min-h-screen pt-4 px-3 pb-8">
           <Outlet />
         </div>
       </div>
@@ -64,7 +66,7 @@ export default function AdminLayout(): ReactElement {
         <label htmlFor="admin-sidebar" className="drawer-overlay" />
         
         {/* サイドメニュー */}
-        <aside className="w-72 min-h-full border-r border-base-300 py-4 px-3 text-base-content bg-base-200">
+        <aside className="w-72 min-h-full border-r border-base-300 pt-4 px-3 pb-8 text-base-content bg-base-200">
           <div className="mb-6 text-xl font-bold">Holodori Manager</div>
           <nav className="mb-6">
             <ul className="menu w-full p-0 gap-2">
@@ -76,7 +78,7 @@ export default function AdminLayout(): ReactElement {
                   </li>
                 );
               })}
-              <li><button type="button" onClick={onLogout}>ログアウト</button></li>
+              <li className="mt-4"><button type="button" onClick={onLogout}>ログアウト</button></li>
             </ul>
           </nav>
           

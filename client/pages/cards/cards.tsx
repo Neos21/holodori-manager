@@ -5,7 +5,7 @@ import { bloom0, blooms, defaultCardLevel, rarities, star5 } from '../../../shar
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { bloomDisplayName, cardNameDisplayName, cardSchema, isOwnedDisplayName, levelDisplayName, rarityDisplayName } from '../../../shared/schemas/card-schema';
-import { groupNameDisplayName, nameDisplayName } from '../../../shared/schemas/holomem-schema';
+import { groupNameDisplayName } from '../../../shared/schemas/holomem-schema';
 import { failedToCreateMessage, failedToFetchMessage, failedToUpdateMessage } from '../../constants/client-messages';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
@@ -203,7 +203,7 @@ export default function CardsPage(): ReactElement {
                 <thead>
                   <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
                     <th className="w-px pl-0 pr-1            ">{groupNameDisplayName}</th>
-                    <th className="w-px px-1                 ">{nameDisplayName}</th>
+                    <th className="w-px px-1                 ">名前</th>
                     <th className="w-px px-1      text-center">★</th>
                     <th className="     px-1                 ">{cardNameDisplayName}</th>
                     <th className="w-px px-1      text-center">Lv</th>
@@ -218,7 +218,7 @@ export default function CardsPage(): ReactElement {
                       <td className="         pl-0 pr-1      whitespace-nowrap              ">{card.holomem_group_name}</td>
                       <td className="         px-1           whitespace-nowrap              ">{card.holomem_name}</td>
                       <td className="         px-1           whitespace-nowrap text-center  ">{card.rarity}</td>
-                      <td className="min-w-40 px-1                                          ">{card.name}</td>
+                      <td className="min-w-36 px-1                                          ">{card.name}</td>
                       <td className="         px-1           whitespace-nowrap text-right   ">{card.level}</td>
                       <td className="         px-1           whitespace-nowrap text-center  ">{card.bloom}</td>
                       <td className="         pl-1 pr-0 py-0 whitespace-nowrap !align-middle"><button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(card)}>編集</button></td>

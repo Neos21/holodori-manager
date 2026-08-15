@@ -139,7 +139,7 @@ export default function HoloworksPage(): ReactElement {
           {/* ホロメン別ホロワーク達成状況・黄マス情報テーブル */}
           <HoloworkMemberStatusesTable memberStatuses={memberStatuses} onEdit={setEditingMemberStatus} />
           
-          <div className="mb-8 text-right">
+          <div className="text-right">
             <button type="button" className="btn btn-info" onClick={() => setIsCreateModalOpen(true)} disabled={isSubmitting}>ホロワークの枠追加</button>
           </div>
         </>

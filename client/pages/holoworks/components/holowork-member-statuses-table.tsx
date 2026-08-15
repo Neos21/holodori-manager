@@ -26,13 +26,13 @@ export const HoloworkMemberStatusesTable = ({ memberStatuses, onEdit }: Holowork
           <thead>
             <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
               <th className="w-px pl-0 pr-1           ">グループ</th>
-              <th className="w-px px-1                ">タレント名</th>
+              <th className="w-px px-1                ">名前</th>
               <th className="w-px px-1      text-right">完了</th>
               <th className="w-px px-1      text-right">目標</th>
               <th className="w-px px-1      text-right">残数</th>
               <th className="w-px px-1      text-right">キューブ</th>
               <th className="w-px px-1      text-right">特訓</th>
-              <th className="w-px px-1      text-right">レッスン Pt</th>
+              <th className="w-px px-1      text-right">レッスン</th>
               <th className="     pl-1 pr-0           ">達成状況メモ</th>
             </tr>
           </thead>
