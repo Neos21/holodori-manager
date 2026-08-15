@@ -40,16 +40,16 @@ const candidateRateDisplayNames: Record<CandidatePriority, string> = {
 /** ホロワーク開始モーダル */
 export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHoloworkModalProps): ReactElement => {
   const [priority , setPriority ] = useState<CandidatePriority | ''>('');  // 優先モードの選択値・空文字は未選択を表す
-  const [isLoading, setIsLoading] = useState<boolean>(false);  // 優先モード変更時の候補取得中か否か
+  const [isLoading, setIsLoading] = useState<boolean>(false);              // 優先モード変更時の候補取得中か否か
   
   const [priorityCandidates, setPriorityCandidates] = useState<Array<HoloworkCandidate>>([]);  // API が優先条件に合致すると判定した候補
   const [otherCandidates   , setOtherCandidates   ] = useState<Array<HoloworkCandidate>>([]);  // API が返す、優先候補と重複しない選択可能候補
   
   const [selectedHolomemsIds, setSelectedHolomemsIds] = useState<Array<number>>([]);  // 両候補テーブルで共有する選択済みのメンバー ID
-  const [isSubmitting       , setIsSubmitting       ] = useState<boolean>(false);  // 二重送信防止用に参照する Submit 中か否か
-  const [formError          , setFormError          ] = useState<string>('');  // 候補取得・入力・開始 API のエラー
+  const [isSubmitting       , setIsSubmitting       ] = useState<boolean>(false);     // ホロワーク開始の送信中か否か
+  const [formError          , setFormError          ] = useState<string>('');         // 候補取得・入力・開始 API のエラー
   
-  /** 優先モードを切り替え、対応する候補2区分を取得する */
+  /** 優先モードを切り替え、対応する候補区分を取得する */
   const onChangePriority = async (event: ChangeEvent<HTMLSelectElement>): Promise<void> => {
     const selectedPriority = event.target.value as CandidatePriority | '';
     setPriority(selectedPriority);
@@ -85,7 +85,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
     setSelectedHolomemsIds(prevHolomemsIds => prevHolomemsIds.filter(id => id !== holomemId));  // 選択したメンバーを解除する
   };
   
-  /** 選択人数を確認してホロワークを開始する */
+  /** 選択人数を検証し、最大人数未満の場合は `window.confirm()` で確認してホロワークを開始する */
   const onSubmit = async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     setFormError('');

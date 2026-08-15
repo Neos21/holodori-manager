@@ -20,18 +20,20 @@ import type { BoardNodeCategory, BoardNodeYellowTarget } from '../../../shared/t
 import type { BooleanString } from '../../../shared/types/utilities/boolean-types';
 import type { NumberToStringValue } from '../../../shared/types/utilities/number-types';
 
-/** ホロメンボードマスの新規追加・編集フォームの型定義 */
+/** ホロメンボードマスの新規追加・編集フォームの入力値・数値項目もフォーム要素に合わせて文字列として扱う */
 type BoardNodeFormState = {
   holomems_id  : NumberToStringValue;
   category     : BoardNodeCategory;
+  /** 未選択時と黄マス以外では空文字とし、Schema で `null` に正規化する */
   yellow_target: BoardNodeYellowTarget | '';
   description  : string;
   is_unlocked  : BooleanString;
   amount       : NumberToStringValue;
+  /** 未入力時は空文字とし、Schema で `null` に正規化する */
   connect_rate : NumberToStringValue;
 };
 
-/** ホロメンメモ編集フォームの型定義 */
+/** ホロメンメモ編集フォームの入力値 */
 type HolomemNoteFormState = {
   note: string;
 };
@@ -44,19 +46,23 @@ const categoryDisplayNames: Record<BoardNodeCategory, string> = {
   blue  : '青マス'
 };
 
-/** カテゴリに対応する色を表現する CSS クラス名 (関数にすると Tailwind ビルド時にうまく取得されないのでベタ書き必須) */
+/** カテゴリ見出しの文字色を表現する CSS クラス名・Tailwind ビルド時に全クラスを検出できるようカテゴリ別のクラス名は動的に組み立てず列挙する */
 const categoryColourClassText: Record<BoardNodeCategory, string> = {
   yellow: 'text-warning',
   green : 'text-success',
   red   : 'text-error',
   blue  : 'text-info'
 };
+
+/** ホロメン見出しの枠線色を表現する CSS クラス名 */
 const categoryColourClassBorder: Record<BoardNodeCategory, string> = {
   yellow: 'border-warning',
   green : 'border-success',
   red   : 'border-error',
   blue  : 'border-info'
 };
+
+/** カテゴリ選択欄の色を表現する CSS クラス名 */
 const categoryColourClassSelect: Record<BoardNodeCategory, string> = {
   yellow: 'select-warning',
   green : 'select-success',
@@ -71,7 +77,7 @@ const yellowTargetDisplayNames: Record<BoardNodeYellowTarget, string> = {
   lesson_pt: 'レッスン Pt'
 };
 
-/** 空のフォーム値を返す */
+/** 新規追加用の初期フォーム値を返す */
 const createEmptyFormValues = (): BoardNodeFormState => ({
   holomems_id  : '',
   category     : boardNodeCategoryYellow,
@@ -84,27 +90,31 @@ const createEmptyFormValues = (): BoardNodeFormState => ({
 
 /** ボードノード一覧ページ */
 export default function BoardNodesPage(): ReactElement {
-  const [isLoading , setIsLoading ] = useState<boolean>(true);
-  const [boardNodes, setBoardNodes] = useState<Array<BoardNode>>([]);
-  const [listError , setListError ] = useState<string>('');
+  const [isLoading , setIsLoading ] = useState<boolean>(true);                    // 一覧の初期読込中か否か
+  const [boardNodes, setBoardNodes] = useState<Array<BoardNode>>([]);             // API から取得したボードマス一覧
+  const [listError , setListError ] = useState<string>('');                       // 一覧読込時のエラーメッセージ
   const holomems                    = useHolomemsStore(state => state.holomems);  // 複数ページで使用されるためインメモリ Store でキャッシュする
   
   // ボードノードモーダル用 State
-  const [isModalOpen , setIsModalOpen ] = useState<boolean>(false);
-  const [form        , setForm        ] = useState<BoardNodeFormState>(createEmptyFormValues());
-  const [editingId   , setEditingId   ] = useState<number | null>(null);  // `null` なら新規追加としてフォームを扱う
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [formError   , setFormError   ] = useState<string>('');
-  const editingHolomem             = editingId      == null ? null : holomems.find(holomem => holomem.id === Number(form.holomems_id)) ?? null;  // 編集中のフォーム値から表示対象のホロメンを導出する
+  const [isModalOpen , setIsModalOpen ] = useState<boolean>(false);                               // 新規追加・編集モーダルを表示中か否か
+  const [form        , setForm        ] = useState<BoardNodeFormState>(createEmptyFormValues());  // 新規追加・編集フォームの入力値
+  const [editingId   , setEditingId   ] = useState<number | null>(null);                          // `null` なら新規追加としてフォームを扱う
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);                               // フォーム送信中か否か
+  const [formError   , setFormError   ] = useState<string>('');                                   // フォームのエラーメッセージ
+  
+  /** 編集中のフォームが参照するホロメン。新規追加時または対象を取得できない場合は `null` */
+  const editingHolomem             = editingId      == null ? null : holomems.find(holomem => holomem.id === Number(form.holomems_id)) ?? null;
+  /** 編集時に読み取り専用で表示するホロメン情報。対象を取得できない場合は空文字 */
   const editingHolomemDisplayValue = editingHolomem == null ? ''   : `${editingHolomem.group_name} : ${editingHolomem.name} (ID : ${form.holomems_id})`;
   
   // ホロメンメモモーダル用 State
-  const [isNoteModalOpen  , setIsNoteModalOpen  ] = useState<boolean>(false);
-  const [holomemNoteForm  , setHolomemNoteForm  ] = useState<HolomemNoteFormState>({ note: '' });
-  const [noteTargetHolomem, setNoteTargetHolomem] = useState<Holomem | null>(null);
-  const [isSubmittingNote , setIsSubmittingNote ] = useState<boolean>(false);
-  const [noteFormError    , setNoteFormError    ] = useState<string>('');
+  const [isNoteModalOpen  , setIsNoteModalOpen  ] = useState<boolean>(false);                      // ホロメンメモ編集モーダルを表示中か否か
+  const [holomemNoteForm  , setHolomemNoteForm  ] = useState<HolomemNoteFormState>({ note: '' });  // ホロメンメモ編集フォームの入力値
+  const [noteTargetHolomem, setNoteTargetHolomem] = useState<Holomem | null>(null);                // 編集対象のホロメン・モーダルを閉じている場合は `null`
+  const [isSubmittingNote , setIsSubmittingNote ] = useState<boolean>(false);                      // ホロメンメモ送信中か否か
+  const [noteFormError    , setNoteFormError    ] = useState<string>('');                          // ホロメンメモフォームのエラーメッセージ
   
+  /** ボードマス一覧を API から取得し、取得エラーを画面表示用 State に反映する */
   const onLoadBoardNodes = async (): Promise<void> => {
     setListError('');
     try {
@@ -116,12 +126,13 @@ export default function BoardNodesPage(): ReactElement {
     }
   };
   
+  /** 未取得の場合にホロメン一覧を Store に読み込み、取得エラーを画面表示用 State に反映する */
   const onLoadHolomems = async (): Promise<void> => {
     const result = await useHolomemsStore.getState().loadHolomems();
     if(result.error != null) setListError(result.error);
   };
   
-  // 画面初期表示時
+  // 画面初期表示時にボードマス一覧とホロメン一覧を並行して読み込む
   useEffect(() => {
     (async () => {
       setIsLoading(true);
@@ -163,26 +174,29 @@ export default function BoardNodesPage(): ReactElement {
     setIsModalOpen(true);
   };
   
+  /** 変更されたフォーム要素の値を反映し、カテゴリ変更時は黄マス専用項目との整合性を保つ */
   const onChangeForm = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>): void => {
     const { name, value } = event.target;
     setForm(prevForm => {
       const newForm = { ...prevForm, [name]: value } as BoardNodeFormState;
-      // カテゴリ変更時に `yellow_target` 欄の整合性を保つ
       if(name === 'category' && newForm.category !== boardNodeCategoryYellow) newForm.yellow_target = '';
       return newForm;
     });
   };
   
+  /** 解放状況チェックボックスの値をフォーム State に反映する */
   const onChangeIsUnlocked = (event: ChangeEvent<HTMLInputElement>): void => {
     setForm(prevForm => ({ ...prevForm, is_unlocked: event.target.checked ? booleanStringTrue : booleanStringFalse }));
   };
   
+  /** フォーム情報をリセットしてボードマス編集モーダルを閉じる */
   const onCloseModal = (): void => {
     resetForm();
     setFormError('');
     setIsModalOpen(false);
   };
   
+  /** フォームを検証してボードマスを新規追加または更新し、一覧を再読込する */
   const onSubmit = async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     setFormError('');
@@ -213,6 +227,7 @@ export default function BoardNodesPage(): ReactElement {
     }
   };
   
+  /** `window.confirm()` で確認後、編集中のボードマスを削除して一覧を再読込する */
   const onDelete = async (): Promise<void> => {
     if(editingId == null) return window.alert('異常 : 削除対象のマスが選択されていません');
     if(!window.confirm('このマスを削除しますか？')) return;
@@ -242,11 +257,13 @@ export default function BoardNodesPage(): ReactElement {
     setIsNoteModalOpen(true);
   };
   
+  /** 変更されたホロメンメモの値をフォーム State に反映する */
   const onChangeNoteForm = (event: ChangeEvent<HTMLTextAreaElement>): void => {
     const { name, value } = event.target;
     setHolomemNoteForm(prevHolomemNoteForm => ({ ...prevHolomemNoteForm, [name]: value }));
   };
   
+  /** 関連 State をリセットしてホロメンメモ編集モーダルを閉じる */
   const onCloseNoteModal = (): void => {
     setIsNoteModalOpen(false);  // 先にモーダルを閉じてから関連 State をリセットしておく
     setNoteTargetHolomem(null);
@@ -254,6 +271,7 @@ export default function BoardNodesPage(): ReactElement {
     setNoteFormError('');
   };
   
+  /** ホロメンメモを検証して更新し、共有するホロメン一覧を再読込する */
   const onSubmitNote = async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     
@@ -418,7 +436,7 @@ export default function BoardNodesPage(): ReactElement {
                   ))}
                 </select>
                 
-                {/* 黃マス時の報酬アップ対象アイテムは新規登録時のみ設定可能・編集時は参照のみで変更不可 */}
+                {/* 黄マス時の報酬アップ対象アイテムは新規登録時のみ設定可能・編集時は参照のみで変更不可 */}
                 <label className="fieldset-label">{yellowTargetDisplayName}</label>
                 <select className="select w-full" name="yellow_target" value={form.yellow_target} onChange={onChangeForm} disabled={editingId != null || form.category !== boardNodeCategoryYellow}>
                   <option value="">(選択してください)</option>

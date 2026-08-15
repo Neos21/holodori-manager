@@ -1,6 +1,10 @@
 import { isEmpty } from '../../shared/helpers/is-empty';
 
-/** `ky` の例外オブジェクトから API のレスポンスオブジェクトのトップレベルにある `error` プロパティ (API が返したエラーメッセージ) を取得する・取得できなかった場合は指定のデフォルトエラーメッセージを返す */
+/**
+ * `ky` の例外データから API が返したエラーメッセージを取得する
+ * 
+ * トップレベルの `error` が空でない文字列として取得できない場合は、指定されたデフォルトメッセージを返す
+ */
 export const extractApiErrorMessage = (error: unknown, defaultMessage: string): string => {
   if(error == null || typeof error !== 'object' || !('data' in error)) return defaultMessage;
   const data = error.data;

@@ -9,6 +9,7 @@ import type { Route } from './+types/root';
 
 import './styles.css';
 
+/** HTML 文書としてのルートレイアウト */
 export function Layout({ children }: { children: ReactNode }): ReactElement {
   const location = useLocation();
   const navigate = useNavigate();
@@ -77,14 +78,17 @@ export function Layout({ children }: { children: ReactNode }): ReactElement {
   );
 }
 
+/** 現在のルートに対応するページを描画するアプリケーションルート */
 export default function App(): ReactElement {
   return (<Outlet />);
 }
 
+/** クライアントのハイドレーションが完了するまで余計な表示が出ないように空表示するフォールバック */
 export function HydrateFallback(): ReactElement {
   return (<></>);
 }
 
+/** ルート描画時の例外を共通エラーページとして表示する */
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactElement {
   let title: string = 'エラー';
   let text : string = 'エラーが発生しました';

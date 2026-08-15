@@ -15,16 +15,16 @@ import type { HoloworkMemberStatus } from '../../../shared/types/app/holowork-me
 
 /** ホロワーク管理ページ */
 export default function HoloworksPage(): ReactElement {
-  const [isLoading     , setIsLoading     ] = useState<boolean>(true);  // 初回の枠一覧・メンバー状況取得中であるか否か
-  const [holoworks     , setHoloworks     ] = useState<Array<HoloworkDisplay>>([]);  // 活動中メンバーを含む枠一覧
+  const [isLoading     , setIsLoading     ] = useState<boolean>(true);                    // 初回の枠一覧・メンバー状況取得中か否か
+  const [holoworks     , setHoloworks     ] = useState<Array<HoloworkDisplay>>([]);       // 活動中メンバーを含む枠一覧
   const [memberStatuses, setMemberStatuses] = useState<Array<HoloworkMemberStatus>>([]);  // 達成状況・活動状況・黄マス集計一覧
-  const [listError     , setListError     ] = useState<string>('');  // 一覧取得時のエラー
-  const [actionError   , setActionError   ] = useState<string>('');  // 完了・中断時のエラー
+  const [listError     , setListError     ] = useState<string>('');                       // 一覧取得時のエラーメッセージ
+  const [actionError   , setActionError   ] = useState<string>('');                       // 完了・中断・削除時のエラーメッセージ
   
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);  // 画面全体の Submit 系ボタンを非活性にするための State
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);  // 親ページでの枠操作中か否か・一覧操作と枠追加を無効化する
   
-  const [isCreateModalOpen  , setIsCreateModalOpen  ] = useState<boolean>(false);  // 枠追加モーダルを表示中か否か
-  const [startingHolowork   , setStartingHolowork   ] = useState<HoloworkDisplay | null>(null);  // `null` は開始対象未選択を表す
+  const [isCreateModalOpen  , setIsCreateModalOpen  ] = useState<boolean>(false);                     // 枠追加モーダルを表示中か否か
+  const [startingHolowork   , setStartingHolowork   ] = useState<HoloworkDisplay | null>(null);       // `null` は開始対象未選択を表す
   const [editingMemberStatus, setEditingMemberStatus] = useState<HoloworkMemberStatus | null>(null);  // `null` は達成状況の編集対象未選択を表す
   
   /** 活動中メンバーを含むホロワーク枠一覧を取得する */
@@ -49,13 +49,13 @@ export default function HoloworksPage(): ReactElement {
     }
   };
   
-  /** 枠操作によって相互に変化する2つの一覧を並行して再取得する */
+  /** 枠操作によって相互に変化する関連一覧を並行して再取得する */
   const onLoadData = async (): Promise<void> => {
     setListError('');
     await Promise.all([onLoadHoloworks(), onLoadMemberStatuses()]);
   };
   
-  // 画面初期表示時
+  // 画面初期表示時に枠一覧とメンバー状況を並行して読み込む
   useEffect(() => {
     (async () => {
       setIsLoading(true);
@@ -68,7 +68,7 @@ export default function HoloworksPage(): ReactElement {
     })();
   }, []);
   
-  /** 確認後に対象枠を完了または中断し、関連する一覧を再取得する */
+  /** `window.confirm()` で確認後に対象枠を完了または中断し、関連一覧を再取得する */
   const onSubmitAction = async (holowork: HoloworkDisplay, action: 'complete' | 'abort'): Promise<void> => {
     const confirmationMessage = action === 'complete'
       ? `「${holowork.name}」を完了しますか？\n活動中メンバー全員のホロワーク完了回数が 1 増えます。`
@@ -89,7 +89,7 @@ export default function HoloworksPage(): ReactElement {
     }
   };
   
-  /** 確認後に活動中メンバーがいない対象枠を削除する */
+  /** `window.confirm()` で確認後、活動中メンバーがいない対象枠を削除する */
   const onDeleteHolowork = async (holowork: HoloworkDisplay): Promise<void> => {
     if(!window.confirm('このホロワーク枠を削除しますか？')) return;
     
@@ -115,7 +115,7 @@ export default function HoloworksPage(): ReactElement {
         <div className="alert alert-error alert-soft mb-4">{listError}</div>
       )}
       
-      {/* 完了・中止・削除時のエラー表示 */}
+      {/* 完了・中断・削除時のエラー表示 */}
       {!isEmpty(actionError) && (
         <div className="alert alert-error alert-soft mb-4">{actionError}</div>
       )}
@@ -126,7 +126,7 @@ export default function HoloworksPage(): ReactElement {
         </div>
       ) : (
         <>
-          {/* ホロワーク枠一覧テーブル*/}
+          {/* ホロワーク枠一覧テーブル */}
           <HoloworksTable
             holoworks={holoworks}
             isDisabled={isSubmitting}

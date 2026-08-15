@@ -5,7 +5,7 @@ import type { ReactElement } from 'react';
 type HoloworksTableProps = {
   /** 活動中メンバーを含む枠一覧 */
   holoworks : Array<HoloworkDisplay>;
-  /** API 操作中に全枠の操作ボタンを非活性にする */
+  /** API 操作中か否か・`true` の場合は全枠の操作ボタンを非活性にする */
   isDisabled: boolean;
   /** 活動メンバーがいない枠の開始モーダルを開く */
   onStart   : (holowork: HoloworkDisplay) => void;
@@ -39,7 +39,7 @@ export const HoloworksTable = ({ holoworks, isDisabled, onStart, onComplete, onA
           </thead>
           <tbody>
             {holoworks.map(holowork => {
-              /** 1枠に対する活動中メンバーの有無・ボタンの活性・非活性処理に利用する */
+              /** 対象枠に活動中メンバーが存在するか否か・各操作ボタンの活性制御に使用する */
               const hasActiveMembers = holowork.active_members.length > 0;
               return (
                 <tr key={holowork.id}>

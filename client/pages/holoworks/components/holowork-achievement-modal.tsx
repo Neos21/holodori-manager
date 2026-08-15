@@ -20,7 +20,7 @@ type HoloworkAchievementModalProps = {
   onUpdated   : () => Promise<void>;
 };
 
-/** ホロワーク達成状況編集フォームの型定義 */
+/** ホロワーク達成状況編集フォームの入力値・完了回数もフォーム要素に合わせて文字列として扱う */
 type AchievementFormState = {
   /** 編集中のホロワーク完了回数 */
   current_count: NumberToStringValue;
@@ -28,7 +28,7 @@ type AchievementFormState = {
   note         : string;
 };
 
-/** 達成状況編集で更新を許可する項目だけに限定したスキーマ */
+/** 本モーダルで更新を許可する項目だけに限定したスキーマ */
 const achievementFormSchema = holoworkAchievementSchema.pick({ current_count: true, note: true });
 
 /** ホロワーク達成状況編集モーダル */
@@ -37,8 +37,8 @@ export const HoloworkAchievementModal = ({ memberStatus, onClose, onUpdated }: H
     current_count: String(memberStatus.current_count) as NumberToStringValue,
     note         : memberStatus.achievement_note ?? ''
   });
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);  // 二重送信防止用に参照する Submit 中か否か
-  const [formError   , setFormError   ] = useState<string>('');  // バリデーション・API エラー
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);  // 達成状況更新の送信中か否か
+  const [formError   , setFormError   ] = useState<string>('');      // バリデーション・API エラー
   
   /** 完了回数またはメモの入力値をフォーム State に反映する */
   const onChangeForm = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {

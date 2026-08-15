@@ -25,9 +25,11 @@ type HolomemsState = {
 /** キャッシュ破棄前に開始したリクエストを識別する世代番号 */
 let cacheGeneration = 0;
 
-/** 同じキャッシュ世代で複数画面から取得が要求された場合に共有する実行中のリクエスト */
+/** 同じキャッシュ世代で複数ページから取得が要求された場合に共有する実行中のリクエスト */
 let loadingRequest: {
+  /** リクエスト開始時のキャッシュ世代・破棄済みキャッシュに対するリクエストか否かの判定に使用する */
   generation: number;
+  /** 同じキャッシュ世代の呼び出し間で共有するホロメン一覧取得処理 */
   promise: Promise<Result<Array<Holomem>>>;
 } | null = null;
 

@@ -5,10 +5,10 @@ import { isEmpty } from '../../shared/helpers/is-empty';
 import { useAdminStore } from '../stores/admin-store';
 
 /**
- * ログイン後の API コール時に JWT を付与するヘルパー
+ * 管理者向け API リクエストに JWT を付与する `ky` インスタンス
  * 
- * リクエストやレスポンスが不正な場合は JWT 有効期限切れと判断してログアウト状態にする
- * Store から JWT を削除すると `root.tsx` 内の `useEffect` がそれを検知して適宜リダイレクトなどを行ってくれる
+ * JWT が未保存の場合、または API が 401 を返した場合は Store をログアウト状態にする
+ * 認証状態の変更は `root.tsx` の監視処理が検知し、トップページ (ログインページ) への遷移を行う
  */
 export const adminApi = ky.extend({
   hooks: {

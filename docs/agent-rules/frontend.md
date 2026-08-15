@@ -16,7 +16,7 @@
 
 - LocalStorage の認証情報は Zustand Store の復元完了後に判定する
 - JWT を削除する前にリダイレクト理由を SessionStorage に保存する
-- 表示側で読み取った理由は削除し、通常遷移や再読み込み後に残さない
+- 表示側で読み取った理由は削除し、通常遷移や再読込後に残さない
 - アプリ内遷移は React Router の `useNavigate()` を使う
 
 

@@ -24,6 +24,7 @@ const formatSavedAt = (date: Date): string => {
     minute   : '2-digit',
     second   : '2-digit'
   });
+  // ロケール固有の区切り文字に依存せず日時を組み立てるため、各要素を種類ごとに Map に格納する
   const parts = new Map(formatter.formatToParts(date).map(part => [part.type, part.value]));
   const getPart = (type: Intl.DateTimeFormatPartTypes): string => parts.get(type) ?? '';
   return `${getPart('year')}-${getPart('month')}-${getPart('day')} ${getPart('hour')}:${getPart('minute')}:${getPart('second')}`;
@@ -31,17 +32,17 @@ const formatSavedAt = (date: Date): string => {
 
 /** サイドメニューに常時表示する自由メモ編集欄 */
 export const Memo = (): ReactElement => {
-  const [isLoading   , setIsLoading   ] = useState<boolean>(true);  // 初期読込時・テキストエリアを操作不可にするためのフラグ
-  const [content     , setContent     ] = useState<string>('');  // メモ欄
-  const [isSaving    , setIsSaving    ] = useState<boolean>(false);  // 保存時・テキストエリアを操作不可にするためのフラグ
-  const [savedMessage, setSavedMessage] = useState<string>('');  // 保存成功時のメッセージ・一定秒数経過後に非表示になる
-  const [errorMessage, setErrorMessage] = useState<string>('');  // エラーメッセージ
-  const [lastSavedAt , setLastSavedAt ] = useState<string>('');  // 空文字は現在の画面でまだ保存に成功していない状態を表す
+  const [isLoading   , setIsLoading   ] = useState<boolean>(true);   // 初期読込中か否か・`true` の場合はテキストエリアを操作不可にする
+  const [content     , setContent     ] = useState<string>('');      // メモ欄
+  const [isSaving    , setIsSaving    ] = useState<boolean>(false);  // 保存中か否か・`true` の場合はテキストエリアを操作不可にする
+  const [savedMessage, setSavedMessage] = useState<string>('');      // 保存成功時のメッセージ・一定秒数経過後に非表示になる
+  const [errorMessage, setErrorMessage] = useState<string>('');      // エラーメッセージ
+  const [lastSavedAt , setLastSavedAt ] = useState<string>('');      // 空文字は現在の画面でまだ保存に成功していない状態を表す
   
-  const savedContentRef = useRef<string>('');  // API 取得時または保存成功時の内容を保持し、変更がない場合の重複保存を避ける
+  const savedContentRef = useRef<string>('');                    // API 取得時または保存成功時の内容を保持し、変更がない場合の重複保存を避ける
   const savedMessageTimeoutIdRef = useRef<number | null>(null);  // 保存成功メッセージを非表示にするタイマー ID
   
-  // 初期表示時
+  // 初期表示時に保存済みメモを取得する
   useEffect(() => {
     (async () => {
       try {

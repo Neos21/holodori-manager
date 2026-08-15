@@ -1,5 +1,6 @@
 import { type ReactElement } from 'react';
 
+/** ログイン後のホームページ */
 export default function Home(): ReactElement {
   return (
     <main>

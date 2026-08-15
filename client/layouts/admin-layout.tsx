@@ -11,8 +11,9 @@ export default function AdminLayout(): ReactElement {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);  // スマホ表示時のサイドメニュー開閉状態
   
+  /** サイドメニューに表示する管理ページのリンク */
   const menuItems = [
     { to: '/home'       , label: 'ホーム'         },
     { to: '/holomems'   , label: 'ホロメン'       },
@@ -26,7 +27,7 @@ export default function AdminLayout(): ReactElement {
   /** サイドメニューのリンクを押下した時にサイドメニューを閉じるためのイベント */
   const onCloseSidebar = (): void => setIsSidebarOpen(false);
   
-  /** ユーザ操作によるログアウト理由を記録してから JWT を削除し、トップページに遷移する */
+  /** ユーザ操作によるログアウト理由を記録してから JWT と共有キャッシュを削除し、トップページに遷移する */
   const onLogout = (): void => {
     sessionStorage.setItem(sessionStorageKeyAuthenticationRedirectReason, authenticationRedirectReasonLogout);
     useAdminStore.getState().logout();

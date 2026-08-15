@@ -17,9 +17,9 @@ type CreateHoloworkModalProps = {
 
 /** 新規ホロワーク枠追加モーダル */
 export const CreateHoloworkModal = ({ onClose, onCreated }: CreateHoloworkModalProps): ReactElement => {
-  const [holoworkName, setHoloworkName] = useState<string>('');   // 入力中の枠名
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);  // 二重送信防止用に参照する Submit 中か否か
-  const [formError   , setFormError   ] = useState<string>('');  // バリデーション・API エラー
+  const [holoworkName, setHoloworkName] = useState<string>('');      // 入力中の枠名
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);  // 枠追加の送信中か否か
+  const [formError   , setFormError   ] = useState<string>('');      // バリデーション・API エラー
   
   /** 枠名の入力値を State に反映する */
   const onChangeHoloworkName = (event: ChangeEvent<HTMLInputElement>): void => setHoloworkName(event.target.value);
@@ -35,8 +35,8 @@ export const CreateHoloworkModal = ({ onClose, onCreated }: CreateHoloworkModalP
     setIsSubmitting(true);
     try {
       await adminApi.post('/api/holoworks', { json: parsed.data }).json<{ result: { id: number; }; }>();
-      // 先にモーダルを破棄してから再取得処理を呼び出す
       setIsSubmitting(false);
+      // 先にモーダルを破棄してから再取得処理を呼び出す
       onClose();
       await onCreated();
     }

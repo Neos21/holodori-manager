@@ -10,26 +10,28 @@ import { generalFailedMessage } from '../../constants/client-messages';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 import { useAdminStore } from '../../stores/admin-store';
 
+/** トップページ (ログインページ) */
 export default function Index(): ReactElement {
   const navigate = useNavigate();
   
-  const [shouldRequestRelogin] = useState<boolean>(sessionStorage.getItem(sessionStorageKeyAuthenticationRedirectReason) === authenticationRedirectReasonReloginRequired);  // SessionStorage に再ログイン要求があった場合のみ現在の表示中にメッセージを表示する
+  const [shouldRequestRelogin] = useState<boolean>(sessionStorage.getItem(sessionStorageKeyAuthenticationRedirectReason) === authenticationRedirectReasonReloginRequired);  // SessionStorage に再ログイン要求があるか否か・現在の表示中だけメッセージ表示に使用する
   
-  // 再ログインメッセージの表示有無にかかわらず、表示要求を次回のトップページ表示に持ち越さない
+  // 再ログインメッセージの表示有無に関わらず表示要求を次回のトップページ表示に持ち越さない
   useEffect((): void => {
     sessionStorage.removeItem(sessionStorageKeyAuthenticationRedirectReason);
   }, []);
   
-  const [password    , setPassword    ] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [password    , setPassword    ] = useState<string>('');      // パスワード
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);  // ログイン処理中か否か
+  const [errorMessage, setErrorMessage] = useState<string>('');      // ログイン時のエラーメッセージ
   
-  /** パスワード入力時・同時にエラーメッセージも適宜削除する */
+  /** パスワード入力時に表示中のエラーメッセージも消去する */
   const onChangePassword = (event: ChangeEvent<HTMLInputElement>): void => {
     setPassword(event.target.value);
     if(!isEmpty(errorMessage)) setErrorMessage('');
   };
   
+  /** 入力されたパスワードを検証し、ログインに成功した場合は JWT を保存してホームページに遷移する */
   const onSubmit = async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     setErrorMessage('');
@@ -51,7 +53,8 @@ export default function Index(): ReactElement {
   };
   
   return (
-    <main className="m-4">
+    <main className="py-4 px-3">
+      {/* `main` 要素の余白は `admin-layout.tsx` の `Outlet` ラッパーと揃えておく */}
       <h1>Holodori Manager</h1>
       
       {shouldRequestRelogin && (
@@ -69,10 +72,7 @@ export default function Index(): ReactElement {
           <div className="alert alert-error alert-soft">{errorMessage}</div>
         )}
         
-        <button
-          type="submit" disabled={isSubmitting || isEmpty(password)}
-          className="btn"
-        >Login</button>
+        <button type="submit" className="btn" disabled={isSubmitting || isEmpty(password)}>Login</button>
       </form>
     </main>
   );

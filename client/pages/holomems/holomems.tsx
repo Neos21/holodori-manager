@@ -12,7 +12,7 @@ import { useHolomemsStore } from '../../stores/holomems-store';
 import type { Holomem } from '../../../shared/types/entities/holomem';
 import type { BooleanString } from '../../../shared/types/utilities/boolean-types';
 
-/** ホロメンの新規追加・編集フォームの型定義 : 全て String で扱う */
+/** ホロメンの新規追加・編集フォームの入力値・フォーム要素に合わせて全項目を文字列として扱う */
 type HolomemFormState = {
   sort_order: string;
   group_name: string;
@@ -21,7 +21,7 @@ type HolomemFormState = {
   is_active : BooleanString;
 };
 
-/** 空のフォーム値を返す */
+/** 新規追加用の初期フォーム値を返す */
 const createEmptyFormValues = (): HolomemFormState => ({
   sort_order: '',
   group_name: '',
@@ -38,24 +38,25 @@ const createEmptyFormValues = (): HolomemFormState => ({
  * - ホロメンの物理削除には対応していない (対応予定なし・万が一対応する場合は関連するリソースの削除対応も必要になる)
  */
 export default function HolomemsPage(): ReactElement {
-  const [isLoading             , setIsLoading             ] = useState<boolean>(true);
+  const [isLoading             , setIsLoading             ] = useState<boolean>(true);                    // 一覧の初期読込中か否か
   const holomems                                            = useHolomemsStore(state => state.holomems);  // 複数ページで使用されるためインメモリ Store でキャッシュする
-  const [expandedNoteHolomemIds, setExpandedNoteHolomemIds] = useState<Array<number>>([]);  // メモ欄を開いた状態を保持するための State
-  const [listError             , setListError             ] = useState<string>('');
+  const [expandedNoteHolomemIds, setExpandedNoteHolomemIds] = useState<Array<number>>([]);                // メモ欄を展開しているホロメン ID を控えておく
+  const [listError             , setListError             ] = useState<string>('');                       // 一覧読込時のエラーメッセージ
   
-  const [isModalOpen , setIsModalOpen ] = useState<boolean>(false);
-  const [form        , setForm        ] = useState<HolomemFormState>(createEmptyFormValues());
-  const [editingId   , setEditingId   ] = useState<number | null>(null);  // `null` なら新規追加としてフォームを扱う
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [formError   , setFormError   ] = useState<string>('');
+  const [isModalOpen , setIsModalOpen ] = useState<boolean>(false);                             // 新規追加・編集モーダルを表示中か否か
+  const [form        , setForm        ] = useState<HolomemFormState>(createEmptyFormValues());  // 新規追加・編集フォームの入力値
+  const [editingId   , setEditingId   ] = useState<number | null>(null);                        // `null` なら新規追加としてフォームを扱う
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);                             // フォーム送信中か否か
+  const [formError   , setFormError   ] = useState<string>('');                                 // フォームのエラーメッセージ
   
+  /** 未取得の場合にホロメン一覧を Store に読み込み、取得エラーを画面表示用 State に反映する */
   const onLoadHolomems = async (): Promise<void> => {
     setListError('');
     const result = await useHolomemsStore.getState().loadHolomems();
     if(result.error != null) setListError(result.error);
   };
   
-  // 画面初期表示時
+  // 画面初期表示時にホロメン一覧を読み込む
   useEffect(() => {
     (async () => {
       setIsLoading(true);
@@ -95,11 +96,13 @@ export default function HolomemsPage(): ReactElement {
     setIsModalOpen(true);
   };
   
+  /** 変更されたフォーム要素の値をフォーム State に反映する */
   const onChangeForm = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
     const { name, value } = event.target;
     setForm(prevForm => ({ ...prevForm, [name]: value } as HolomemFormState));
   };
   
+  /** フォーム情報をリセットしてモーダルを閉じる */
   const onCloseModal = (): void => {
     resetForm();
     setFormError('');
@@ -113,6 +116,7 @@ export default function HolomemsPage(): ReactElement {
       : [...prevExpandedNoteHolomemIds, holomemId]);
   };
   
+  /** フォームを検証してホロメンを新規追加または更新し、一覧を再読込する */
   const onSubmit = async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     setFormError('');
@@ -181,6 +185,7 @@ export default function HolomemsPage(): ReactElement {
                       <td className="w-px px-1 whitespace-nowrap">{holomem.group_name}</td>
                       <td className="w-px px-1 whitespace-nowrap">{holomem.name}</td>
                       <td className="w-full min-w-40 pl-1 pr-0">
+                        {/* セルをクリックすることでメモを1行省略表示と全文折り返し表示でトグル切り替えできるようにする */}
                         {isEmpty(holomem.note) ? '-' : (
                           <div
                             className={`cursor-pointer ${expandedNoteHolomemIds.includes(holomem.id) ? 'whitespace-pre-wrap' : 'line-clamp-1'}`}
