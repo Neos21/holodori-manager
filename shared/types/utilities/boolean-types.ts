@@ -1,5 +1,5 @@
-/** Boolean を 0・1 で表現した型 (循環参照を避けるためベタ書き) */
+/** DB の真偽値を数値で扱う型 (循環参照を避けるためベタ書き) */
 export type BooleanNumber = 0 | 1;
 
-/** Boolean 相当の 0・1 を文字列で表現した型 */
+/** フォーム入力で {@link BooleanNumber} 相当の値を文字列として扱う型 */
 export type BooleanString = `${BooleanNumber}`;

@@ -4,7 +4,7 @@ export const star3 = 3 as const;
 export const star4 = 4 as const;
 /** レア度 : 星5 */
 export const star5 = 5 as const;
-/** レア度 */
+/** カードのレア度の選択肢 (昇順) */
 export const rarities = [star3, star4, star5] as const;
 
 /** 開花度 0 */
@@ -19,7 +19,7 @@ export const bloom3 = 3 as const;
 export const bloom4 = 4 as const;
 /** 開花度 5 */
 export const bloom5 = 5 as const;
-/** 開花度 */
+/** カードの開花度の選択肢 (昇順) */
 export const blooms = [bloom0, bloom1, bloom2, bloom3, bloom4, bloom5] as const;
 
 /** カードのデフォルト Lv */
@@ -36,7 +36,7 @@ export const boardNodeCategoryBlue   = 'blue'   as const;
 /** ホロメンボードマスの全カテゴリ (ソート表示を優先したい順) */
 export const boardNodeCategories = [boardNodeCategoryYellow, boardNodeCategoryGreen, boardNodeCategoryRed, boardNodeCategoryBlue] as const;
 
-/** ホロワーク完了回数のアチーブメント定義 */
+/** ホロワーク完了回数のアチーブメント閾値・次回閾値の検索に使用するため昇順で定義する */
 export const holoworkAchievements = [1, 5, 10, 30, 50, 100, 200, 300, 400] as const;
 
 /** ホロワークを開始・完了できる最小メンバー数 */

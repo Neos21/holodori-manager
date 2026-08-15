@@ -7,7 +7,7 @@ import type { StartHoloworkRequest } from '../types/app/start-holowork-request';
 
 const holomemsIdsDisplayName = '選択されたメンバー' as const;
 
-/** ホロワーク開始リクエストを検証するためのスキーマ */
+/** ホロワーク開始リクエストを検証するスキーマ */
 export const startHoloworkSchema: z.ZodType<StartHoloworkRequest> = z.object({
   holomems_ids: z.array(
                   z.number({ error: zodErrorMessages.invalidType(holomemsIdsDisplayName) })

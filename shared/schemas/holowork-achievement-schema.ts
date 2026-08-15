@@ -7,6 +7,7 @@ const holomemsIdDisplayName             = 'ホロメン ID'        as const;
 export const currentCountDisplayName    = 'ホロワーク完了回数' as const;
 export const achievementNoteDisplayName = '自由記入欄'         as const;
 
+/** ホロワークアチーブメントの完了回数と自由記入欄を検証するスキーマ */
 export const holoworkAchievementSchema = z.object({
   holomems_id   : z.preprocess(
                     value => isEmpty(value) ? 0 : value,  // 未入力時は 0 にしてエラー扱いにする

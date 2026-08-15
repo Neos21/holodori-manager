@@ -1,7 +1,7 @@
 import { blooms, rarities } from '../../constants/holodori-constants';
 
-/** レア度の型 */
+/** カードのレア度を表す型 */
 export type Rarity = (typeof rarities)[number];
 
-/** 開花度の型 */
+/** カードの開花段階を表す型 */
 export type Bloom = (typeof blooms)[number];

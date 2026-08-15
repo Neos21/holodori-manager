@@ -12,6 +12,7 @@ export const isOwnedDisplayName  = '所有状況'    as const;
 export const levelDisplayName    = 'レベル'      as const;
 export const bloomDisplayName    = '開花度'      as const;
 
+/** カードの登録・更新で使用する入力値を正規化し、カード情報と育成状況を検証するスキーマ */
 export const cardSchema = z.object({
   holomems_id : z.preprocess(
                   value => isEmpty(value) ? 0 : value,  // 未入力時は 0 にしてエラー扱いにする

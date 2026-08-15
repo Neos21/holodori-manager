@@ -4,6 +4,7 @@ import { preprocessOneLineString, zodErrorMessages } from './schema-utilities';
 
 const passwordDisplayName = 'パスワード' as const;
 
+/** ログイン時のパスワード入力を正規化して検証するスキーマ */
 export const loginSchema = z.object({
   password: z.preprocess(
               preprocessOneLineString,

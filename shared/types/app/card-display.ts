@@ -1,6 +1,6 @@
 import type { Card } from '../entities/card';
 
-/** フロントエンド表示用の型 */
+/** カード管理ページで、カードに紐づくホロメンの表示情報を併記するための型 */
 export type CardDisplay = Card & {
   /** グループ (`holomems.group_name`) */
   holomem_group_name: string;

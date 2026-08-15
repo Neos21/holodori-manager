@@ -11,6 +11,6 @@ export type Result<T> = {
   result?: undefined;
   /** クライアントに返すエラーメッセージ */
   error: string;
-  /** 異常の種類に対応する HTTP ステータスコード・省略時は Controller が 400 として扱う */
+  /** 異常の種類に対応する HTTP ステータスコード・省略時は Controller が Bad Request として扱う */
   httpStatusCode?: number;
 };

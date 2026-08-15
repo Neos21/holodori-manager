@@ -10,7 +10,7 @@ export type Holomem = {
   group_name: string;
   /** タレント名 */
   name: string;
-  /** 自由記入欄 */
+  /** 自由記入欄・DB 上の未設定値は `null`、部分更新で項目を更新対象に含めない場合は `undefined` */
   note: string | null | undefined;
   /** 卒業等による無効化 (False にすると無効)・物理削除はしない */
   is_active: BooleanNumber;

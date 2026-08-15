@@ -6,7 +6,7 @@ export const candidatePriorityCube     = 'cube'      as const;
 export const candidatePriorityTraining = 'training'  as const;
 /** ホロワーク優先モードの選択肢 : レッスン Pt 獲得量重視 */
 export const candidatePriorityLessonPt = 'lesson_pt' as const;
-/** ホロワーク優先モードの全選択肢 */
+/** ホロワーク優先モードの全選択肢 (画面表示順) */
 export const candidatePriorities = [candidatePriorityCount, candidatePriorityCube, candidatePriorityTraining, candidatePriorityLessonPt] as const;
 
 /** ホロメンボードの報酬アップ対象アイテム : キューブ */
@@ -15,5 +15,5 @@ export const boardNodeYellowTargetCube     = 'cube'      as const;
 export const boardNodeYellowTargetTraining = 'training'  as const;
 /** ホロメンボードの報酬アップ対象アイテム : レッスン Pt */
 export const boardNodeYellowTargetLessonPt = 'lesson_pt' as const;
-/** ホロメンボードの報酬アップ対象となる全アイテム */
+/** ホロメンボードの報酬アップ対象となる全アイテム (画面表示順) */
 export const boardNodeYellowTargets = [boardNodeYellowTargetCube, boardNodeYellowTargetTraining, boardNodeYellowTargetLessonPt] as const;

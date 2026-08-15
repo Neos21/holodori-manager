@@ -4,6 +4,7 @@ import { preprocessOneLineString, zodErrorMessages } from './schema-utilities';
 
 export const holoworkNameDisplayName = '枠の名前' as const;
 
+/** ホロワーク枠の作成時に枠名を正規化して検証するスキーマ */
 export const holoworkSchema = z.object({
   name: z.preprocess(
           preprocessOneLineString,

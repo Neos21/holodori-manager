@@ -14,6 +14,11 @@ export const isUnlockedDisplayName   = '解放状況'               as const;
 export const amountDisplayName       = '基礎効果量'             as const;
 export const connectRateDisplayName  = 'コネクト増幅率'         as const;
 
+/**
+ * ホロメンボードのマスに対する入力値の正規化と項目間の整合性を検証するスキーマ
+ * 
+ * `yellow_target` は黄マスの場合のみ必須とし、その他のカテゴリでは指定を許可しない
+ */
 export const boardNodeSchema = z.object({
   holomems_id   : z.preprocess(
                     value => isEmpty(value) ? 0 : value,  // 未入力時は 0 にしてエラー扱いにする (AUTOINCREMENT な ID は 1 から採番され 0 は登場しない)

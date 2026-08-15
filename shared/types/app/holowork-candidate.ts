@@ -25,7 +25,7 @@ export type HoloworkCandidate = HoloworkCountCandidate | HoloworkRateCandidate;
 
 /** 選択可能な候補者を優先条件への合致有無で排他的に分けたレスポンス */
 export type HoloworkCandidates = {
-  /** 選択された優先度 */
+  /** 候補選定に使用した優先モード */
   selected_priority: CandidatePriority;
   /** 選択した優先モードの条件を満たす候補一覧 */
   priority_candidates: Array<HoloworkCandidate>;

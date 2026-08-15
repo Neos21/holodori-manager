@@ -14,12 +14,12 @@ export type HoloworkMember = {
 
 /** ホロワーク管理ページで共通して表示するホロメン基本情報と達成状況メモ */
 export type HoloworkMemberWithAchievementNote = HoloworkMember & {
-  /** ホロワーク達成状況の自由記入欄 (`holowork_achievements.note`) */
+  /** ホロワーク達成状況の自由記入欄 (`holowork_achievements.note`)・未設定の場合は `null` または `undefined` */
   achievement_note: string | null | undefined;
 };
 
 /** 活動中メンバーを含むフロントエンド表示用のホロワーク枠 */
 export type HoloworkDisplay = Holowork & {
-  /** 活動中メンバー */
+  /** 活動中メンバー・いない場合は空配列 */
   active_members: Array<HoloworkMember>;
 };
