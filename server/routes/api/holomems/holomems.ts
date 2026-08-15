@@ -15,11 +15,13 @@ export const holomemsPath = '/holomems' as const;
 
 holomems.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next));
 
+/** ホロメン一覧を取得する */
 holomems.get('/', async context => {
   const holomems = await new HolomemsRepository(context.env.DB).findAll();
   return context.json({ result: holomems }, httpStatusCode.ok);
 });
 
+/** ホロメンを追加する */
 holomems.post('/', async context => {
   const body = await context.req.json().catch(() => null);
   if(body == null) return context.json({ error: invalidRequestBodyErrorMessage }, httpStatusCode.badRequest);
@@ -32,6 +34,7 @@ holomems.post('/', async context => {
   return context.json({ result: { id } }, httpStatusCode.created);
 });
 
+/** 指定したホロメンを更新する */
 holomems.patch('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
   if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);

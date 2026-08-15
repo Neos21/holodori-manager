@@ -35,7 +35,7 @@ export class HoloworksService {
     `;
     const result = await this.db.prepare(sql).all<HoloworkDisplayRow>();
     
-    /** `LEFT JOIN` の1行を枠 ID ごとにまとめ、フロントエンド用モデルの `active_members` 配列に変換する */
+    // `LEFT JOIN` の1行を枠 ID ごとにまとめ、フロントエンド用モデルの `active_members` 配列に変換する
     const holoworks = new Map<number, HoloworkDisplay>();
     
     for(const row of result.results ?? []) {
@@ -55,6 +55,7 @@ export class HoloworksService {
         holomems_name      : row.holomems_name
       });
     }
+    
     return [...holoworks.values()];
   }
   
@@ -97,6 +98,7 @@ export class HoloworksService {
     if(activeMembers.length < minimumHoloworkMemberCount) return { error: activeHoloworkMembersNotFoundErrorMessage, httpStatusCode: httpStatusCode.badRequest };
     
     // 各メンバーの回数加算と枠からの解放を同じ Batch に含め、完了処理を不可分にする
+    // ホロワーク達成状況テーブルは念のため `UPSERT` 相当で実行しておく
     const holomemsIds = activeMembers.map(activeMember => activeMember.holomems_id);
     const statements = holomemsIds.map(holomemsId => this.db
       .prepare(`

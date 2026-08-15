@@ -2,6 +2,7 @@ import { buildUpdateQuery } from '../helpers/build-update-query';
 
 import type { Memo } from '../../shared/types/entities/memo';
 
+/** 単一行で運用する `memo` テーブルの永続化操作を扱う Repository */
 export class MemoRepository {
   constructor(private readonly db: D1Database) { }
   
@@ -12,6 +13,7 @@ export class MemoRepository {
       .first<Memo>();
   }
   
+  /** メモを作成して、作成された ID を返す */
   public async create(memo: Partial<Memo>): Promise<number> {
     const result = await this.db
       .prepare('INSERT INTO memo (content) VALUES (?)')
@@ -20,6 +22,7 @@ export class MemoRepository {
     return result.meta.last_row_id;
   }
   
+  /** 対象メモの内容を更新する */
   public async update(id: number, memo: Partial<Memo>): Promise<void> {
     const { sets, values } = buildUpdateQuery([
       { column: 'content', value: memo.content }

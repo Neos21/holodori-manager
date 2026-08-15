@@ -160,7 +160,7 @@ export class HoloworkCandidatesService {
     return candidateA.holomems_sort_order - candidateB.holomems_sort_order || candidateA.holomems_id - candidateB.holomems_id;
   }
   
-  /** 優先候補を除いた差集合を作成し、通常のホロメン表示順で並べ替える */
+  /** 優先候補を除いた差集合を作成する */
   private createOtherCandidates(candidates: Array<HoloworkCandidate>, priorityCandidates: Array<HoloworkCandidate>): Array<HoloworkCandidate> {
     const priorityCandidateIds = new Set(priorityCandidates.map(candidate => candidate.holomems_id));
     const otherCandidates = candidates.filter(candidate => !priorityCandidateIds.has(candidate.holomems_id));

@@ -1,10 +1,10 @@
 import type { ActiveHoloworkMember } from '../../shared/types/entities/active-holowork-member';
 
-/** `active_holowork_members` テーブルの永続化操作 */
+/** `active_holowork_members` テーブルの永続化操作を扱う Repository */
 export class ActiveHoloworkMembersRepository {
   constructor(private readonly db: D1Database) { }
   
-  /** 対象のホロワーク枠で活動中のホロメンが存在するか否かをチェックするために使用する */
+  /** 指定したホロワーク枠で活動中のメンバーを ID 順で取得する */
   public async findByHoloworksId(holoworks_id: number): Promise<Array<ActiveHoloworkMember>> {
     const result = await this.db
       .prepare('SELECT id, holoworks_id, holomems_id FROM active_holowork_members WHERE holoworks_id = ? ORDER BY id ASC')
@@ -13,7 +13,7 @@ export class ActiveHoloworkMembersRepository {
     return result.results ?? [];
   }
   
-  /** 指定したホロメンたちのうち、いずれかの枠で活動中のメンバーを取得する */
+  /** 指定したホロメンのうち、いずれかの枠で活動中のメンバーを ID 順で取得する */
   public async findByHolomemsIds(holomemsIds: Array<number>): Promise<Array<ActiveHoloworkMember>> {
     if(holomemsIds.length === 0) return [];
     const placeholders = holomemsIds.map(() => '?').join(', ');
@@ -24,7 +24,7 @@ export class ActiveHoloworkMembersRepository {
     return result.results ?? [];
   }
   
-  /** 対象のホロワークで活動中のメンバーを一括解放する : ホロワーク完了 or 中断時に使用する */
+  /** ホロワーク完了または中断時に、指定した枠で活動中のメンバーを一括解放する */
   public async deleteByHoloworksId(holoworks_id: number): Promise<void> {
     await this.db
       .prepare('DELETE FROM active_holowork_members WHERE holoworks_id = ?')

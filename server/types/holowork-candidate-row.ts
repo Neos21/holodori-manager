@@ -14,10 +14,10 @@ export type HoloworkCountCandidateRow = HoloworkCandidateBase & Pick<HoloworkCou
  * @see {@link HoloworkRateCandidate} 集約後の型
  */
 export type HoloworkRateCandidateRow = HoloworkCandidateBase & {
-  /** 黃マスの場合のホロワーク報酬アップ対象アイテム・その他の場合は `null` */
+  /** ホロワーク報酬アップ対象アイテム・該当する解放済み黄マスがない場合は `null` */
   yellow_target: BoardNodeYellowTarget | null;
-  /** 基礎効果量 */
+  /** 基礎効果量・該当する解放済み黄マスがない場合は `null` */
   amount: number | null;
-  /** コネクトマスによる増幅率 (%) */
+  /** コネクトマスによる増幅率 (%)・黄マスがない、または増幅率が未設定の場合は `null` */
   connect_rate : number | null;
 };

@@ -2,9 +2,11 @@ import { buildUpdateQuery } from '../helpers/build-update-query';
 
 import type { Card } from '../../shared/types/entities/card';
 
+/** `cards` テーブルの永続化操作を扱う Repository */
 export class CardsRepository {
   constructor(private readonly db: D1Database) { }
   
+  /** カードを ID 順で一覧取得する */
   public async findAll(): Promise<Array<Card>> {
     const result = await this.db
       .prepare('SELECT id, holomems_id, rarity, name, is_owned, level, bloom FROM cards ORDER BY id ASC')
@@ -12,6 +14,7 @@ export class CardsRepository {
     return result.results ?? [];
   }
   
+  /** カードを作成して、作成された ID を返す */
   public async create(card: Partial<Card>): Promise<number> {
     const result = await this.db
       .prepare('INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (?, ?, ?, ?, ?, ?)')
@@ -20,6 +23,7 @@ export class CardsRepository {
     return result.meta.last_row_id;
   }
   
+  /** 対象カードの変更可能な項目だけを更新する */
   public async update(id: number, card: Partial<Card>): Promise<void> {
     // ホロメン ID、レア度など登録後に変更させたくない項目は含めない
     const { sets, values } = buildUpdateQuery([

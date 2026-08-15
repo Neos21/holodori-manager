@@ -12,6 +12,7 @@ import type { HonoBindings } from '../../../types/hono-bindings';
 export const login = new Hono<{ Bindings: HonoBindings; }>();
 export const loginPath = '/login' as const;
 
+/** パスワードを検証して認証トークンを発行する */
 login.post('/', async context => {
   // エラー理由を正直にレスポンスすると脆弱性に繋がるためレスポンスメッセージは濁しておく
   if(isEmpty(context.env.ADMIN_PASSWORD) || isEmpty(context.env.ADMIN_JWT_SECRET)) return context.json({ error: 'エラーが発生しました' }, httpStatusCode.internalServerError);

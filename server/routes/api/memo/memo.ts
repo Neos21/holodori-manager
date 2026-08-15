@@ -14,11 +14,13 @@ export const memoPath = '/memo' as const;
 
 memo.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next));
 
+/** メモを取得する・未登録の場合は `null` を返す */
 memo.get('/', async context => {
   const result = await new MemoRepository(context.env.DB).findOne();
   return context.json({ result }, httpStatusCode.ok);
 });
 
+/** メモを新規作成または更新する */
 memo.patch('/', async context => {
   const body = await context.req.json().catch(() => null);
   if(body == null) return context.json({ error: invalidRequestBodyErrorMessage }, httpStatusCode.badRequest);
@@ -26,7 +28,7 @@ memo.patch('/', async context => {
   const parsed = memoSchema.safeParse(body);
   if(!parsed.success) return context.json({ error: mergeIssues(parsed.error) }, httpStatusCode.badRequest);
   
-  // `memo` テーブルは単一行で運用する想定のため、1件取得できれば UPDATE・1件も取得できなければ INSERT で処理する
+  // `memo` テーブルは単一行で運用する想定のため、1件取得できれば `UPDATE`・1件も取得できなければ `INSERT` で処理する
   const memoRepository = new MemoRepository(context.env.DB);
   const existing = await memoRepository.findOne();
   if(existing == null) {

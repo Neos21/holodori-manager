@@ -14,11 +14,13 @@ export const boardNodesPath = '/board-nodes' as const;
 
 boardNodes.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, alg: 'HS256' })(context, next));
 
+/** ボードマス一覧を取得する */
 boardNodes.get('/', async context => {
   const boardNodes = await new BoardNodesRepository(context.env.DB).findAll();
   return context.json({ result: boardNodes }, httpStatusCode.ok);
 });
 
+/** ボードマスを追加する */
 boardNodes.post('/', async context => {
   const body = await context.req.json().catch(() => null);
   if(body == null) return context.json({ error: invalidRequestBodyErrorMessage }, httpStatusCode.badRequest);
@@ -30,6 +32,7 @@ boardNodes.post('/', async context => {
   return context.json({ result: { id } }, httpStatusCode.created);
 });
 
+/** 指定したボードマスを更新する */
 boardNodes.patch('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
   if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);
@@ -45,6 +48,7 @@ boardNodes.patch('/:id', async context => {  // eslint-disable-line neos-eslint-
   return context.json({ result: { id } }, httpStatusCode.ok);
 });
 
+/** 指定したボードマスを削除する */
 boardNodes.delete('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
   if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);
