@@ -1,7 +1,7 @@
 import { booleanNumberTrue } from '../../shared/constants/boolean-constants';
 import { buildUpdateQuery } from '../helpers/build-update-query';
 
-import type { Holomem } from '../../shared/types/holomem';
+import type { Holomem } from '../../shared/types/entities/holomem';
 
 export class HolomemsRepository {
   constructor(private readonly db: D1Database) { }

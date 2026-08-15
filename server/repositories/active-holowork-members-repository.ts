@@ -1,4 +1,4 @@
-import type { ActiveHoloworkMember } from '../../shared/types/active-holowork-member';
+import type { ActiveHoloworkMember } from '../../shared/types/entities/active-holowork-member';
 
 /** `active_holowork_members` テーブルの永続化操作 */
 export class ActiveHoloworkMembersRepository {

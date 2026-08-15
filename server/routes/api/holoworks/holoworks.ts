@@ -13,8 +13,8 @@ import { HoloworkCandidatesService } from '../../../services/holowork-candidates
 import { HoloworkMemberStatusesService } from '../../../services/holowork-member-statuses-service';
 import { HoloworksService } from '../../../services/holoworks-service';
 
-import type { CandidatePriority } from '../../../../shared/types/app-types';
-import type { Result } from '../../../../shared/types/result';
+import type { CandidatePriority } from '../../../../shared/types/app/holowork-candidate';
+import type { Result } from '../../../../shared/types/utilities/result';
 import type { HonoBindings } from '../../../types/hono-bindings';
 
 export const holoworks = new Hono<{ Bindings: HonoBindings; }>();

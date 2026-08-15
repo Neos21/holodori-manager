@@ -1,4 +1,4 @@
-import type { Holowork } from '../../shared/types/holowork';
+import type { Holowork } from '../../shared/types/entities/holowork';
 
 /** `holoworks` テーブルの永続化操作 */
 export class HoloworksRepository {

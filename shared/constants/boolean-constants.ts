@@ -1,4 +1,4 @@
-import type { BooleanNumber, BooleanString } from '../types/boolean-types';
+import type { BooleanNumber, BooleanString } from '../types/utilities/boolean-types';
 
 /** SQLite には Boolean 型がないため、0 = False・1 = True で表現する箇所が多数ある・そのための定義 (マジックナンバー) */
 export const booleanNumberValues = [ 0 ,  1 ] as const;

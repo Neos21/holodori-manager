@@ -1,6 +1,6 @@
 import { buildUpdateQuery } from '../helpers/build-update-query';
 
-import type { Card } from '../../shared/types/card';
+import type { Card } from '../../shared/types/entities/card';
 
 export class CardsRepository {
   constructor(private readonly db: D1Database) { }

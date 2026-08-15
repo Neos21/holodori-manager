@@ -11,10 +11,11 @@ import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 import { useHolomemsStore } from '../../stores/holomems-store';
 
-import type { BooleanString } from '../../../shared/types/boolean-types';
-import type { Card, CardDisplay } from '../../../shared/types/card';
-import type { Holomem } from '../../../shared/types/holomem';
-import type { NumberToStringValue } from '../../../shared/types/number-types';
+import type { CardDisplay } from '../../../shared/types/app/card-display';
+import type { Card } from '../../../shared/types/entities/card';
+import type { Holomem } from '../../../shared/types/entities/holomem';
+import type { BooleanString } from '../../../shared/types/utilities/boolean-types';
+import type { NumberToStringValue } from '../../../shared/types/utilities/number-types';
 
 /** カードの新規追加・編集フォームの型定義 */
 type CardFormState = {

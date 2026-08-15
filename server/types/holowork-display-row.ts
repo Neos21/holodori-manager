@@ -1,4 +1,5 @@
-import type { Holowork, HoloworkMember } from '../../shared/types/holowork';
+import type { HoloworkMember } from '../../shared/types/app/holowork-display';
+import type { Holowork } from '../../shared/types/entities/holowork';
 
 /** `LEFT JOIN` でメンバーが存在しない枠も取得するため、ホロメン基本情報を Nullable にした型 */
 type NullableHoloworkMember = { [Property in keyof HoloworkMember]: HoloworkMember[Property] | null; };

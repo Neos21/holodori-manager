@@ -1,5 +1,5 @@
-import type { BoardNodeYellowTarget } from '../../shared/types/app-types';
-import type { HoloworkCandidateBase, HoloworkCountCandidate } from '../../shared/types/holowork-candidate';
+import type { HoloworkCandidateBase, HoloworkCountCandidate } from '../../shared/types/app/holowork-candidate';
+import type { BoardNodeYellowTarget } from '../../shared/types/holodori/board-node-types';
 
 /**
  * 完了回数重視の候補取得 SQL の1行・進捗計算前なので現在回数までを保持する

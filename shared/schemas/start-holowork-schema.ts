@@ -3,7 +3,7 @@ import z from 'zod';
 import { zodErrorMessages } from './schema-utilities';
 import { maximumHoloworkMemberCount, minimumHoloworkMemberCount } from '../constants/holodori-constants';
 
-import type { StartHoloworkRequest } from '../types/start-holowork-request';
+import type { StartHoloworkRequest } from '../types/app/start-holowork-request';
 
 const holomemsIdsDisplayName = '選択されたメンバー' as const;
 

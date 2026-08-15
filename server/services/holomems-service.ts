@@ -1,7 +1,7 @@
 import { booleanNumberFalse } from '../../shared/constants/boolean-constants';
 import { bloom0, defaultCardLevel, rarities } from '../../shared/constants/holodori-constants';
 
-import type { Holomem } from '../../shared/types/holomem';
+import type { Holomem } from '../../shared/types/entities/holomem';
 
 export class HolomemsService {
   constructor(private readonly db: D1Database) { }

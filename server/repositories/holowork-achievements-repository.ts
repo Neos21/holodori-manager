@@ -1,6 +1,6 @@
 import { buildUpdateQuery } from '../helpers/build-update-query';
 
-import type { HoloworkAchievement } from '../../shared/types/holowork-achievement';
+import type { HoloworkAchievement } from '../../shared/types/entities/holowork-achievement';
 
 /** `holowork_achievements` テーブルの永続化操作 */
 export class HoloworkAchievementsRepository {

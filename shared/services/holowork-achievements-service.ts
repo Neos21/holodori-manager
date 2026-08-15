@@ -1,6 +1,6 @@
 import { holoworkAchievements } from '../constants/holodori-constants';
 
-import type { HoloworkAchievementProgress } from '../types/holowork-achievement-progress';
+import type { HoloworkAchievementProgress } from '../types/app/holowork-achievement-progress';
 
 /** ホロワーク完了回数のアチーブメント進捗を計算するサービス */
 export class HoloworkAchievementsService {

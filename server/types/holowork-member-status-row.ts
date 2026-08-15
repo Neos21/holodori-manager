@@ -1,6 +1,6 @@
-import type { BoardNodeYellowTarget } from '../../shared/types/app-types';
-import type { HoloworkMemberWithAchievementNote } from '../../shared/types/holowork';
-import type { HoloworkMemberStatus } from '../../shared/types/holowork-member-status';
+import type { HoloworkMemberWithAchievementNote } from '../../shared/types/app/holowork-display';
+import type { HoloworkMemberStatus } from '../../shared/types/app/holowork-member-status';
+import type { BoardNodeYellowTarget } from '../../shared/types/holodori/board-node-types';
 
 /** ホロメン別ステータスの SQL 行とフロントエンド用モデルで値が一致する項目 */
 type HoloworkMemberStatusBaseRow = HoloworkMemberWithAchievementNote & Pick<HoloworkMemberStatus, 'holowork_achievements_id' | 'current_count' | 'active_holoworks_id' | 'active_holoworks_name'>;

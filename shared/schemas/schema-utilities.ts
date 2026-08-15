@@ -1,7 +1,7 @@
 import { booleanNumberFalse, booleanNumberTrue, booleanNumberValues, booleanStringFalse, booleanStringTrue } from '../constants/boolean-constants';
 import { reduceNewlines } from '../helpers/reduce-newlines';
 
-import type { BooleanNumber } from '../types/boolean-types';
+import type { BooleanNumber } from '../types/utilities/boolean-types';
 
 /** 1行テキストを Trim する Preprocessor */
 export const preprocessOneLineString    = (value: unknown): unknown => value == null ? '' : typeof value === 'string' ? value.trim()                 : value;

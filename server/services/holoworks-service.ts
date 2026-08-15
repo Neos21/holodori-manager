@@ -5,8 +5,8 @@ import { ActiveHoloworkMembersRepository } from '../repositories/active-holowork
 import { HolomemsRepository } from '../repositories/holomems-repository';
 import { HoloworksRepository } from '../repositories/holoworks-repository';
 
-import type { HoloworkDisplay } from '../../shared/types/holowork';
-import type { Result } from '../../shared/types/result';
+import type { HoloworkDisplay } from '../../shared/types/app/holowork-display';
+import type { Result } from '../../shared/types/utilities/result';
 import type { HoloworkDisplayRow } from '../types/holowork-display-row';
 
 /** ホロワーク枠の表示モデル作成と操作を扱うサービス */

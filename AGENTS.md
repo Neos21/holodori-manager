@@ -28,14 +28,16 @@
 - 共有ロジックはヘルパーに切り出す
     - Helper を作成する際は `@typescript-eslint/explicit-function-return-type` を考慮し、関数式や arrow 関数の戻り型を明示する
 - ファイル外から利用しない型・定数は `export` せず、公開範囲を必要最小限にする
-- DB テーブルの型定義は `shared/types/` 配下にテーブル別に作成する
+- `shared/types/` 配下は、汎用型を `utilities/`、ホロドリ固有の型を `holodori/`、DB テーブルと対になる型を `entities/`、アプリ固有の合成型を `app/` に分類する
+    - ホロワーク表示用の合成型は `app/holowork-display.ts` に定義する
+- DB テーブルの型定義は `shared/types/entities/` 配下にテーブル別に作成する
 - DB 操作部分は `server/repositories/` 配下にテーブル別の Repository として実装する
     - Repository の命名は複数形にする。例 : `holomems-repository.ts`・`class HolomemsRepository`。ファイル名とクラス名の単複は一致させる
     - Repository のメソッド名は `findAll`・`findById`・`create`・`update` のように、一覧取得・単体取得の命名を明確にする
     - `update` では対象テーブルの関連先など、変更を許可しない項目を更新対象に含めない
 - 複数テーブルへの作成処理を不可分にする必要がある場合は D1 の `batch()` を使用し、途中失敗時に全体をロールバックできるようにする
 - サーバサイドロジックは `server/services/` 配下に作成し、サーバサイドロジック内でのみ使う型定義は `server/types/` 配下に作成する
-- 想定されるエラーの表現に例外オブジェクト・`throw`・`onError` ミドルウェアを使用せず、`shared/types/result.ts` の `Result` 型を利用して Controller で正常・異常レスポンスを明示的に分岐する
+- 想定されるエラーの表現に例外オブジェクト・`throw`・`onError` ミドルウェアを使用せず、`shared/types/utilities/result.ts` の `Result` 型を利用して Controller で正常・異常レスポンスを明示的に分岐する
 - ルーティングコントローラ
     - `context.req.json()` は常に `await context.req.json().catch(() => null)` で受け、`body == null` の場合は 400 エラーを返す
     - 正常レスポンスは必ずトップレベルを `result` のみとし、エラーはトップレベル `error` を使う

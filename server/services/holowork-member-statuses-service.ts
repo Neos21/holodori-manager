@@ -4,7 +4,7 @@ import { boardNodeCategoryYellow } from '../../shared/constants/holodori-constan
 import { BoardNodesService } from '../../shared/services/board-nodes-service';
 import { HoloworkAchievementsService } from '../../shared/services/holowork-achievements-service';
 
-import type { HoloworkMemberStatus } from '../../shared/types/holowork-member-status';
+import type { HoloworkMemberStatus } from '../../shared/types/app/holowork-member-status';
 import type { HoloworkMemberStatusRow } from '../types/holowork-member-status-row';
 
 /** ホロメン別のホロワーク達成状況・活動状況・黄マス情報を取得するサービス */

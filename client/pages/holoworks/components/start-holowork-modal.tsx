@@ -8,9 +8,8 @@ import { failedToFetchMessage, generalFailedMessage } from '../../../constants/c
 import { adminApi } from '../../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../../helpers/extract-api-error-message';
 
-import type { CandidatePriority } from '../../../../shared/types/app-types';
-import type { HoloworkDisplay } from '../../../../shared/types/holowork';
-import type { HoloworkCandidate, HoloworkCandidates } from '../../../../shared/types/holowork-candidate';
+import type { HoloworkCandidate, HoloworkCandidates, CandidatePriority } from '../../../../shared/types/app/holowork-candidate';
+import type { HoloworkDisplay } from '../../../../shared/types/app/holowork-display';
 
 /** ホロワーク開始モーダルに渡す対象枠と完了通知 */
 type StartHoloworkModalProps = {

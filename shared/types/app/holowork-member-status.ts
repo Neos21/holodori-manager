@@ -1,5 +1,5 @@
-import type { HoloworkMemberWithAchievementNote } from './holowork';
 import type { HoloworkAchievementProgress } from './holowork-achievement-progress';
+import type { HoloworkMemberWithAchievementNote } from './holowork-display';
 
 /** ホロメン別のホロワーク達成状況・黄マス情報 */
 export type HoloworkMemberStatus = HoloworkMemberWithAchievementNote & HoloworkAchievementProgress & {

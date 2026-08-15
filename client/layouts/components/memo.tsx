@@ -7,7 +7,7 @@ import { failedToFetchMessage, generalFailedMessage } from '../../constants/clie
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 
-import type { Memo as MemoType } from '../../../shared/types/memo';
+import type { Memo as MemoType } from '../../../shared/types/entities/memo';
 
 /** 保存成功メッセージを表示する時間 (ms) */
 const savedMessageDurationMilliseconds = 3000;

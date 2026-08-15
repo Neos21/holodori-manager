@@ -4,8 +4,8 @@ import { failedToFetchMessage } from '../constants/client-messages';
 import { adminApi } from '../helpers/admin-api';
 import { extractApiErrorMessage } from '../helpers/extract-api-error-message';
 
-import type { Holomem } from '../../shared/types/holomem';
-import type { Result } from '../../shared/types/result';
+import type { Holomem } from '../../shared/types/entities/holomem';
+import type { Result } from '../../shared/types/utilities/result';
 
 /** ホロメン一覧を管理する State */
 type HolomemsState = {

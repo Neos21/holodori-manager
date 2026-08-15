@@ -1,6 +1,6 @@
 import { buildUpdateQuery } from '../helpers/build-update-query';
 
-import type { Memo } from '../../shared/types/memo';
+import type { Memo } from '../../shared/types/entities/memo';
 
 export class MemoRepository {
   constructor(private readonly db: D1Database) { }

@@ -1,6 +1,9 @@
-import type { CandidatePriority } from './app-types';
-import type { HoloworkMemberWithAchievementNote } from './holowork';
 import type { HoloworkAchievementProgress } from './holowork-achievement-progress';
+import type { HoloworkMemberWithAchievementNote } from './holowork-display';
+import type { candidatePriorities } from '../../constants/app-constants';
+
+/** ホロワーク優先モードの全選択肢を示す型 */
+export type CandidatePriority = typeof candidatePriorities[number];
 
 /** 優先モードにかかわらず候補者レスポンスに含める共通項目 */
 export type HoloworkCandidateBase = HoloworkMemberWithAchievementNote;

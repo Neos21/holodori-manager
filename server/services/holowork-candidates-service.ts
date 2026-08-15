@@ -4,8 +4,7 @@ import { boardNodeCategoryYellow } from '../../shared/constants/holodori-constan
 import { BoardNodesService } from '../../shared/services/board-nodes-service';
 import { HoloworkAchievementsService } from '../../shared/services/holowork-achievements-service';
 
-import type { CandidatePriority } from '../../shared/types/app-types';
-import type { HoloworkCandidate, HoloworkCandidates, HoloworkCountCandidate, HoloworkRateCandidate } from '../../shared/types/holowork-candidate';
+import type { CandidatePriority, HoloworkCandidate, HoloworkCandidates, HoloworkCountCandidate, HoloworkRateCandidate } from '../../shared/types/app/holowork-candidate';
 import type { HoloworkCountCandidateRow, HoloworkRateCandidateRow } from '../types/holowork-candidate-row';
 
 /** ホロワークで選択可能なホロメン候補を取得するためのサービス */

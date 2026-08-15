@@ -1,6 +1,6 @@
 import { buildUpdateQuery } from '../helpers/build-update-query';
 
-import type { BoardNode } from '../../shared/types/board-node';
+import type { BoardNode } from '../../shared/types/entities/board-node';
 
 export class BoardNodesRepository {
   constructor(private readonly db: D1Database) { }

@@ -9,8 +9,8 @@ import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 import { useHolomemsStore } from '../../stores/holomems-store';
 
-import type { BooleanString } from '../../../shared/types/boolean-types';
-import type { Holomem } from '../../../shared/types/holomem';
+import type { Holomem } from '../../../shared/types/entities/holomem';
+import type { BooleanString } from '../../../shared/types/utilities/boolean-types';
 
 /** ホロメンの新規追加・編集フォームの型定義 : 全て String で扱う */
 type HolomemFormState = {

@@ -1,6 +1,5 @@
-import type { BoardNodeYellowTarget } from './app-types';
-import type { BooleanNumber } from './boolean-types';
-import type { BoardNodeCategory } from './holodori-types';
+import type { BoardNodeCategory, BoardNodeYellowTarget } from '../holodori/board-node-types';
+import type { BooleanNumber } from '../utilities/boolean-types';
 
 /** ホロメンボードのマス */
 export type BoardNode = {

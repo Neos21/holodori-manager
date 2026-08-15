@@ -1,4 +1,4 @@
-import type { HoloworkDisplay } from '../../../../shared/types/holowork';
+import type { HoloworkDisplay } from '../../../../shared/types/app/holowork-display';
 import type { ReactElement } from 'react';
 
 /** ホロワーク枠テーブルに渡す一覧と枠操作 */

@@ -7,8 +7,8 @@ import { failedToUpdateMessage } from '../../../constants/client-messages';
 import { adminApi } from '../../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../../helpers/extract-api-error-message';
 
-import type { HoloworkMemberStatus } from '../../../../shared/types/holowork-member-status';
-import type { NumberToStringValue } from '../../../../shared/types/number-types';
+import type { HoloworkMemberStatus } from '../../../../shared/types/app/holowork-member-status';
+import type { NumberToStringValue } from '../../../../shared/types/utilities/number-types';
 
 /** ホロワーク達成状況編集モーダルに渡す対象と完了通知 */
 type HoloworkAchievementModalProps = {

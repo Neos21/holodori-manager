@@ -2,7 +2,7 @@
 import { formatDecimal } from '../../../../shared/helpers/format-decimal';
 import { isEmpty } from '../../../../shared/helpers/is-empty';
 
-import type { HoloworkMemberStatus } from '../../../../shared/types/holowork-member-status';
+import type { HoloworkMemberStatus } from '../../../../shared/types/app/holowork-member-status';
 import type { ReactElement } from 'react';
 
 /** ホロメン別ステータステーブルに渡す一覧と編集操作 */

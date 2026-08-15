@@ -14,12 +14,11 @@ import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 import { useHolomemsStore } from '../../stores/holomems-store';
 
-import type { BoardNodeYellowTarget } from '../../../shared/types/app-types';
-import type { BoardNode } from '../../../shared/types/board-node';
-import type { BooleanString } from '../../../shared/types/boolean-types';
-import type { BoardNodeCategory } from '../../../shared/types/holodori-types';
-import type { Holomem } from '../../../shared/types/holomem';
-import type { NumberToStringValue } from '../../../shared/types/number-types';
+import type { BoardNode } from '../../../shared/types/entities/board-node';
+import type { Holomem } from '../../../shared/types/entities/holomem';
+import type { BoardNodeCategory, BoardNodeYellowTarget } from '../../../shared/types/holodori/board-node-types';
+import type { BooleanString } from '../../../shared/types/utilities/boolean-types';
+import type { NumberToStringValue } from '../../../shared/types/utilities/number-types';
 
 /** ホロメンボードマスの新規追加・編集フォームの型定義 */
 type BoardNodeFormState = {

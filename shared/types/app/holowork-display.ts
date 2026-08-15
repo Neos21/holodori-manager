@@ -1,10 +1,4 @@
-/** ホロワークの枠 */
-export type Holowork = {
-  /** ID */
-  id: number;
-  /** 枠の名前 */
-  name: string;
-};
+import type { Holowork } from '../entities/holowork';
 
 /** ホロワーク管理ページの表示・候補選択で共通して参照するホロメン基本情報 */
 export type HoloworkMember = {
