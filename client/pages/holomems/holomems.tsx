@@ -6,6 +6,7 @@ import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { groupNameDisplayName, isActiveDisplayName, nameDisplayName, noteDisplayName, sortOrderDisplayName, holomemSchema } from '../../../shared/schemas/holomem-schema';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
+import { useHolomemsStore } from '../../stores/holomems-store';
 
 import type { BooleanString } from '../../../shared/types/boolean-types';
 import type { Holomem } from '../../../shared/types/holomem';
@@ -37,7 +38,7 @@ const createEmptyFormValues = (): HolomemFormState => ({
  */
 export default function HolomemsPage(): ReactElement {
   const [isLoading             , setIsLoading             ] = useState<boolean>(true);
-  const [holomems              , setHolomems              ] = useState<Array<Holomem>>([]);
+  const holomems                                            = useHolomemsStore(state => state.holomems);  // 複数ページで使用されるためインメモリ Store でキャッシュする
   const [expandedNoteHolomemIds, setExpandedNoteHolomemIds] = useState<Array<number>>([]);  // メモ欄を開いた状態を保持するための State
   const [listError             , setListError             ] = useState<string>('');
   
@@ -49,13 +50,8 @@ export default function HolomemsPage(): ReactElement {
   
   const onLoadHolomems = async (): Promise<void> => {
     setListError('');
-    try {
-      const response = await adminApi.get('/api/holomems').json<{ result: Array<Holomem>; }>();
-      setHolomems(response.result);
-    }
-    catch(error) {
-      setListError(extractApiErrorMessage(error, 'ホロメン一覧の取得に失敗しました'));
-    }
+    const result = await useHolomemsStore.getState().loadHolomems();
+    if(result.error != null) setListError(result.error);
   };
   
   // 画面初期表示時
@@ -136,7 +132,8 @@ export default function HolomemsPage(): ReactElement {
       
       setIsModalOpen(false);  // 先にモーダルを閉じる
       resetForm();  // フォームをリセットしておく
-      await onLoadHolomems();  // 一覧を再読込する
+      const reloadResult = await useHolomemsStore.getState().reloadHolomems();  // 一覧を再読込する
+      if(reloadResult.error != null) setListError(reloadResult.error);
     }
     catch(error) {
       setFormError(extractApiErrorMessage(error, editingId == null ? 'ホロメンの追加に失敗しました' : 'ホロメンの更新に失敗しました'));

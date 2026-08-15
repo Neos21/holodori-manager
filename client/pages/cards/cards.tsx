@@ -8,10 +8,10 @@ import { bloomDisplayName, cardNameDisplayName, cardSchema, isOwnedDisplayName, 
 import { groupNameDisplayName, nameDisplayName } from '../../../shared/schemas/holomem-schema';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
+import { useHolomemsStore } from '../../stores/holomems-store';
 
 import type { BooleanString } from '../../../shared/types/boolean-types';
 import type { CardDisplay } from '../../../shared/types/card';
-import type { Holomem } from '../../../shared/types/holomem';
 import type { NumberToStringValue } from '../../../shared/types/number-types';
 
 /** カードの新規追加・編集フォームの型定義 */
@@ -44,8 +44,8 @@ const createEmptyFormValues = (): CardFormState => ({
 export default function CardsPage(): ReactElement {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [cards    , setCards    ] = useState<Array<CardDisplay>>([]);
-  const [holomems , setHolomems ] = useState<Array<Holomem>>([]);  // 新規カード追加時に参照利用する
   const [listError, setListError] = useState<string>('');
+  const holomems                  = useHolomemsStore(state => state.holomems);  // 新規カード追加時に参照利用する
   
   const [isModalOpen            , setIsModalOpen            ] = useState<boolean>(false);
   const [form                   , setForm                   ] = useState<CardFormState>(createEmptyFormValues());
@@ -67,13 +67,8 @@ export default function CardsPage(): ReactElement {
   };
   
   const onLoadHolomems = async (): Promise<void> => {
-    try {
-      const response = await adminApi.get('/api/holomems').json<{ result: Array<Holomem>; }>();
-      setHolomems(response.result);
-    }
-    catch(error) {
-      setListError(extractApiErrorMessage(error, 'ホロメン一覧の取得に失敗しました'));
-    }
+    const result = await useHolomemsStore.getState().loadHolomems();
+    if(result.error != null) setListError(result.error);
   };
   
   // 画面初期表示時

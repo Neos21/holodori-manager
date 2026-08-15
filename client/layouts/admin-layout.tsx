@@ -4,6 +4,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { Memo } from './components/memo';
 import { authenticationRedirectReasonLogout, sessionStorageKeyAuthenticationRedirectReason } from '../../shared/constants/app-constants';
 import { useAdminStore } from '../stores/admin-store';
+import { useHolomemsStore } from '../stores/holomems-store';
 
 /** ログイン後の全画面共通のレイアウト */
 export default function AdminLayout(): ReactElement {
@@ -29,6 +30,7 @@ export default function AdminLayout(): ReactElement {
   const onLogout = (): void => {
     sessionStorage.setItem(sessionStorageKeyAuthenticationRedirectReason, authenticationRedirectReasonLogout);
     useAdminStore.getState().logout();
+    useHolomemsStore.getState().clearHolomems();
     navigate('/', { replace: true });
   };
   

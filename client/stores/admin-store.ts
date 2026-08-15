@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+/** ログインユーザの情報を管理する State */
 type AdminState = {
   /** JWT */
   token: string | null;
@@ -12,6 +13,7 @@ type AdminState = {
   setIsHydrated: () => void;
 };
 
+/** ログインユーザの情報を管理する Store */
 export const useAdminStore = create<AdminState>()(
   persist(
     set => ({

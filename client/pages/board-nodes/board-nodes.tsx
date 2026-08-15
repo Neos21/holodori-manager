@@ -11,6 +11,7 @@ import { holomemSchema, noteDisplayName } from '../../../shared/schemas/holomem-
 import { BoardNodesService } from '../../../shared/services/board-nodes-service';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
+import { useHolomemsStore } from '../../stores/holomems-store';
 
 import type { BoardNodeYellowTarget } from '../../../shared/types/app-types';
 import type { BoardNode } from '../../../shared/types/board-node';
@@ -85,8 +86,8 @@ const createEmptyFormValues = (): BoardNodeFormState => ({
 export default function BoardNodesPage(): ReactElement {
   const [isLoading , setIsLoading ] = useState<boolean>(true);
   const [boardNodes, setBoardNodes] = useState<Array<BoardNode>>([]);
-  const [holomems  , setHolomems  ] = useState<Array<Holomem>>([]);
   const [listError , setListError ] = useState<string>('');
+  const holomems                    = useHolomemsStore(state => state.holomems);  // 複数ページで使用されるためインメモリ Store でキャッシュする
   
   // ボードノードモーダル用 State
   const [isModalOpen   , setIsModalOpen   ] = useState<boolean>(false);
@@ -115,13 +116,8 @@ export default function BoardNodesPage(): ReactElement {
   };
   
   const onLoadHolomems = async (): Promise<void> => {
-    try {
-      const holomemsResponse = await adminApi.get('/api/holomems').json<{ result: Array<Holomem>; }>();
-      setHolomems(holomemsResponse.result);
-    }
-    catch(error) {
-      setListError(extractApiErrorMessage(error, 'ホロメン一覧の取得に失敗しました'));
-    }
+    const result = await useHolomemsStore.getState().loadHolomems();
+    if(result.error != null) setListError(result.error);
   };
   
   // 画面初期表示時
@@ -272,7 +268,8 @@ export default function BoardNodesPage(): ReactElement {
     try {
       await adminApi.patch(`/api/holomems/${noteTargetHolomem.id}`, { json: parsed.data });
       onCloseNoteModal();  // 先にモーダルを閉じる
-      await onLoadHolomems();  // ホロメンを再読込する
+      const reloadResult = await useHolomemsStore.getState().reloadHolomems();  // ホロメン一覧を再読込する
+      if(reloadResult.error != null) setListError(reloadResult.error);
     }
     catch(error) {
       setNoteFormError(extractApiErrorMessage(error, 'ホロメンメモの更新に失敗しました'));
