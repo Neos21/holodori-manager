@@ -11,8 +11,8 @@ const holomemsIdsDisplayName = '選択されたメンバー' as const;
 export const startHoloworkSchema: z.ZodType<StartHoloworkRequest> = z.object({
   holomems_ids: z.array(
                   z.number({ error: zodErrorMessages.invalidType(holomemsIdsDisplayName) })
-                    .int({ error: `${holomemsIdsDisplayName}の ID には整数を指定してください` })
-                    .min(1, { error: `${holomemsIdsDisplayName}の ID には正の整数を指定してください` }),
+                    .int({ error: zodErrorMessages.integer(`${holomemsIdsDisplayName}の ID`) })
+                    .min(1, { error: zodErrorMessages.minimumNumber(`${holomemsIdsDisplayName}の ID`, 1) }),
                   { error: `${holomemsIdsDisplayName}は配列で指定してください` }
                 )
                 .min(minimumHoloworkMemberCount, { error: `${holomemsIdsDisplayName}を ${minimumHoloworkMemberCount} 人以上指定してください` })
