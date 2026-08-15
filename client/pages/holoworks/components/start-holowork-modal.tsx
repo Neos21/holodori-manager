@@ -29,14 +29,6 @@ const candidatePriorityDisplayNames: Record<CandidatePriority, string> = {
   lesson_pt: 'レッスン Pt 獲得量重視'
 };
 
-/** アイテム獲得量重視で比較列に表示する合計最終レート名 */
-const candidateRateDisplayNames: Record<CandidatePriority, string> = {
-  count    : '',  // 「アイテム獲得量重視」の際は未使用のため空欄としておく
-  cube     : 'キューブ合計最終レート',
-  training : '特訓アイテム合計最終レート',
-  lesson_pt: 'レッスン Pt 合計最終レート'
-};
-
 /** ホロワーク開始モーダル */
 export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHoloworkModalProps): ReactElement => {
   const [priority , setPriority ] = useState<CandidatePriority | ''>('');  // 優先モードの選択値・空文字は未選択を表す
@@ -111,21 +103,21 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
   const renderCandidate = (candidate: HoloworkCandidate): ReactElement => {
     const isSelected = selectedHolomemsIds.includes(candidate.holomems_id);
     return (
-      <tr key={candidate.holomems_id}>
-        <td className="text-center"><input className="checkbox checkbox-sm" type="checkbox" value={candidate.holomems_id} checked={isSelected} onChange={onChangeSelectedHolomem} disabled={isSubmitting || (!isSelected && selectedHolomemsIds.length >= maximumHoloworkMemberCount)} /></td>
-        <td className="whitespace-nowrap">{candidate.holomems_group_name}</td>
-        <td className="whitespace-nowrap">{candidate.holomems_name}</td>
+      <tr key={candidate.holomems_id} className="[&>td]:align-top">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
+        <td className="p-0  text-center !align-middle"><input className="checkbox checkbox-sm" type="checkbox" value={candidate.holomems_id} checked={isSelected} onChange={onChangeSelectedHolomem} disabled={isSubmitting || (!isSelected && selectedHolomemsIds.length >= maximumHoloworkMemberCount)} /></td>
+        <td className="px-1 whitespace-nowrap">{candidate.holomems_group_name}</td>
+        <td className="px-1 whitespace-nowrap">{candidate.holomems_name}</td>
         {/* 判別用プロパティにより Candidate の Union 型を絞り込み、優先モードに対応する比較値を表示する */}
         {'current_count' in candidate ? (
           <>
-            <td className="whitespace-nowrap text-right">{candidate.current_count}</td>
-            <td className="whitespace-nowrap text-right">{candidate.next_threshold ?? '-'}</td>
-            <td className="whitespace-nowrap text-right">{candidate.remaining_count ?? '-'}</td>
+            <td className="px-1 whitespace-nowrap text-right">{candidate.current_count}</td>
+            <td className="px-1 whitespace-nowrap text-right">{candidate.next_threshold ?? '-'}</td>
+            <td className="px-1 whitespace-nowrap text-right">{candidate.remaining_count ?? '-'}</td>
           </>
         ) : (
-          <td className="whitespace-nowrap text-right">{formatDecimal(candidate.total_rate)}</td>
+          <td className="px-1 whitespace-nowrap text-right">{candidate.total_rate > 0 ? formatDecimal(candidate.total_rate) + '%' : '-'}</td>
         )}
-        <td className="min-w-48 whitespace-pre-wrap">{isEmpty(candidate.achievement_note) ? '-' : candidate.achievement_note}</td>
+        <td className="min-w-35 pl-1 pr-0 whitespace-pre-wrap">{isEmpty(candidate.achievement_note) ? '-' : candidate.achievement_note}</td>
       </tr>
     );
   };
@@ -133,28 +125,28 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
   /** API が排他的に返した候補区分を、同じ列構成のテーブルとして描画する */
   const renderCandidatesTable = (title: string, candidates: Array<HoloworkCandidate>): ReactElement => (
     <section className="mb-4">
-      <h3 className="mb-2 font-bold">{title}</h3>
+      <h3 className="font-bold">{title}</h3>
       
       {candidates.length === 0 ? (
-        <p>対象のホロメンはいません。</p>
+        <p className="text-sm">対象のホロメンはいません。</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="table table-xs">
             <thead>
-              <tr>
-                <th className="w-px whitespace-nowrap">選択</th>
-                <th className="w-px whitespace-nowrap">グループ</th>
-                <th className="w-px whitespace-nowrap">タレント名</th>
+              <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
+                <th className="pl-0 pr-1 w-px text-center">選択</th>
+                <th className="px-1      w-px            ">グループ</th>
+                <th className="px-1      w-px            ">タレント名</th>
                 {priority === 'count' ? (
                   <>
-                    <th className="w-px whitespace-nowrap text-right">現在回数</th>
-                    <th className="w-px whitespace-nowrap text-right">次回回数</th>
-                    <th className="w-px whitespace-nowrap text-right">残り回数</th>
+                    <th className="px-1 w-px text-right">完了</th>
+                    <th className="px-1 w-px text-right">目標</th>
+                    <th className="px-1 w-px text-right">残数</th>
                   </>
                 ) : (
-                  <th className="w-px whitespace-nowrap text-right">{isEmpty(priority) ? '' : candidateRateDisplayNames[priority as CandidatePriority]}</th>
+                  <th className="px-1 w-px text-right">合計レート</th>
                 )}
-                <th className="min-w-48">達成状況メモ</th>
+                <th className="pl-1 pr-0">達成状況メモ</th>
               </tr>
             </thead>
             <tbody>
@@ -168,14 +160,12 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
   
   return (
     <div className="modal modal-open">
-      <div className="modal-box max-w-6xl">
-        <h2 className="mb-4 text-lg font-bold">ホロワーク開始</h2>
+      {/* テーブルのためにスマホ向けでも最大限画面幅を使えるように広げる */}
+      <div className="modal-box w-[97%] max-w-full px-4">
+        <h2 className="mb-4 text-lg font-bold">ホロワーク開始 : {holowork.name}</h2>
         
         <form onSubmit={onSubmit}>
-          <fieldset className="fieldset mb-4">
-            <label className="fieldset-label">ホロワーク枠</label>
-            <input className="input w-full" type="text" value={holowork.name} readOnly disabled />
-            
+          <fieldset className="fieldset mb-3">
             <label className="fieldset-label">優先モード</label>
             <select className="select w-full" value={priority} onChange={onChangePriority} disabled={isLoading || isSubmitting}>
               <option value="">選択してください</option>
@@ -191,10 +181,9 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
           
           {!isLoading && !isEmpty(priority) && (
             <>
-              <p className="mb-2">選択人数 : {selectedHolomemsIds.length} / {maximumHoloworkMemberCount}</p>
-              <p className="mb-4 text-sm">{maximumHoloworkMemberCount} 人未満でも開始できますが、通常は {maximumHoloworkMemberCount} 人選択してください。</p>
-              {renderCandidatesTable('優先候補', priorityCandidates)}
-              {renderCandidatesTable('その他の選択可能なホロメン', otherCandidates)}
+              <p className="mb-3 text-sm">選択人数 : {selectedHolomemsIds.length} / {maximumHoloworkMemberCount}</p>
+              {renderCandidatesTable('優先候補'      , priorityCandidates)}
+              {renderCandidatesTable('その他ホロメン', otherCandidates)}
             </>
           )}
           

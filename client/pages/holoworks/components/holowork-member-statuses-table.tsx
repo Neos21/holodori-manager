@@ -16,7 +16,7 @@ type HoloworkMemberStatusesTableProps = {
 /** ホロメン別ホロワーク達成状況・黄マス情報テーブル */
 export const HoloworkMemberStatusesTable = ({ memberStatuses, onEdit }: HoloworkMemberStatusesTableProps): ReactElement => (
   <section className="mb-8">
-    <h2 className="mb-4 text-lg font-bold">ホロメン別ホロワーク達成状況・黄マス情報</h2>
+    <h2 className="mb-2 text-lg font-bold">ホロワーク達成状況・黄マス情報</h2>
     
     {memberStatuses.length === 0 ? (
       <p>表示対象のホロメンはいません。</p>
@@ -24,32 +24,31 @@ export const HoloworkMemberStatusesTable = ({ memberStatuses, onEdit }: Holowork
       <div className="overflow-x-auto">
         <table className="table table-xs">
           <thead>
-            <tr className="text-center">
-              <th className="w-px whitespace-nowrap text-left">グループ</th>
-              <th className="w-px whitespace-nowrap text-left">タレント名</th>
-              <th className="w-px whitespace-nowrap text-right">現在のホロワーク完了回数</th>
-              <th className="w-px whitespace-nowrap text-right">直近のアチーブメント回数</th>
-              <th className="w-px whitespace-nowrap text-right">達成までの残り回数</th>
-              <th className="min-w-48 text-left">達成状況メモ</th>
-              <th className="w-px whitespace-nowrap">活動中</th>
-              <th className="w-px whitespace-nowrap text-right">キューブ獲得アップ量</th>
-              <th className="w-px whitespace-nowrap text-right">特訓アイテム獲得アップ量</th>
-              <th className="w-px whitespace-nowrap text-right">レッスン Pt 獲得アップ量</th>
+            <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
+              <th className="w-px pl-0 pr-1           ">グループ</th>
+              <th className="w-px px-1                ">タレント名</th>
+              <th className="w-px px-1      text-right">完了</th>
+              <th className="w-px px-1      text-right">目標</th>
+              <th className="w-px px-1      text-right">残数</th>
+              <th className="w-px px-1      text-right">キューブ</th>
+              <th className="w-px px-1      text-right">特訓</th>
+              <th className="w-px px-1      text-right">レッスン Pt</th>
+              <th className="     pl-1 pr-0           ">達成状況メモ</th>
             </tr>
           </thead>
           <tbody>
+            {/* 活動中メンバーには水色背景を付ける */}
             {memberStatuses.map(memberStatus => (
-              <tr key={memberStatus.holomems_id}>
-                <td className="whitespace-nowrap">{memberStatus.holomems_group_name}</td>
-                <td className="whitespace-nowrap">{memberStatus.holomems_name}</td>
-                <td className="cursor-pointer whitespace-nowrap text-right" onClick={() => onEdit(memberStatus)}>{memberStatus.current_count}</td>
-                <td className="whitespace-nowrap text-right">{memberStatus.next_threshold ?? '-'}</td>
-                <td className="whitespace-nowrap text-right">{memberStatus.remaining_count ?? '-'}</td>
-                <td className="min-w-48 cursor-pointer whitespace-pre-wrap" onClick={() => onEdit(memberStatus)}>{isEmpty(memberStatus.achievement_note) ? '-' : memberStatus.achievement_note}</td>
-                <td className="whitespace-nowrap text-center">{memberStatus.active_holoworks_id == null ? '-' : '◯'}</td>
-                <td className="whitespace-nowrap text-right">{formatDecimal(memberStatus.cube_total_rate)}</td>
-                <td className="whitespace-nowrap text-right">{formatDecimal(memberStatus.training_total_rate)}</td>
-                <td className="whitespace-nowrap text-right">{formatDecimal(memberStatus.lesson_pt_total_rate)}</td>
+              <tr key={memberStatus.holomems_id} className={`[&>td]:align-top ${memberStatus.active_holoworks_id == null ? '' : 'bg-info/10'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
+                <td className="         pl-0 pr-1 whitespace-nowrap                            ">{memberStatus.holomems_group_name}</td>
+                <td className="         px-1      whitespace-nowrap                            ">{memberStatus.holomems_name}</td>
+                <td className="         px-1      whitespace-nowrap   text-right cursor-pointer" onClick={() => onEdit(memberStatus)}>{memberStatus.current_count}</td>
+                <td className="         px-1      whitespace-nowrap   text-right               ">{memberStatus.next_threshold ?? '-'}</td>
+                <td className="         px-1      whitespace-nowrap   text-right               ">{memberStatus.remaining_count ?? '-'}</td>
+                <td className="         px-1      whitespace-nowrap   text-right               ">{memberStatus.cube_total_rate      > 0 ? formatDecimal(memberStatus.cube_total_rate     ) + '%' : '-'}</td>
+                <td className="         px-1      whitespace-nowrap   text-right               ">{memberStatus.training_total_rate  > 0 ? formatDecimal(memberStatus.training_total_rate ) + '%' : '-'}</td>
+                <td className="         px-1      whitespace-nowrap   text-right               ">{memberStatus.lesson_pt_total_rate > 0 ? formatDecimal(memberStatus.lesson_pt_total_rate) + '%' : '-'}</td>
+                <td className="min-w-35 pl-1 pr-0 whitespace-pre-wrap            cursor-pointer" onClick={() => onEdit(memberStatus)}>{isEmpty(memberStatus.achievement_note) ? '-' : memberStatus.achievement_note}</td>
               </tr>
             ))}
           </tbody>

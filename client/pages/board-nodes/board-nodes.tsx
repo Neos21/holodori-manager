@@ -347,26 +347,24 @@ export default function BoardNodesPage(): ReactElement {
                                   <col className="w-px" />
                                 </colgroup>
                                 <thead>
-                                  <tr className="text-center">
-                                    {category === boardNodeCategoryYellow && (<th className="pl-0 pr-1 whitespace-nowrap text-left">報酬 UP 対象</th>)}
-                                    <th className={`${category === boardNodeCategoryYellow ? 'px-1' : 'pl-0 pr-1'} whitespace-nowrap text-left`}>マス効果</th>
-                                    <th className="px-1 whitespace-nowrap text-right">効果量</th>
-                                    <th className="px-1 whitespace-nowrap text-right">コネクト率</th>
-                                    <th className="px-1 whitespace-nowrap text-right">最終レート</th>
-                                    <th className="px-1 whitespace-nowrap">編集</th>
+                                  <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
+                                    {category === boardNodeCategoryYellow && (<th className="pl-0 pr-1">報酬 UP 対象</th>)}
+                                    <th className={category === boardNodeCategoryYellow ? 'px-1' : 'pl-0 pr-1'}>マス効果</th>
+                                    <th className="px-1 text-right ">効果量</th>
+                                    <th className="px-1 text-right ">コネクト率</th>
+                                    <th className="px-1 text-right ">最終レート</th>
+                                    <th className="px-1 text-center">編集</th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {nodes.map(node => (
                                     <tr key={node.id} className={`[&>td]:align-top ${node.is_unlocked === booleanNumberTrue ? '' : 'bg-base-300'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
                                       {category === boardNodeCategoryYellow && (<td className="pl-0 pr-1 whitespace-nowrap">{isEmpty(node.yellow_target) ? '-' : yellowTargetDisplayNames[node.yellow_target!]}</td>)}
-                                      <td className={`${category === boardNodeCategoryYellow ? 'px-1' : 'pl-0 pr-1'} min-w-0 px-1 whitespace-pre-wrap`}>{node.description}</td>
-                                      <td className="px-1 whitespace-nowrap text-right">{formatDecimal(node.amount)}</td>
-                                      <td className="px-1 whitespace-nowrap text-right">{node.connect_rate == null ? '-' : `${node.connect_rate}%`}</td>
-                                      <td className="px-1 whitespace-nowrap text-right font-bold">{formatDecimal(BoardNodesService.calcFinalRate(node.amount, node.connect_rate))}</td>
-                                      <td className="px-1 py-0 !align-middle whitespace-nowrap text-center">
-                                        <button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(node)}>編集</button>
-                                      </td>
+                                      <td className={`${category === boardNodeCategoryYellow ? 'px-1' : 'pl-0 pr-1'} whitespace-pre-wrap`}>{node.description}</td>
+                                      <td className="px-1      whitespace-nowrap text-right               ">{formatDecimal(node.amount)}</td>
+                                      <td className="px-1      whitespace-nowrap text-right               ">{node.connect_rate == null ? '-' : `${node.connect_rate}%`}</td>
+                                      <td className="px-1      whitespace-nowrap text-right  font-bold    ">{formatDecimal(BoardNodesService.calcFinalRate(node.amount, node.connect_rate))}%</td>
+                                      <td className="px-1 py-0 whitespace-nowrap text-center !align-middle"><button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(node)}>編集</button></td>
                                     </tr>
                                   ))}
                                 </tbody>

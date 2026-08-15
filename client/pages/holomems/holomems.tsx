@@ -168,23 +168,21 @@ export default function HolomemsPage(): ReactElement {
             <div className="mb-4 overflow-x-auto">
               <table className="table table-xs">
                 <thead>
-                  <tr className="text-center">
-                    <th className="w-px           pl-0 pr-1 whitespace-nowrap">No</th>
-                    <th className="w-px           px-1      whitespace-nowrap">{groupNameDisplayName}</th>
-                    <th className="w-px           px-1      whitespace-nowrap">{nameDisplayName}</th>
-                    <th className="w-full min-w-0 pl-1 pr-0">メモ</th>
+                  <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
+                    <th className="w-px pl-0 pr-1 text-center">No</th>
+                    <th className="w-px px-1                 ">{groupNameDisplayName}</th>
+                    <th className="w-px px-1                 ">{nameDisplayName}</th>
+                    <th className="     pl-1 pr-0            ">メモ</th>
                   </tr>
                 </thead>
                 <tbody>
                   {/* 卒業しているホロメンの行はグレー背景で表示する */}
                   {holomems.map(holomem => (
                     <tr key={holomem.id} className={`[&>td]:align-top ${holomem.is_active === booleanNumberTrue ? '' : 'bg-base-300'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                      <td className="w-px pl-0 pr-1 py-0 !align-middle whitespace-nowrap">
-                        <button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(holomem)}>{holomem.sort_order}</button>
-                      </td>
-                      <td className="w-px px-1 whitespace-nowrap">{holomem.group_name}</td>
-                      <td className="w-px px-1 whitespace-nowrap">{holomem.name}</td>
-                      <td className="w-full min-w-40 pl-1 pr-0">
+                      <td className="         pl-0 pr-1 py-0 whitespace-nowrap !align-middle"><button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(holomem)}>{holomem.sort_order}</button></td>
+                      <td className="         px-1           whitespace-nowrap              ">{holomem.group_name}</td>
+                      <td className="         px-1           whitespace-nowrap              ">{holomem.name}</td>
+                      <td className="min-w-35 pl-1 pr-0                                     ">
                         {/* セルをクリックすることでメモを1行省略表示と全文折り返し表示でトグル切り替えできるようにする */}
                         {isEmpty(holomem.note) ? '-' : (
                           <div
