@@ -19,14 +19,8 @@
 
 ## タスクリスト (上から順に実装していくこと)
 
-- [x] `cards-repository` に JOIN が発生しているが、画面側で `holomems` を別途取得しており冗長になっている。Repository クラスは単一テーブルの CRUD に揃えるため JOIN をなくしつつ現在の機能・挙動を守る
-- [x] サーバサイドの `error` レスポンスメッセージで共通化できる文言を `server/constants/server-messages.ts` にまとめる
-- [x] フロントエンドで表示するメッセージ群で共通化できる文言を `client/constants/client-messages.ts` にまとめる
-    - [x] `app-constants.ts` に SessionStorage 関連の定数があるが、これも `client/constants/client-constants.ts` に移動する
-- [ ] `shared/types/` 配下に「Result 型や Boolean 制御系など、プログラミング系で必要になる型」「ゲーム固有の情報を型表現したもの `holodori-types`」「DB テーブルと対になる型」「アプリのビジネスロジックとして必要となる型 `app-types` や `holowork-candidate` 等」といった種類のものが1つのディレクトリにまとまってしまっている。`shared/types/XXX/` とサブディレクトリを切ってこれらを分割したい。ディレクトリ分割方針・命名を相談してから実装する
-- [x] コード全体を見直し、コードの記載位置、責務分離が適切か見直す。未使用コード、重複する実装、共通化可能な実装、外部参照が想定されていないものが public や export されていないか、をチェックする
-- [ ] README の API 一覧の記載と実装が合っているか確認する
-    - [ ] 使っていない API が実装にあれば、用途を再確認したうえで削除する
+- [x] README の API 一覧の記載と実装が合っているか確認する
+    - [x] 使っていない API が実装にあれば、用途を再確認したうえで削除する
     - [x] 使っていて README に記載がなければ README を加筆修正する
     - [x] README のパス・HTTP Method を現在の実装と一致させる
 - [ ] ホロワーク機能を参考に、他画面・バックエンドの関数・型・主要オブジェクトにドキュメンテーションコメントを拡充する
