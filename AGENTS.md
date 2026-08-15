@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Holodori Manager で AI エージェントが常に守る作業手順と、作業内容ごとに読む詳細ルールを示す。
+本プロジェクトで AI エージェントが常に守る作業手順と、作業内容ごとに読む詳細ルールを示す。
 
 
 ## 作業開始前
@@ -12,15 +12,15 @@ Holodori Manager で AI エージェントが常に守る作業手順と、作�
 4. 作業対象に応じて、次の詳細ルールを読む
 5. 実行前に変更方針と対象範囲を示し、ユーザに開始確認を取る
 
-| 作業対象 | 必ず読む詳細ルール |
-|---|---|
-| `client/` | [frontend.md](./docs/agent-rules/frontend.md) |
-| `server/` | [backend.md](./docs/agent-rules/backend.md) |
-| `shared/` | [shared.md](./docs/agent-rules/shared.md) |
-| Markdown・ドキュメンテーションコメント | [documentation.md](./docs/agent-rules/documentation.md) |
-| レビュー指摘への対応 | [review-feedback.md](./docs/agent-rules/review-feedback.md) と変更対象に対応するルール |
+| 作業対象                               | 必ず読む詳細ルール                                                                     |
+|----------------------------------------|----------------------------------------------------------------------------------------|
+| `client/`                              | [frontend.md](./docs/agent-rules/frontend.md)                                          |
+| `server/`                              | [backend.md](./docs/agent-rules/backend.md)                                            |
+| `shared/`                              | [shared.md](./docs/agent-rules/shared.md)                                              |
+| Markdown・ドキュメンテーションコメント | [documentation.md](./docs/agent-rules/documentation.md)                                |
+| レビュー指摘への対応                   | [review-feedback.md](./docs/agent-rules/review-feedback.md) と変更対象に対応するルール |
 
-複数領域を変更する場合は、該当するすべての詳細ルールを読む。文書は必要な領域だけを段階的に読み、無関係なルールを作業コンテキストへ追加しない。
+複数領域を変更する場合は、該当する全ての詳細ルールを読む。文書は必要な領域だけを段階的に読み、無関係なルールを作業コンテキストへ追加しない。
 
 
 ## 常に守る禁止事項
@@ -36,7 +36,7 @@ D1・デプロイ・シークレットのコマンドは [CONTRIBUTING.md](./CON
 
 ## 作業完了時
 
-1. 変更差分と `git diff --check` を確認する
+1. 変更差分と `$ git diff --check` を確認する
 2. `$ npm run lint && npm run build` を実行する
 3. 変更内容、検証結果、残る注意事項を報告して開発者のレビューを求める
 
