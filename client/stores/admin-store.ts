@@ -20,9 +20,9 @@ export const useAdminStore = create<AdminState>()(
       token: null,
       isHydrated: false,
       
-      setToken: (token): unknown => set({ token }),
-      logout: (): unknown => set({ token: null }),
-      setIsHydrated: (): unknown => set({ isHydrated: true })
+      setToken: (token): void => { set({ token }); },
+      logout: (): void => { set({ token: null }); },
+      setIsHydrated: (): void => { set({ isHydrated: true }); }
     }),
     {
       name: 'admin-store',

@@ -21,14 +21,12 @@ export class BoardNodesRepository {
   }
   
   public async update(id: number, boardNode: Partial<BoardNode>): Promise<void> {
+    // ホロメン ID、カテゴリ、黃マス時の報酬アップ対象アイテムは編集を許可しないため含めない
     const { sets, values } = buildUpdateQuery([
-      { column: 'holomems_id'  , value: boardNode.holomems_id                                                                    },
-      { column: 'category'     , value: boardNode.category                                                                       },
-      { column: 'yellow_target', value: boardNode.yellow_target, shouldInclude: (value: unknown): boolean => value !== undefined },  // `null` を許容するため
-      { column: 'description'  , value: boardNode.description                                                                    },
-      { column: 'is_unlocked'  , value: boardNode.is_unlocked                                                                    },
-      { column: 'amount'       , value: boardNode.amount                                                                         },
-      { column: 'connect_rate' , value: boardNode.connect_rate , shouldInclude: (value: unknown): boolean => value !== undefined }  // `null` を許容するため
+      { column: 'description' , value: boardNode.description                                                                    },
+      { column: 'is_unlocked' , value: boardNode.is_unlocked                                                                    },
+      { column: 'amount'      , value: boardNode.amount                                                                         },
+      { column: 'connect_rate', value: boardNode.connect_rate , shouldInclude: (value: unknown): boolean => value !== undefined }  // `null` を許容するため
     ]);
     
     if(sets.length === 0) return;

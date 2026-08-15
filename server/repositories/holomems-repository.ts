@@ -32,15 +32,8 @@ export class HolomemsRepository {
     return result.results ?? [];
   }
   
-  public async create(holomem: Partial<Holomem>): Promise<number> {
-    const result = await this.db
-      .prepare('INSERT INTO holomems (sort_order, group_name, name, note, is_active) VALUES (?, ?, ?, ?, ?)')
-      .bind(holomem.sort_order, holomem.group_name, holomem.name, holomem.note, holomem.is_active)
-      .run();
-    return result.meta.last_row_id;
-  }
-  
   public async update(id: number, holomem: Partial<Holomem>): Promise<void> {
+    // ID 以外の全項目を編集可能とする
     const { sets, values } = buildUpdateQuery([
       { column: 'sort_order', value: holomem.sort_order },
       { column: 'group_name', value: holomem.group_name },

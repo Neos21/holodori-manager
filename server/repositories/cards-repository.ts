@@ -1,5 +1,3 @@
-import { booleanNumberFalse } from '../../shared/constants/boolean-constants';
-import { bloom0, defaultCardLevel, rarities } from '../../shared/constants/holodori-constants';
 import { buildUpdateQuery } from '../helpers/build-update-query';
 
 import type { Card } from '../../shared/types/card';
@@ -22,22 +20,13 @@ export class CardsRepository {
     return result.meta.last_row_id;
   }
   
-  /** 新規ホロメン追加時に通常版の星3・4・5カードを自動追加するために使用する */
-  public async createDefaultCards(holomemId: number): Promise<void> {
-    const cardStatements = rarities.map(rarity => this.db
-      .prepare('INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (?, ?, ?, ?, ?, ?)')
-      .bind(holomemId, rarity, '通常版', booleanNumberFalse, defaultCardLevel, bloom0));
-    await this.db.batch(cardStatements);
-  }
-  
   public async update(id: number, card: Partial<Card>): Promise<void> {
+    // ホロメン ID、レア度など登録後に変更させたくない項目は含めない
     const { sets, values } = buildUpdateQuery([
-      { column: 'holomems_id', value: card.holomems_id },
-      { column: 'rarity'     , value: card.rarity      },
-      { column: 'name'       , value: card.name        },
-      { column: 'is_owned'   , value: card.is_owned    },
-      { column: 'level'      , value: card.level       },
-      { column: 'bloom'      , value: card.bloom       }
+      { column: 'name'    , value: card.name     },
+      { column: 'is_owned', value: card.is_owned },
+      { column: 'level'   , value: card.level    },
+      { column: 'bloom'   , value: card.bloom    }
     ]);
     
     if(sets.length === 0) return;

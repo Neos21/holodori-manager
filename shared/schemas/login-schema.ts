@@ -2,7 +2,7 @@ import z from 'zod';
 
 import { preprocessOneLineString, zodErrorMessages } from './schema-utilities';
 
-export const passwordDisplayName = 'パスワード' as const;
+const passwordDisplayName = 'パスワード' as const;
 
 export const loginSchema = z.object({
   password: z.preprocess(

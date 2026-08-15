@@ -47,10 +47,7 @@ export class HoloworkCandidatesService {
         this.compareHolomemOrder(candidateA, candidateB)
       );
     
-    // 全達成済みの候補だけを差集合に残し、2つのレスポンス配列で同じ ID が重複しないようにする
-    const priorityCandidateIds = new Set(priorityCandidates.map(candidate => candidate.holomems_id));
-    const otherCandidates = candidates.filter(candidate => !priorityCandidateIds.has(candidate.holomems_id));
-    this.sortByHolomemOrder(otherCandidates);
+    const otherCandidates = this.createOtherCandidates(candidates, priorityCandidates);
     
     return {
       selected_priority  : priority,
@@ -90,10 +87,7 @@ export class HoloworkCandidatesService {
       .filter(candidate => candidate.total_rate > 0)
       .sort((candidateA, candidateB) => candidateB.total_rate - candidateA.total_rate || this.compareHolomemOrder(candidateA, candidateB));
     
-    // 効果量が0以下の候補だけを差集合に残し、優先候補との重複を構造的に防ぐ
-    const priorityCandidateIds = new Set(priorityCandidates.map(candidate => candidate.holomems_id));
-    const otherCandidates = candidates.filter(candidate => !priorityCandidateIds.has(candidate.holomems_id));
-    this.sortByHolomemOrder(otherCandidates);
+    const otherCandidates = this.createOtherCandidates(candidates, priorityCandidates);
     
     return {
       selected_priority  : priority,
@@ -167,8 +161,11 @@ export class HoloworkCandidatesService {
     return candidateA.holomems_sort_order - candidateB.holomems_sort_order || candidateA.holomems_id - candidateB.holomems_id;
   }
   
-  /** ホロメン表示順と ID で並べ替える */
-  private sortByHolomemOrder(candidates: Array<HoloworkCandidate>): void {
-    candidates.sort((candidateA, candidateB) => this.compareHolomemOrder(candidateA, candidateB));
+  /** 優先候補を除いた差集合を作成し、通常のホロメン表示順で並べ替える */
+  private createOtherCandidates(candidates: Array<HoloworkCandidate>, priorityCandidates: Array<HoloworkCandidate>): Array<HoloworkCandidate> {
+    const priorityCandidateIds = new Set(priorityCandidates.map(candidate => candidate.holomems_id));
+    const otherCandidates = candidates.filter(candidate => !priorityCandidateIds.has(candidate.holomems_id));
+    candidates.sort((candidateA, candidateB) => this.compareHolomemOrder(candidateA, candidateB));  // ホロメン表示順と ID で並べ替える
+    return otherCandidates;
   }
 }

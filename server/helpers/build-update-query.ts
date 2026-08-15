@@ -1,5 +1,5 @@
 /** SQL の UPDATE 文を構築するための1カラム分の情報 */
-export type UpdateField = {
+type UpdateField = {
   /** カラム名 */
   column: string;
   /** UPDATE 文に反映する実際の値 */

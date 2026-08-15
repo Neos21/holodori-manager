@@ -12,6 +12,7 @@ export class ActiveHoloworkMembersRepository {
       .all<ActiveHoloworkMember>();
     return result.results ?? [];
   }
+  
   /** 指定したホロメンたちのうち、いずれかの枠で活動中のメンバーを取得する */
   public async findByHolomemsIds(holomemsIds: Array<number>): Promise<Array<ActiveHoloworkMember>> {
     if(holomemsIds.length === 0) return [];
@@ -22,6 +23,7 @@ export class ActiveHoloworkMembersRepository {
       .all<ActiveHoloworkMember>();
     return result.results ?? [];
   }
+  
   /** 対象のホロワークで活動中のメンバーを一括解放する : ホロワーク完了 or 中断時に使用する */
   public async deleteByHoloworksId(holoworks_id: number): Promise<void> {
     await this.db
