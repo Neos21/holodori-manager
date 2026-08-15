@@ -62,13 +62,13 @@ export default function CardsPage(): ReactElement {
   const holomems                  = useHolomemsStore(state => state.holomems);  // カードの表示情報との合成・新規カード追加時の選択肢に利用する
   const cardDisplays              = createCardDisplays(cards, holomems);  // API から個別に取得したカードとホロメンから導出する表示用一覧
   
-  const [isModalOpen            , setIsModalOpen            ] = useState<boolean>(false);
-  const [form                   , setForm                   ] = useState<CardFormState>(createEmptyFormValues());
-  const [editingId              , setEditingId              ] = useState<number | null>(null);  // `null` なら新規追加としてフォームを扱う
-  const [editingHolomemGroupName, setEditingHolomemGroupName] = useState<string>('');  // 編集モーダルを開いた時に表示用として保持するホロメン情報
-  const [editingHolomemName     , setEditingHolomemName     ] = useState<string>('');
-  const [isSubmitting           , setIsSubmitting           ] = useState<boolean>(false);
-  const [formError              , setFormError              ] = useState<string>('');
+  const [isModalOpen , setIsModalOpen ] = useState<boolean>(false);
+  const [form        , setForm        ] = useState<CardFormState>(createEmptyFormValues());
+  const [editingId   , setEditingId   ] = useState<number | null>(null);  // `null` なら新規追加としてフォームを扱う
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [formError   , setFormError   ] = useState<string>('');
+  const editingHolomem             = editingId      == null ? null : holomems.find(holomem => holomem.id === Number(form.holomems_id)) ?? null;  // 編集中のフォーム値から表示対象のホロメンを導出する
+  const editingHolomemDisplayValue = editingHolomem == null ? ''   : `${editingHolomem.group_name} : ${editingHolomem.name} (ID : ${form.holomems_id})`;
   
   const onLoadCards = async (): Promise<void> => {
     setListError('');
@@ -102,8 +102,6 @@ export default function CardsPage(): ReactElement {
   /** フォーム情報をリセットする */
   const resetForm = (): void => {
     setEditingId(null);
-    setEditingHolomemName('');
-    setEditingHolomemGroupName('');
     setForm(createEmptyFormValues());
   };
   
@@ -117,8 +115,6 @@ export default function CardsPage(): ReactElement {
   /** 編集ボタン押下時 */
   const onStartEdit = (card: CardDisplay): void => {
     setEditingId(card.id);
-    setEditingHolomemGroupName(card.holomem_group_name);
-    setEditingHolomemName(card.holomem_name);
     setForm({
       holomems_id: String(card.holomems_id) as NumberToStringValue,
       rarity     : String(card.rarity) as `${(typeof rarities)[number]}`,
@@ -254,7 +250,7 @@ export default function CardsPage(): ReactElement {
                 ) : (
                   <input
                     className="input w-full" type="text" readOnly disabled
-                    value={`${editingHolomemGroupName} : ${editingHolomemName} (ID : ${form.holomems_id})`}
+                    value={editingHolomemDisplayValue}
                   />
                 )}
                 

@@ -91,12 +91,13 @@ export default function BoardNodesPage(): ReactElement {
   const holomems                    = useHolomemsStore(state => state.holomems);  // 複数ページで使用されるためインメモリ Store でキャッシュする
   
   // ボードノードモーダル用 State
-  const [isModalOpen   , setIsModalOpen   ] = useState<boolean>(false);
-  const [form          , setForm          ] = useState<BoardNodeFormState>(createEmptyFormValues());
-  const [editingId     , setEditingId     ] = useState<number | null>(null);  // `null` なら新規追加としてフォームを扱う
-  const [editingHolomem, setEditingHolomem] = useState<Holomem | null>(null);  // 編集モーダルを開いた時に表示用として保持するホロメン情報
-  const [isSubmitting  , setIsSubmitting  ] = useState<boolean>(false);
-  const [formError     , setFormError     ] = useState<string>('');
+  const [isModalOpen , setIsModalOpen ] = useState<boolean>(false);
+  const [form        , setForm        ] = useState<BoardNodeFormState>(createEmptyFormValues());
+  const [editingId   , setEditingId   ] = useState<number | null>(null);  // `null` なら新規追加としてフォームを扱う
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [formError   , setFormError   ] = useState<string>('');
+  const editingHolomem             = editingId      == null ? null : holomems.find(holomem => holomem.id === Number(form.holomems_id)) ?? null;  // 編集中のフォーム値から表示対象のホロメンを導出する
+  const editingHolomemDisplayValue = editingHolomem == null ? ''   : `${editingHolomem.group_name} : ${editingHolomem.name} (ID : ${form.holomems_id})`;
   
   // ホロメンメモモーダル用 State
   const [isNoteModalOpen  , setIsNoteModalOpen  ] = useState<boolean>(false);
@@ -137,7 +138,6 @@ export default function BoardNodesPage(): ReactElement {
   /** フォーム情報をリセットする */
   const resetForm = (): void => {
     setEditingId(null);
-    setEditingHolomem(null);
     setForm(createEmptyFormValues());
   };
   
@@ -151,7 +151,6 @@ export default function BoardNodesPage(): ReactElement {
   /** 編集ボタン押下時 */
   const onStartEdit = (boardNode: BoardNode): void => {
     setEditingId(boardNode.id);
-    setEditingHolomem(holomems.find(holomem => holomem.id === boardNode.holomems_id) ?? null);
     setForm({
       holomems_id  : String(boardNode.holomems_id) as NumberToStringValue,
       category     : boardNode.category,
@@ -408,7 +407,7 @@ export default function BoardNodesPage(): ReactElement {
                 ) : (
                   <input
                     className="input w-full" type="text" readOnly disabled
-                    value={`${editingHolomem!.group_name} : ${editingHolomem!.name} (ID : ${form.holomems_id})`}
+                    value={editingHolomemDisplayValue}
                   />
                 )}
                 
