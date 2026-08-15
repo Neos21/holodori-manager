@@ -6,7 +6,7 @@ import { boardNodeCategories, boardNodeCategoryYellow } from '../../../shared/co
 import { formatDecimal } from '../../../shared/helpers/format-decimal';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
-import { amountDisplayName, boardNodeSchema, categoryDisplayName, connectRateDisplayName, descriptionDisplayName, holomemsIdDisplayName, isUnlockedDisplayName, yellowTargetDisplayName } from '../../../shared/schemas/board-node-schema';
+import { amountDisplayName, boardNodeSchema, categoryDisplayName, connectRateDisplayName, descriptionDisplayName, isUnlockedDisplayName, yellowTargetDisplayName } from '../../../shared/schemas/board-node-schema';
 import { holomemSchema, noteDisplayName } from '../../../shared/schemas/holomem-schema';
 import { BoardNodesService } from '../../../shared/services/board-nodes-service';
 import { failedToCreateMessage, failedToDeleteMessage, failedToFetchMessage, failedToUpdateMessage } from '../../constants/client-messages';
@@ -396,7 +396,7 @@ export default function BoardNodesPage(): ReactElement {
             <form onSubmit={onSubmit}>
               <fieldset className="fieldset">
                 {/* 新規追加時はホロメンをセレクトボックスで選択・編集時は参照のみで変更不可 */}
-                <label className="fieldset-label">{holomemsIdDisplayName}</label>
+                <label className="fieldset-label">ホロメン</label>
                 {editingId == null ? (
                   <select className="select w-full" name="holomems_id" value={form.holomems_id} onChange={onChangeForm} required>
                     <option value="">(ホロメンを選択してください)</option>

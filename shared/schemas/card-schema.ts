@@ -5,12 +5,12 @@ import { booleanNumberFalse, booleanNumberTrue } from '../constants/boolean-cons
 import { bloom0, blooms, defaultCardLevel, rarities } from '../constants/holodori-constants';
 import { isEmpty } from '../helpers/is-empty';
 
-export const holomemsIdDisplayName = 'ホロメン ID' as const;
-export const rarityDisplayName     = 'レア度'      as const;
-export const cardNameDisplayName   = 'カード名'    as const;
-export const isOwnedDisplayName    = '所有状況'    as const;
-export const levelDisplayName      = 'レベル'      as const;
-export const bloomDisplayName      = '開花度'      as const;
+const holomemsIdDisplayName      = 'ホロメン ID' as const;
+export const rarityDisplayName   = 'レア度'      as const;
+export const cardNameDisplayName = 'カード名'    as const;
+export const isOwnedDisplayName  = '所有状況'    as const;
+export const levelDisplayName    = 'レベル'      as const;
+export const bloomDisplayName    = '開花度'      as const;
 
 export const cardSchema = z.object({
   holomems_id : z.preprocess(

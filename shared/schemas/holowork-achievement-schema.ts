@@ -3,7 +3,7 @@ import z from 'zod';
 import { preprocessMultiLinesString, zodErrorMessages } from './schema-utilities';
 import { isEmpty } from '../helpers/is-empty';
 
-export const holomemsIdDisplayName      = 'ホロメン ID'        as const;
+const holomemsIdDisplayName             = 'ホロメン ID'        as const;
 export const currentCountDisplayName    = 'ホロワーク完了回数' as const;
 export const achievementNoteDisplayName = '自由記入欄'         as const;
 

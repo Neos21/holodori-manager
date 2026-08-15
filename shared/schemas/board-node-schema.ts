@@ -6,7 +6,7 @@ import { booleanNumberFalse, booleanNumberTrue } from '../constants/boolean-cons
 import { boardNodeCategories, boardNodeCategoryYellow } from '../constants/holodori-constants';
 import { isEmpty } from '../helpers/is-empty';
 
-export const holomemsIdDisplayName   = 'ホロメン ID'            as const;
+const holomemsIdDisplayName          = 'ホロメン ID'            as const;
 export const categoryDisplayName     = 'カテゴリ'               as const;
 export const yellowTargetDisplayName = '報酬アップ対象アイテム' as const;
 export const descriptionDisplayName  = 'マス効果の内容'         as const;
