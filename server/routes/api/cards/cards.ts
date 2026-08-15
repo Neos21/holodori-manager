@@ -4,6 +4,7 @@ import { jwt } from 'hono/jwt';
 import { httpStatusCode } from '../../../../shared/constants/http-status-code';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
 import { cardSchema } from '../../../../shared/schemas/card-schema';
+import { invalidIdErrorMessage, invalidRequestBodyErrorMessage } from '../../../constants/server-messages';
 import { CardsRepository } from '../../../repositories/cards-repository';
 
 import type { HonoBindings } from '../../../types/hono-bindings';
@@ -20,7 +21,7 @@ cards.get('/', async context => {
 
 cards.post('/', async context => {
   const body = await context.req.json().catch(() => null);
-  if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);
+  if(body == null) return context.json({ error: invalidRequestBodyErrorMessage }, httpStatusCode.badRequest);
   
   const parsed = cardSchema.safeParse(body);
   if(!parsed.success) return context.json({ error: mergeIssues(parsed.error) }, httpStatusCode.badRequest);
@@ -31,10 +32,10 @@ cards.post('/', async context => {
 
 cards.patch('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
-  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
+  if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);
   
   const body = await context.req.json().catch(() => null);
-  if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);
+  if(body == null) return context.json({ error: invalidRequestBodyErrorMessage }, httpStatusCode.badRequest);
   
   const parsed = cardSchema.partial().safeParse(body);
   if(!parsed.success) return context.json({ error: mergeIssues(parsed.error) }, httpStatusCode.badRequest);

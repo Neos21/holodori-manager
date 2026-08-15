@@ -4,6 +4,7 @@ import { jwt } from 'hono/jwt';
 import { httpStatusCode } from '../../../../shared/constants/http-status-code';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
 import { memoSchema } from '../../../../shared/schemas/memo-schema';
+import { invalidRequestBodyErrorMessage } from '../../../constants/server-messages';
 import { MemoRepository } from '../../../repositories/memo-repository';
 
 import type { HonoBindings } from '../../../types/hono-bindings';
@@ -20,7 +21,7 @@ memo.get('/', async context => {
 
 memo.patch('/', async context => {
   const body = await context.req.json().catch(() => null);
-  if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);
+  if(body == null) return context.json({ error: invalidRequestBodyErrorMessage }, httpStatusCode.badRequest);
   
   const parsed = memoSchema.safeParse(body);
   if(!parsed.success) return context.json({ error: mergeIssues(parsed.error) }, httpStatusCode.badRequest);

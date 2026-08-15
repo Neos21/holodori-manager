@@ -6,6 +6,7 @@ import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { bloomDisplayName, cardNameDisplayName, cardSchema, isOwnedDisplayName, levelDisplayName, rarityDisplayName } from '../../../shared/schemas/card-schema';
 import { groupNameDisplayName, nameDisplayName } from '../../../shared/schemas/holomem-schema';
+import { failedToCreateMessage, failedToFetchMessage, failedToUpdateMessage } from '../../constants/client-messages';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 import { useHolomemsStore } from '../../stores/holomems-store';
@@ -76,7 +77,7 @@ export default function CardsPage(): ReactElement {
       setCards(response.result);
     }
     catch(error) {
-      setListError(extractApiErrorMessage(error, 'カード一覧の取得に失敗しました'));
+      setListError(extractApiErrorMessage(error, failedToFetchMessage('カード一覧')));
     }
   };
   
@@ -167,7 +168,7 @@ export default function CardsPage(): ReactElement {
       await onLoadCards();  // 一覧を再読込する
     }
     catch(error) {
-      setFormError(extractApiErrorMessage(error, editingId == null ? 'カードの追加に失敗しました' : 'カードの更新に失敗しました'));
+      setFormError(extractApiErrorMessage(error, editingId == null ? failedToCreateMessage('カード') : failedToUpdateMessage('カード')));
     }
     finally {
       setIsSubmitting(false);

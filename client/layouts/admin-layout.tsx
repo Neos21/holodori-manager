@@ -2,7 +2,7 @@ import { type ChangeEvent, type ReactElement, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 
 import { Memo } from './components/memo';
-import { authenticationRedirectReasonLogout, sessionStorageKeyAuthenticationRedirectReason } from '../../shared/constants/app-constants';
+import { authenticationRedirectReasonLogout, sessionStorageKeyAuthenticationRedirectReason } from '../constants/client-constants';
 import { useAdminStore } from '../stores/admin-store';
 import { useHolomemsStore } from '../stores/holomems-store';
 

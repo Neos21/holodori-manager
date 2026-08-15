@@ -3,6 +3,7 @@ import { type ChangeEvent, type ReactElement, useEffect, useRef, useState } from
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { memoSchema } from '../../../shared/schemas/memo-schema';
+import { failedToFetchMessage, generalFailedMessage } from '../../constants/client-messages';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 
@@ -50,7 +51,7 @@ export const Memo = (): ReactElement => {
         savedContentRef.current = loadedContent;
       }
       catch(error) {
-        setErrorMessage(extractApiErrorMessage(error, 'メモの取得に失敗しました'));
+        setErrorMessage(extractApiErrorMessage(error, failedToFetchMessage('メモ')));
       }
       finally {
         setIsLoading(false);
@@ -103,7 +104,7 @@ export const Memo = (): ReactElement => {
       }, savedMessageDurationMilliseconds);
     }
     catch(error) {
-      setErrorMessage(extractApiErrorMessage(error, '保存に失敗しました'));
+      setErrorMessage(extractApiErrorMessage(error, generalFailedMessage('保存')));
     }
     finally {
       setIsSaving(false);

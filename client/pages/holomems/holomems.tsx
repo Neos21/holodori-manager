@@ -4,6 +4,7 @@ import { booleanNumberTrue, booleanStringFalse, booleanStringTrue } from '../../
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { groupNameDisplayName, isActiveDisplayName, nameDisplayName, noteDisplayName, sortOrderDisplayName, holomemSchema } from '../../../shared/schemas/holomem-schema';
+import { failedToCreateMessage, failedToUpdateMessage } from '../../constants/client-messages';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 import { useHolomemsStore } from '../../stores/holomems-store';
@@ -136,7 +137,7 @@ export default function HolomemsPage(): ReactElement {
       if(reloadResult.error != null) setListError(reloadResult.error);
     }
     catch(error) {
-      setFormError(extractApiErrorMessage(error, editingId == null ? 'ホロメンの追加に失敗しました' : 'ホロメンの更新に失敗しました'));
+      setFormError(extractApiErrorMessage(error, editingId == null ? failedToCreateMessage('ホロメン') : failedToUpdateMessage('ホロメン')));
     }
     finally {
       setIsSubmitting(false);

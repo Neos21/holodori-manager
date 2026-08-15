@@ -4,6 +4,7 @@ import { jwt } from 'hono/jwt';
 import { httpStatusCode } from '../../../../shared/constants/http-status-code';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
 import { holoworkAchievementSchema } from '../../../../shared/schemas/holowork-achievement-schema';
+import { invalidIdErrorMessage, invalidRequestBodyErrorMessage } from '../../../constants/server-messages';
 import { HoloworkAchievementsRepository } from '../../../repositories/holowork-achievements-repository';
 
 import type { HonoBindings } from '../../../types/hono-bindings';
@@ -16,10 +17,10 @@ holoworkAchievements.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_
 /** 指定したホロワーク達成状況を更新する */
 holoworkAchievements.patch('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
-  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
+  if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);
   
   const body = await context.req.json().catch(() => null);
-  if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);
+  if(body == null) return context.json({ error: invalidRequestBodyErrorMessage }, httpStatusCode.badRequest);
   
   const parsed = holoworkAchievementSchema.partial().safeParse(body);
   if(!parsed.success) return context.json({ error: mergeIssues(parsed.error) }, httpStatusCode.badRequest);

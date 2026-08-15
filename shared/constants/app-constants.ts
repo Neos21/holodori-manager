@@ -1,10 +1,3 @@
-/** 認証によるリダイレクト理由を一時保存する SessionStorage キー */
-export const sessionStorageKeyAuthenticationRedirectReason = 'authentication-redirect-reason' as const;
-/** 認証によるリダイレクト理由 : 再ログインが必要 */
-export const authenticationRedirectReasonReloginRequired   = 'relogin-required' as const;
-/** 認証によるリダイレクト理由 : ユーザ操作によるログアウト */
-export const authenticationRedirectReasonLogout            = 'logout' as const;
-
 /** ホロワーク優先モードの選択肢 : 完了回数重視 */
 export const candidatePriorityCount    = 'count'     as const;
 /** ホロワーク優先モードの選択肢 : キューブ獲得量重視 */

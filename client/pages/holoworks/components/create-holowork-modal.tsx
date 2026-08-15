@@ -3,6 +3,7 @@ import { type ChangeEvent, type ReactElement, type SubmitEvent, useState } from 
 import { isEmpty } from '../../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
 import { holoworkNameDisplayName, holoworkSchema } from '../../../../shared/schemas/holowork-schema';
+import { failedToCreateMessage } from '../../../constants/client-messages';
 import { adminApi } from '../../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../../helpers/extract-api-error-message';
 
@@ -40,7 +41,7 @@ export const CreateHoloworkModal = ({ onClose, onCreated }: CreateHoloworkModalP
       await onCreated();
     }
     catch(error) {
-      setFormError(extractApiErrorMessage(error, 'ホロワーク枠の追加に失敗しました'));
+      setFormError(extractApiErrorMessage(error, failedToCreateMessage('ホロワーク枠')));
       setIsSubmitting(false);
     }
   };

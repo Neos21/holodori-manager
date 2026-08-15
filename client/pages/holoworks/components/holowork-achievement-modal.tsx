@@ -3,6 +3,7 @@ import { type ChangeEvent, type ReactElement, type SubmitEvent, useState } from 
 import { isEmpty } from '../../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
 import { achievementNoteDisplayName, currentCountDisplayName, holoworkAchievementSchema } from '../../../../shared/schemas/holowork-achievement-schema';
+import { failedToUpdateMessage } from '../../../constants/client-messages';
 import { adminApi } from '../../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../../helpers/extract-api-error-message';
 
@@ -62,7 +63,7 @@ export const HoloworkAchievementModal = ({ memberStatus, onClose, onUpdated }: H
       await onUpdated();
     }
     catch(error) {
-      setFormError(extractApiErrorMessage(error, 'ホロワーク達成状況の更新に失敗しました'));
+      setFormError(extractApiErrorMessage(error, failedToUpdateMessage('ホロワーク達成状況')));
       setIsSubmitting(false);
     }
   };

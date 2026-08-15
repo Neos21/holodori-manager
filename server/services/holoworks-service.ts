@@ -1,5 +1,6 @@
 import { minimumHoloworkMemberCount } from '../../shared/constants/holodori-constants';
 import { httpStatusCode } from '../../shared/constants/http-status-code';
+import { activeHoloworkMembersNotFoundErrorMessage } from '../constants/server-messages';
 import { ActiveHoloworkMembersRepository } from '../repositories/active-holowork-members-repository';
 import { HolomemsRepository } from '../repositories/holomems-repository';
 import { HoloworksRepository } from '../repositories/holoworks-repository';
@@ -93,7 +94,7 @@ export class HoloworksService {
     if(holoworkExistsResult.error != null) return holoworkExistsResult;
     
     const activeMembers = await new ActiveHoloworkMembersRepository(this.db).findByHoloworksId(holoworkId);
-    if(activeMembers.length < minimumHoloworkMemberCount) return { error: '活動中のメンバーが存在しません', httpStatusCode: httpStatusCode.badRequest };
+    if(activeMembers.length < minimumHoloworkMemberCount) return { error: activeHoloworkMembersNotFoundErrorMessage, httpStatusCode: httpStatusCode.badRequest };
     
     // 各メンバーの回数加算と枠からの解放を同じ Batch に含め、完了処理を不可分にする
     const holomemsIds = activeMembers.map(activeMember => activeMember.holomems_id);
@@ -117,7 +118,7 @@ export class HoloworksService {
     const activeHoloworkMembersRepository = new ActiveHoloworkMembersRepository(this.db);
     
     const activeMembers = await activeHoloworkMembersRepository.findByHoloworksId(holoworkId);
-    if(activeMembers.length < minimumHoloworkMemberCount) return { error: '活動中のメンバーが存在しません', httpStatusCode: httpStatusCode.badRequest };
+    if(activeMembers.length < minimumHoloworkMemberCount) return { error: activeHoloworkMembersNotFoundErrorMessage, httpStatusCode: httpStatusCode.badRequest };
     
     await activeHoloworkMembersRepository.deleteByHoloworksId(holoworkId);
     return { result: undefined };

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import { failedToFetchMessage } from '../constants/client-messages';
 import { adminApi } from '../helpers/admin-api';
 import { extractApiErrorMessage } from '../helpers/extract-api-error-message';
 
@@ -40,7 +41,7 @@ const fetchHolomems = async (generation: number): Promise<Result<Array<Holomem>>
       return { result: response.result };
     }
     catch(error) {
-      return { error: extractApiErrorMessage(error, 'ホロメン一覧の取得に失敗しました') };
+      return { error: extractApiErrorMessage(error, failedToFetchMessage('ホロメン一覧')) };
     }
   })();
   loadingRequest = { generation, promise };

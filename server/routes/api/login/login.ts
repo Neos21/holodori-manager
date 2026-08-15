@@ -5,6 +5,7 @@ import { httpStatusCode } from '../../../../shared/constants/http-status-code';
 import { isEmpty } from '../../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
 import { loginSchema } from '../../../../shared/schemas/login-schema';
+import { invalidRequestBodyErrorMessage } from '../../../constants/server-messages';
 
 import type { HonoBindings } from '../../../types/hono-bindings';
 
@@ -16,7 +17,7 @@ login.post('/', async context => {
   if(isEmpty(context.env.ADMIN_PASSWORD) || isEmpty(context.env.ADMIN_JWT_SECRET)) return context.json({ error: 'エラーが発生しました' }, httpStatusCode.internalServerError);
   
   const body = await context.req.json().catch(() => null);
-  if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);
+  if(body == null) return context.json({ error: invalidRequestBodyErrorMessage }, httpStatusCode.badRequest);
   
   const parsed = loginSchema.safeParse(body);
   if(!parsed.success) return context.json({ error: mergeIssues(parsed.error) }, httpStatusCode.badRequest);

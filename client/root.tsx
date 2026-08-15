@@ -1,8 +1,8 @@
 import { type ReactElement, type ReactNode, useEffect } from 'react';
 import { isRouteErrorResponse, Link, Links, Outlet, Scripts, ScrollRestoration, useLocation, useNavigate } from 'react-router';
 
+import { authenticationRedirectReasonLogout, authenticationRedirectReasonReloginRequired, sessionStorageKeyAuthenticationRedirectReason } from './constants/client-constants';
 import { useAdminStore } from './stores/admin-store';
-import { authenticationRedirectReasonLogout, authenticationRedirectReasonReloginRequired, sessionStorageKeyAuthenticationRedirectReason } from '../shared/constants/app-constants';
 import { isEmpty } from '../shared/helpers/is-empty';
 
 import type { Route } from './+types/root';
@@ -86,8 +86,8 @@ export function HydrateFallback(): ReactElement {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactElement {
-  let title = 'エラー';
-  let text = 'エラーが発生しました';
+  let title: string = 'エラー';
+  let text : string = 'エラーが発生しました';
   if(isRouteErrorResponse(error)) {
     if(error.status === 404) {
       title = '404';

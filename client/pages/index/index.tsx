@@ -2,10 +2,11 @@ import ky from 'ky';
 import { type ChangeEvent, type ReactElement, type SubmitEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { authenticationRedirectReasonReloginRequired, sessionStorageKeyAuthenticationRedirectReason } from '../../../shared/constants/app-constants';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { loginSchema } from '../../../shared/schemas/login-schema';
+import { authenticationRedirectReasonReloginRequired, sessionStorageKeyAuthenticationRedirectReason } from '../../constants/client-constants';
+import { generalFailedMessage } from '../../constants/client-messages';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 import { useAdminStore } from '../../stores/admin-store';
 
@@ -44,7 +45,7 @@ export default function Index(): ReactElement {
       navigate('/home');
     }
     catch(error) {
-      setErrorMessage(extractApiErrorMessage(error, 'ログインに失敗しました'));
+      setErrorMessage(extractApiErrorMessage(error, generalFailedMessage('ログイン')));
       setIsSubmitting(false);
     }
   };

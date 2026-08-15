@@ -4,6 +4,7 @@ import { jwt } from 'hono/jwt';
 import { httpStatusCode } from '../../../../shared/constants/http-status-code';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
 import { boardNodeSchema } from '../../../../shared/schemas/board-node-schema';
+import { invalidIdErrorMessage, invalidRequestBodyErrorMessage } from '../../../constants/server-messages';
 import { BoardNodesRepository } from '../../../repositories/board-nodes-repository';
 
 import type { HonoBindings } from '../../../types/hono-bindings';
@@ -20,7 +21,7 @@ boardNodes.get('/', async context => {
 
 boardNodes.post('/', async context => {
   const body = await context.req.json().catch(() => null);
-  if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);
+  if(body == null) return context.json({ error: invalidRequestBodyErrorMessage }, httpStatusCode.badRequest);
   
   const parsed = boardNodeSchema.safeParse(body);
   if(!parsed.success) return context.json({ error: mergeIssues(parsed.error) }, httpStatusCode.badRequest);
@@ -31,10 +32,10 @@ boardNodes.post('/', async context => {
 
 boardNodes.patch('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
-  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
+  if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);
   
   const body = await context.req.json().catch(() => null);
-  if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);
+  if(body == null) return context.json({ error: invalidRequestBodyErrorMessage }, httpStatusCode.badRequest);
   
   // `superRefine` を使っているスキーマは `partial()` が使えない・PATCH 操作だが毎回全項目が送られてくるのでココでは `partial()` 不要
   const parsed = boardNodeSchema.safeParse(body);
@@ -46,7 +47,7 @@ boardNodes.patch('/:id', async context => {  // eslint-disable-line neos-eslint-
 
 boardNodes.delete('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
-  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
+  if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);
   
   await new BoardNodesRepository(context.env.DB).delete(id);
   return context.json({ result: { id } }, httpStatusCode.ok);

@@ -7,6 +7,7 @@ import { isEmpty } from '../../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
 import { holoworkSchema } from '../../../../shared/schemas/holowork-schema';
 import { startHoloworkSchema } from '../../../../shared/schemas/start-holowork-schema';
+import { invalidIdErrorMessage, invalidRequestBodyErrorMessage } from '../../../constants/server-messages';
 import { HoloworksRepository } from '../../../repositories/holoworks-repository';
 import { HoloworkCandidatesService } from '../../../services/holowork-candidates-service';
 import { HoloworkMemberStatusesService } from '../../../services/holowork-member-statuses-service';
@@ -49,7 +50,7 @@ holoworks.get('/candidates', async context => {
 /** 新規ホロワーク枠を追加する */
 holoworks.post('/', async context => {
   const body = await context.req.json().catch(() => null);
-  if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);
+  if(body == null) return context.json({ error: invalidRequestBodyErrorMessage }, httpStatusCode.badRequest);
   
   const parsed = holoworkSchema.safeParse(body);
   if(!parsed.success) return context.json({ error: mergeIssues(parsed.error) }, httpStatusCode.badRequest);
@@ -61,10 +62,10 @@ holoworks.post('/', async context => {
 /** ホロワークを開始する */
 holoworks.post('/:id/start', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
-  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
+  if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);
   
   const body = await context.req.json().catch(() => null);
-  if(body == null) return context.json({ error: 'リクエストボディが不正です' }, httpStatusCode.badRequest);
+  if(body == null) return context.json({ error: invalidRequestBodyErrorMessage }, httpStatusCode.badRequest);
   
   const parsed = startHoloworkSchema.safeParse(body);
   if(!parsed.success) return context.json({ error: mergeIssues(parsed.error) }, httpStatusCode.badRequest);
@@ -77,7 +78,7 @@ holoworks.post('/:id/start', async context => {  // eslint-disable-line neos-esl
 /** ホロワークを完了する */
 holoworks.post('/:id/complete', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
-  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
+  if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);
   
   const completeResult = await new HoloworksService(context.env.DB).complete(id);
   if(completeResult.error != null) return context.json({ error: completeResult.error }, getResultHttpStatusCode(completeResult));
@@ -87,7 +88,7 @@ holoworks.post('/:id/complete', async context => {  // eslint-disable-line neos-
 /** ホロワークを中断する */
 holoworks.post('/:id/abort', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
-  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
+  if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);
   
   const abortResult = await new HoloworksService(context.env.DB).abort(id);
   if(abortResult.error != null) return context.json({ error: abortResult.error }, getResultHttpStatusCode(abortResult));
@@ -97,7 +98,7 @@ holoworks.post('/:id/abort', async context => {  // eslint-disable-line neos-esl
 /** 活動中メンバーがいないホロワーク枠を削除する */
 holoworks.delete('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
-  if(!Number.isInteger(id)) return context.json({ error: 'ID が不正です' }, httpStatusCode.badRequest);
+  if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);
   
   const deleteResult = await new HoloworksService(context.env.DB).delete(id);
   if(deleteResult.error != null) return context.json({ error: deleteResult.error }, getResultHttpStatusCode(deleteResult));

@@ -9,6 +9,7 @@ import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { amountDisplayName, boardNodeSchema, categoryDisplayName, connectRateDisplayName, descriptionDisplayName, holomemsIdDisplayName, isUnlockedDisplayName, yellowTargetDisplayName } from '../../../shared/schemas/board-node-schema';
 import { holomemSchema, noteDisplayName } from '../../../shared/schemas/holomem-schema';
 import { BoardNodesService } from '../../../shared/services/board-nodes-service';
+import { failedToCreateMessage, failedToDeleteMessage, failedToFetchMessage, failedToUpdateMessage } from '../../constants/client-messages';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 import { useHolomemsStore } from '../../stores/holomems-store';
@@ -111,7 +112,7 @@ export default function BoardNodesPage(): ReactElement {
       setBoardNodes(boardNodesResponse.result);
     }
     catch(error) {
-      setListError(extractApiErrorMessage(error, 'ボードノード一覧の取得に失敗しました'));
+      setListError(extractApiErrorMessage(error, failedToFetchMessage('ボードノード一覧')));
     }
   };
   
@@ -207,7 +208,7 @@ export default function BoardNodesPage(): ReactElement {
       await onLoadBoardNodes();  // 一覧を再読込する
     }
     catch(error) {
-      setFormError(extractApiErrorMessage(error, editingId == null ? 'マスの追加に失敗しました' : 'マスの更新に失敗しました'));
+      setFormError(extractApiErrorMessage(error, editingId == null ? failedToCreateMessage('マス') : failedToUpdateMessage('マス')));
     }
     finally {
       setIsSubmitting(false);
@@ -228,7 +229,7 @@ export default function BoardNodesPage(): ReactElement {
       await onLoadBoardNodes();  // 一覧を再読込する
     }
     catch(error) {
-      setFormError(extractApiErrorMessage(error, 'マスの削除に失敗しました'));
+      setFormError(extractApiErrorMessage(error, failedToDeleteMessage('マス')));
     }
     finally {
       setIsSubmitting(false);
@@ -272,7 +273,7 @@ export default function BoardNodesPage(): ReactElement {
       if(reloadResult.error != null) setListError(reloadResult.error);
     }
     catch(error) {
-      setNoteFormError(extractApiErrorMessage(error, 'ホロメンメモの更新に失敗しました'));
+      setNoteFormError(extractApiErrorMessage(error, failedToUpdateMessage('ホロメンメモ')));
     }
     finally {
       setIsSubmittingNote(false);

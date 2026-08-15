@@ -6,6 +6,7 @@ import { HoloworkMemberStatusesTable } from './components/holowork-member-status
 import { HoloworksTable } from './components/holoworks-table';
 import { StartHoloworkModal } from './components/start-holowork-modal';
 import { isEmpty } from '../../../shared/helpers/is-empty';
+import { failedToDeleteMessage, failedToFetchMessage, generalFailedMessage } from '../../constants/client-messages';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 
@@ -33,7 +34,7 @@ export default function HoloworksPage(): ReactElement {
       setHoloworks(response.result);
     }
     catch(error) {
-      setListError(extractApiErrorMessage(error, 'ホロワーク枠一覧の取得に失敗しました'));
+      setListError(extractApiErrorMessage(error, failedToFetchMessage('ホロワーク枠一覧')));
     }
   };
   
@@ -44,7 +45,7 @@ export default function HoloworksPage(): ReactElement {
       setMemberStatuses(response.result);
     }
     catch(error) {
-      setListError(extractApiErrorMessage(error, 'ホロメン別ステータス一覧の取得に失敗しました'));
+      setListError(extractApiErrorMessage(error, failedToFetchMessage('ホロメン別ステータス一覧')));
     }
   };
   
@@ -81,7 +82,7 @@ export default function HoloworksPage(): ReactElement {
       await onLoadData();
     }
     catch(error) {
-      setActionError(extractApiErrorMessage(error, action === 'complete' ? 'ホロワークの完了に失敗しました' : 'ホロワークの中断に失敗しました'));
+      setActionError(extractApiErrorMessage(error, action === 'complete' ? generalFailedMessage('ホロワークの完了') : generalFailedMessage('ホロワークの中断')));
     }
     finally {
       setIsSubmitting(false);
@@ -99,7 +100,7 @@ export default function HoloworksPage(): ReactElement {
       await onLoadData();
     }
     catch(error) {
-      setActionError(extractApiErrorMessage(error, 'ホロワーク枠の削除に失敗しました'));
+      setActionError(extractApiErrorMessage(error, failedToDeleteMessage('ホロワーク枠')));
     }
     finally {
       setIsSubmitting(false);

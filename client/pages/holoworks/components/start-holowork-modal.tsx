@@ -4,6 +4,7 @@ import { candidatePriorities } from '../../../../shared/constants/app-constants'
 import { maximumHoloworkMemberCount, minimumHoloworkMemberCount } from '../../../../shared/constants/holodori-constants';
 import { formatDecimal } from '../../../../shared/helpers/format-decimal';
 import { isEmpty } from '../../../../shared/helpers/is-empty';
+import { failedToFetchMessage, generalFailedMessage } from '../../../constants/client-messages';
 import { adminApi } from '../../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../../helpers/extract-api-error-message';
 
@@ -68,7 +69,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
       setOtherCandidates(response.result.other_candidates);
     }
     catch(error) {
-      setFormError(extractApiErrorMessage(error, '優先ホロメン候補の取得に失敗しました'));
+      setFormError(extractApiErrorMessage(error, failedToFetchMessage('優先ホロメン候補')));
     }
     finally {
       setIsLoading(false);
@@ -102,7 +103,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
       await onStarted();
     }
     catch(error) {
-      setFormError(extractApiErrorMessage(error, 'ホロワークの開始に失敗しました'));
+      setFormError(extractApiErrorMessage(error, generalFailedMessage('ホロワークの開始')));
       setIsSubmitting(false);
     }
   };
