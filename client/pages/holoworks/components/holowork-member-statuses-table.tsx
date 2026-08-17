@@ -4,7 +4,7 @@ import { type ReactElement, useState } from 'react';
 import { HoloworkAchievementModal } from './holowork-achievement-modal';
 import { formatDecimal } from '../../../../shared/helpers/format-decimal';
 import { isEmpty } from '../../../../shared/helpers/is-empty';
-import { HolomemNote } from '../../../components/holomem-note/holomem-note';
+import { HolomemNoteModal } from '../../../components/holomem-note-modal/holomem-note-modal';
 import { useHolomemsStore } from '../../../stores/holomems-store';
 
 import type { HoloworkMemberStatus } from '../../../../shared/types/app/holowork-member-status';
@@ -21,19 +21,19 @@ type HoloworkMemberStatusesTableProps = {
 
 /** ホロメン別ホロワーク達成状況・黄マス情報テーブル */
 export const HoloworkMemberStatusesTable = ({ memberStatuses, isDisabled, onUpdated }: HoloworkMemberStatusesTableProps): ReactElement => {
-  const [editingMemberStatus, setEditingMemberStatus] = useState<HoloworkMemberStatus | null>(null);  // `null` は達成状況の編集対象未選択を表す
-  const [noteMemberStatus   , setNoteMemberStatus   ] = useState<HoloworkMemberStatus | null>(null);  // `null` はホロメンメモの編集対象未選択を表す
+  const [editingHoloworkAchievementMemberStatus, setEditingHoloworkAchievementMemberStatus] = useState<HoloworkMemberStatus | null>(null);  // `null` は達成状況の編集対象未選択を表す
+  const [editingHolomemNoteMemberStatus        , setEditingHolomemNoteMemberStatus        ] = useState<HoloworkMemberStatus | null>(null);  // `null` はホロメンメモの編集対象未選択を表す
   
   /** 枠操作中でなければホロワーク達成状況編集モーダルを開く */
   const onEditAchievement = (memberStatus: HoloworkMemberStatus): void => {
     if(isDisabled) return;
-    setEditingMemberStatus(memberStatus);
+    setEditingHoloworkAchievementMemberStatus(memberStatus);
   };
   
   /** 枠操作中でなければホロメンメモ編集モーダルを開く */
   const onEditNote = (memberStatus: HoloworkMemberStatus): void => {
     if(isDisabled) return;
-    setNoteMemberStatus(memberStatus);
+    setEditingHolomemNoteMemberStatus(memberStatus);
   };
   
   /** ホロメンメモ更新後に共有キャッシュを更新してから、親コンポーネントの一覧更新を呼び出す */
@@ -86,24 +86,32 @@ export const HoloworkMemberStatusesTable = ({ memberStatuses, isDisabled, onUpda
       </section>
       
       {/* ホロワーク達成状況編集モーダル */}
-      {editingMemberStatus != null && (
+      {editingHoloworkAchievementMemberStatus != null && (
         <HoloworkAchievementModal
-          memberStatus={editingMemberStatus}
-          onClose={() => setEditingMemberStatus(null)}
+          holomem={{
+            id        : editingHoloworkAchievementMemberStatus.holomems_id,
+            group_name: editingHoloworkAchievementMemberStatus.holomems_group_name,
+            name      : editingHoloworkAchievementMemberStatus.holomems_name
+          }}
+          holoworkAchievement={{
+            id           : editingHoloworkAchievementMemberStatus.holowork_achievements_id,
+            current_count: editingHoloworkAchievementMemberStatus.current_count
+          }}
+          onClose={() => setEditingHoloworkAchievementMemberStatus(null)}
           onUpdated={onUpdated}
         />
       )}
       
       {/* ホロメンメモ編集モーダル */}
-      {noteMemberStatus != null && (
-        <HolomemNote
+      {editingHolomemNoteMemberStatus != null && (
+        <HolomemNoteModal
           holomem={{
-            id        : noteMemberStatus.holomems_id,
-            group_name: noteMemberStatus.holomems_group_name,
-            name      : noteMemberStatus.holomems_name,
-            note      : noteMemberStatus.holomems_note
+            id        : editingHolomemNoteMemberStatus.holomems_id,
+            group_name: editingHolomemNoteMemberStatus.holomems_group_name,
+            name      : editingHolomemNoteMemberStatus.holomems_name,
+            note      : editingHolomemNoteMemberStatus.holomems_note
           }}
-          onClose={() => setNoteMemberStatus(null)}
+          onClose={() => setEditingHolomemNoteMemberStatus(null)}
           onUpdated={onUpdateHolomemNote}
         />
       )}

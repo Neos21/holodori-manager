@@ -72,7 +72,7 @@ export default function CardsPage(): ReactElement {
   /** 編集中のフォームが参照するホロメン・新規追加時または対象を取得できない場合は `null` */
   const editingHolomem             = editingId      == null ? null : holomems.find(holomem => holomem.id === Number(form.holomems_id)) ?? null;
   /** 編集時に読取専用で表示するホロメン情報・対象を取得できない場合は空文字 */
-  const editingHolomemDisplayValue = editingHolomem == null ? ''   : `${editingHolomem.group_name} : ${editingHolomem.name} (ID : ${form.holomems_id})`;
+  const editingHolomemDisplayValue = editingHolomem == null ? ''   : `${editingHolomem.group_name} : ${editingHolomem.name}`;
   
   /** カード一覧を API から取得し、取得エラーを画面表示用 State に反映する */
   const onLoadCards = async (): Promise<void> => {
@@ -256,10 +256,7 @@ export default function CardsPage(): ReactElement {
                     ))}
                   </select>
                 ) : (
-                  <input
-                    className="input w-full" type="text" readOnly disabled
-                    value={editingHolomemDisplayValue}
-                  />
+                  <p>{editingHolomemDisplayValue}</p>
                 )}
                 
                 {/* レア度は新規登録時のみ設定可能・編集時は参照のみで変更不可 */}

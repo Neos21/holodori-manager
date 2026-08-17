@@ -8,7 +8,7 @@ import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { amountDisplayName, boardNodeSchema, categoryDisplayName, connectRateDisplayName, descriptionDisplayName, isUnlockedDisplayName, yellowTargetDisplayName } from '../../../shared/schemas/board-node-schema';
 import { BoardNodesService } from '../../../shared/services/board-nodes-service';
-import { HolomemNote } from '../../components/holomem-note/holomem-note';
+import { HolomemNoteModal } from '../../components/holomem-note-modal/holomem-note-modal';
 import { failedToCreateMessage, failedToDeleteMessage, failedToFetchMessage, failedToUpdateMessage } from '../../constants/client-messages';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
@@ -103,7 +103,7 @@ export default function BoardNodesPage(): ReactElement {
   /** 編集中のフォームが参照するホロメン。新規追加時または対象を取得できない場合は `null` */
   const editingHolomem             = editingId      == null ? null : holomems.find(holomem => holomem.id === Number(form.holomems_id)) ?? null;
   /** 編集時に読み取り専用で表示するホロメン情報。対象を取得できない場合は空文字 */
-  const editingHolomemDisplayValue = editingHolomem == null ? ''   : `${editingHolomem.group_name} : ${editingHolomem.name} (ID : ${form.holomems_id})`;
+  const editingHolomemDisplayValue = editingHolomem == null ? ''   : `${editingHolomem.group_name} : ${editingHolomem.name}`;
   
   /** ボードマス一覧を API から取得し、取得エラーを画面表示用 State に反映する */
   const onLoadBoardNodes = async (): Promise<void> => {
@@ -380,10 +380,7 @@ export default function BoardNodesPage(): ReactElement {
                     ))}
                   </select>
                 ) : (
-                  <input
-                    className="input w-full" type="text" readOnly disabled
-                    value={editingHolomemDisplayValue}
-                  />
+                  <p>{editingHolomemDisplayValue}</p>
                 )}
                 
                 {/* カテゴリは新規登録時のみ設定可能・編集時は参照のみで変更不可 */}
@@ -429,7 +426,11 @@ export default function BoardNodesPage(): ReactElement {
       )}
       
       {noteTargetHolomem != null && (
-        <HolomemNote holomem={noteTargetHolomem} onClose={onCloseNoteModal} onUpdated={onUpdateHolomemNote} />
+        <HolomemNoteModal
+          holomem={noteTargetHolomem}
+          onClose={onCloseNoteModal}
+          onUpdated={onUpdateHolomemNote}
+        />
       )}
     </main>
   );

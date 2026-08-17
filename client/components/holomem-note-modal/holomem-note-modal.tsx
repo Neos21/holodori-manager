@@ -10,7 +10,7 @@ import { extractApiErrorMessage } from '../../helpers/extract-api-error-message'
 import type { Holomem } from '../../../shared/types/entities/holomem';
 
 /** ホロメンメモ編集モーダルに渡す対象と完了通知 */
-type HolomemNoteProps = {
+type HolomemNoteModalProps = {
   /** 編集対象のホロメン */
   holomem  : Pick<Holomem, 'id' | 'group_name' | 'name' | 'note'>;
   /** モーダルを閉じる */
@@ -20,7 +20,7 @@ type HolomemNoteProps = {
 };
 
 /** ホロメンメモ編集モーダル */
-export const HolomemNote = ({ holomem, onClose, onUpdated }: HolomemNoteProps): ReactElement => {
+export const HolomemNoteModal = ({ holomem, onClose, onUpdated }: HolomemNoteModalProps): ReactElement => {
   const [note        , setNote        ] = useState<string>(holomem.note ?? '');  // 編集中のホロメンメモ・未入力時は空文字
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);              // ホロメンメモ送信中か否か
   const [formError   , setFormError   ] = useState<string>('');                  // バリデーション・API エラー
@@ -64,7 +64,7 @@ export const HolomemNote = ({ holomem, onClose, onUpdated }: HolomemNoteProps): 
         <form onSubmit={onSubmit}>
           <fieldset className="fieldset">
             <label className="fieldset-label">ホロメン</label>
-            <input className="input w-full" type="text" readOnly disabled value={`${holomem.group_name} : ${holomem.name}`} />
+            <p>{holomem.group_name} : {holomem.name}</p>
             
             <label className="fieldset-label">{noteDisplayName}</label>
             <textarea className="textarea w-full min-h-24" name="note" value={note} onChange={onChangeNote} />
