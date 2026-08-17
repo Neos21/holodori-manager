@@ -45,8 +45,10 @@ Hono で提供する `/api` 配下の API 契約を示す。各項目の厳密�
 | ホロワーク操作     | `POST`   | `/api/holoworks/:id/start`                                            | 対象枠で活動を開始する                           |
 | ホロワーク操作     | `POST`   | `/api/holoworks/:id/complete`                                         | 完了回数を加算して対象枠を完了する               |
 | ホロワーク操作     | `POST`   | `/api/holoworks/:id/abort`                                            | 回数を加算せず対象枠を中断する                   |
-| メモ               | `GET`    | `/api/memo`                                                           | メモを取得する                                   |
-| メモ               | `PATCH`  | `/api/memo`                                                           | メモを追加または更新する                         |
+| メモ               | `GET`    | `/api/memos`                                                          | 一覧を取得する                                   |
+| メモ               | `POST`   | `/api/memos`                                                          | 追加する                                         |
+| メモ               | `PATCH`  | `/api/memos/:id`                                                      | 更新する                                         |
+| メモ               | `DELETE` | `/api/memos/:id`                                                      | ID 1 以外を削除する                              |
 
 Hono のルート定義では、`member-statuses` と `candidates` の固定パスを `/:id` を含むルートより前に置く。
 

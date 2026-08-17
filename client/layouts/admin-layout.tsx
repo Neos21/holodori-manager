@@ -5,6 +5,7 @@ import { Memo } from './components/memo';
 import { authenticationRedirectReasonLogout, sessionStorageKeyAuthenticationRedirectReason } from '../constants/client-constants';
 import { useAdminStore } from '../stores/admin-store';
 import { useHolomemsStore } from '../stores/holomems-store';
+import { useMemosStore } from '../stores/memos-store';
 
 /** ログイン後の全画面共通のレイアウト */
 export default function AdminLayout(): ReactElement {
@@ -19,7 +20,8 @@ export default function AdminLayout(): ReactElement {
     { to: '/holomems'   , label: 'ホロメン'       },
     { to: '/cards'      , label: 'カード'         },
     { to: '/board-nodes', label: 'ホロメンボード' },
-    { to: '/holoworks'  , label: 'ホロワーク'     }
+    { to: '/holoworks'  , label: 'ホロワーク'     },
+    { to: '/memos'      , label: 'メモ'           }
   ];
   
   /** サイドメニューを開閉する */
@@ -34,6 +36,7 @@ export default function AdminLayout(): ReactElement {
     sessionStorage.setItem(sessionStorageKeyAuthenticationRedirectReason, authenticationRedirectReasonLogout);
     useAdminStore.getState().logout();
     useHolomemsStore.getState().clearHolomems();
+    useMemosStore.getState().clearMemos();
     navigate('/', { replace: true });
   };
   

@@ -47,7 +47,7 @@ CREATE TABLE active_holowork_members (  -- ホロワーク活動中のホロメ�
   holomems_id   INTEGER  NOT NULL  UNIQUE             -- FK → holomems.id・ユニーク (1人が同時に複数枠で活動できないのでそれを防ぐ)
 );
 
-CREATE TABLE memo (  -- 自由メモ : 現状は単一レコード運用を想定している
+CREATE TABLE memos (  -- 自由メモ
   id      INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
   content TEXT                                  -- 自由メモ
 );

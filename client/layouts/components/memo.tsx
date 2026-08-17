@@ -1,13 +1,13 @@
 import { type ChangeEvent, type ReactElement, useEffect, useRef, useState } from 'react';
 
+import { defaultMemoId } from '../../../shared/constants/app-constants';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { memoSchema } from '../../../shared/schemas/memo-schema';
-import { failedToFetchMessage, generalFailedMessage } from '../../constants/client-messages';
+import { generalFailedMessage } from '../../constants/client-messages';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
-
-import type { Memo as MemoType } from '../../../shared/types/entities/memo';
+import { useMemosStore } from '../../stores/memos-store';
 
 /** 保存成功メッセージを表示する時間 (ms) */
 const savedMessageDurationMilliseconds = 3000;
@@ -42,17 +42,29 @@ export const Memo = (): ReactElement => {
   const savedContentRef = useRef<string>('');                    // API 取得時または保存成功時の内容を保持し、変更がない場合の重複保存を避ける
   const savedMessageTimeoutIdRef = useRef<number | null>(null);  // 保存成功メッセージを非表示にするタイマー ID
   
-  // 初期表示時に保存済みメモを取得する
+  // 初期表示時にメモ一覧を Store へ読み込む
   useEffect(() => {
+    // 他のコンポーネントでデフォルトメモが保存された場合は、入力途中の内容も保存済みの最新内容で置き換える
+    const unsubscribeMemosStore = useMemosStore.subscribe((state, prevState) => {
+      const defaultMemo = state.memos.find(memo => memo.id === defaultMemoId) ?? null;
+      const prevDefaultMemo = prevState.memos.find(memo => memo.id === defaultMemoId) ?? null;
+      if(defaultMemo == null || defaultMemo === prevDefaultMemo) return;
+      const savedContent = defaultMemo.content ?? '';
+      setContent(savedContent);
+      savedContentRef.current = savedContent;
+    });
+    
     (async () => {
       try {
-        const response = await adminApi.get('/api/memo').json<{ result: MemoType | null; }>();
-        const loadedContent = response.result?.content ?? '';
-        setContent(loadedContent);
-        savedContentRef.current = loadedContent;
-      }
-      catch(error) {
-        setErrorMessage(extractApiErrorMessage(error, failedToFetchMessage('メモ')));
+        const result = await useMemosStore.getState().loadMemos();
+        if(result.error != null) {
+          setErrorMessage(result.error);
+        }
+        else {
+          const savedContent = result.result.find(memo => memo.id === defaultMemoId)?.content ?? '';
+          setContent(savedContent);
+          savedContentRef.current = savedContent;
+        }
       }
       finally {
         setIsLoading(false);
@@ -61,6 +73,7 @@ export const Memo = (): ReactElement => {
     
     // コンポーネント破棄時に余計なタイマーを残さないようにする
     return (): void => {
+      unsubscribeMemosStore();
       if(savedMessageTimeoutIdRef.current != null) window.clearTimeout(savedMessageTimeoutIdRef.current);
     };
   }, []);
@@ -89,11 +102,12 @@ export const Memo = (): ReactElement => {
     
     setIsSaving(true);
     try {
-      await adminApi.patch('/api/memo', { json: parsed.data });
+      await adminApi.patch(`/api/memos/${defaultMemoId}`, { json: parsed.data });
       
       const savedContent = parsed.data.content ?? '';  // Zod により処理された内容で更新する
       setContent(savedContent);
       savedContentRef.current = savedContent;
+      useMemosStore.getState().setMemo({ id: defaultMemoId, content: savedContent });
       
       setLastSavedAt(formatSavedAt(new Date()));
       
@@ -116,7 +130,8 @@ export const Memo = (): ReactElement => {
     <section>
       <textarea
         className="textarea textarea-sm w-full min-h-40 mb-1"
-        name="memo" value={content} onChange={onChangeContent} onBlur={onSaveMemo} readOnly={isLoading || isSaving}
+        name="memo" value={content} placeholder="メモ"
+        onChange={onChangeContent} onBlur={onSaveMemo} readOnly={isLoading || isSaving}
       />
       
       <p className="mb-1 text-xs">最終保存 : {isEmpty(lastSavedAt) ? '-' : lastSavedAt}</p>

@@ -6,7 +6,7 @@ import { holomems, holomemsPath } from './holomems/holomems';
 import { holoworkAchievements, holoworkAchievementsPath } from './holowork-achievements/holowork-achievements';
 import { holoworks, holoworksPath } from './holoworks/holoworks';
 import { login, loginPath } from './login/login';
-import { memo, memoPath } from './memo/memo';
+import { memos, memosPath } from './memos/memos';
 
 import type { HonoBindings } from '../../types/hono-bindings';
 
@@ -19,4 +19,4 @@ api.route(cardsPath               , cards);
 api.route(boardNodesPath          , boardNodes);
 api.route(holoworkAchievementsPath, holoworkAchievements);
 api.route(holoworksPath           , holoworks);
-api.route(memoPath                , memo);
+api.route(memosPath               , memos);

@@ -292,5 +292,5 @@ INSERT INTO holoworks (name) VALUES ('ゲーム配信');
 INSERT INTO holoworks (name) VALUES ('雑談配信'  );
 INSERT INTO holoworks (name) VALUES ('収録'      );
 
--- 自由メモ : 1レコード入れておく (アプリ側でも対応しているので必須ではない・やらなくても動く)
-INSERT INTO memo (content) VALUES (NULL);
+-- デフォルトの自由メモ : ID 1 の必須レコードとして扱う
+INSERT INTO memos (content) VALUES (NULL);

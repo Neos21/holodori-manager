@@ -16,7 +16,7 @@ type HolomemsState = {
   
   /** 未取得の場合のみホロメン一覧を取得する */
   loadHolomems: () => Promise<Result<Array<Holomem>>>;
-  /** キャッシュの状態にかかわらずホロメン一覧を再取得する */
+  /** キャッシュの状態に関わらずホロメン一覧を再取得する */
   reloadHolomems: () => Promise<Result<Array<Holomem>>>;
   /** ログアウト時にホロメン一覧のキャッシュを破棄する */
   clearHolomems: () => void;
@@ -33,7 +33,7 @@ let loadingRequest: {
   promise: Promise<Result<Array<Holomem>>>;
 } | null = null;
 
-/** ホロメン一覧を取得し、API例外を画面で扱える Result に変換する */
+/** ホロメン一覧を取得し、API 例外を画面で扱える Result に変換する */
 const fetchHolomems = async (generation: number): Promise<Result<Array<Holomem>>> => {
   if(loadingRequest?.generation === generation) return await loadingRequest.promise;
   
