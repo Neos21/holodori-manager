@@ -108,8 +108,8 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
     }
   };
   
-  /** 候補の種類に応じて完了回数または合計最終レートを持つテーブル行を描画する */
-  const renderCandidate = (candidate: HoloworkCandidate): ReactElement => {
+  /** 候補の種類に応じて完了回数または合計最終レートを持つテーブル行 (`tbody` 内) を描画する */
+  const renderCandidateTableBody = (candidate: HoloworkCandidate): ReactElement => {
     const isSelected = selectedHolomemsIds.includes(candidate.holomems_id);
     return (
       <tr key={candidate.holomems_id} className="[&>td]:align-top">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
@@ -168,7 +168,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
               </tr>
             </thead>
             <tbody>
-              {candidates.map(renderCandidate)}
+              {candidates.map(renderCandidateTableBody)}
             </tbody>
           </table>
         </div>

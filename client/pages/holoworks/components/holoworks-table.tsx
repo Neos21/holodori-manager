@@ -23,23 +23,23 @@ type HoloworksTableProps = {
 /** ホロワーク枠一覧テーブル */
 export const HoloworksTable = ({ holoworks, isDisabled, onChangeSubmitting, onUpdated }: HoloworksTableProps): ReactElement => {
   const [startingHolowork, setStartingHolowork] = useState<HoloworkDisplay | null>(null);  // `null` は開始対象未選択を表す
-  const [actionError     , setActionError     ] = useState<string>('');                    // 完了・中断・削除時のエラーメッセージ
+  const [formError       , setFormError       ] = useState<string>('');                    // 完了・中断・削除時のエラーメッセージ
   
   /** `window.confirm()` で確認後に対象枠を完了または中断し、関連一覧を再取得する */
-  const onSubmitAction = async (holowork: HoloworkDisplay, action: 'complete' | 'abort'): Promise<void> => {
+  const onSubmit = async (holowork: HoloworkDisplay, action: 'complete' | 'abort'): Promise<void> => {
     const confirmationMessage = action === 'complete'
       ? `「${holowork.name}」を完了しますか？\n活動中メンバー全員のホロワーク完了回数が 1 増えます。`
       : `「${holowork.name}」を中断しますか？\n中断ではホロワーク完了回数は増えません。`;
     if(!window.confirm(confirmationMessage)) return;
     
-    setActionError('');
+    setFormError('');
     onChangeSubmitting(true);
     try {
       await adminApi.post(`/api/holoworks/${holowork.id}/${action}`);
       await onUpdated();
     }
     catch(error) {
-      setActionError(extractApiErrorMessage(error, action === 'complete' ? generalFailedMessage('ホロワークの完了') : generalFailedMessage('ホロワークの中断')));
+      setFormError(extractApiErrorMessage(error, action === 'complete' ? generalFailedMessage('ホロワークの完了') : generalFailedMessage('ホロワークの中断')));
     }
     finally {
       onChangeSubmitting(false);
@@ -47,17 +47,17 @@ export const HoloworksTable = ({ holoworks, isDisabled, onChangeSubmitting, onUp
   };
   
   /** `window.confirm()` で確認後、活動中メンバーがいない対象枠を削除する */
-  const onDeleteHolowork = async (holowork: HoloworkDisplay): Promise<void> => {
+  const onDelete = async (holowork: HoloworkDisplay): Promise<void> => {
     if(!window.confirm('このホロワーク枠を削除しますか？')) return;
     
-    setActionError('');
+    setFormError('');
     onChangeSubmitting(true);
     try {
       await adminApi.delete(`/api/holoworks/${holowork.id}`);
       await onUpdated();
     }
     catch(error) {
-      setActionError(extractApiErrorMessage(error, failedToDeleteMessage('ホロワーク枠')));
+      setFormError(extractApiErrorMessage(error, failedToDeleteMessage('ホロワーク枠')));
     }
     finally {
       onChangeSubmitting(false);
@@ -70,8 +70,8 @@ export const HoloworksTable = ({ holoworks, isDisabled, onChangeSubmitting, onUp
         <h2 className="mb-2 text-lg font-bold">ホロワーク枠一覧</h2>
         
         {/* 完了・中断・削除時のエラー表示 */}
-        {!isEmpty(actionError) && (
-          <div className="alert alert-error alert-soft mb-4">{actionError}</div>
+        {!isEmpty(formError) && (
+          <div className="alert alert-error alert-soft mb-4">{formError}</div>
         )}
         
         {holoworks.length === 0 ? (
@@ -99,9 +99,9 @@ export const HoloworksTable = ({ holoworks, isDisabled, onChangeSubmitting, onUp
                       <td className="         pl-0 pr-1      whitespace-nowrap            ">{holowork.name}</td>
                       <td className="min-w-35 px-1                                        ">{hasActiveMembers ? holowork.active_members.map(activeMember => (<div key={activeMember.holomems_id}>{activeMember.holomems_group_name} {activeMember.holomems_name}</div>)) : '-'}</td>
                       <td className="         px-1      py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-info"    onClick={() => setStartingHolowork(holowork)}        disabled={isDisabled || hasActiveMembers} >開始</button></td>
-                      <td className="         px-1      py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-success" onClick={() => onSubmitAction(holowork, 'complete')} disabled={isDisabled || !hasActiveMembers}>完了</button></td>
-                      <td className="         px-1      py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-warning" onClick={() => onSubmitAction(holowork, 'abort')}    disabled={isDisabled || !hasActiveMembers}>中断</button></td>
-                      <td className="         pl-1 pr-0 py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-error"   onClick={() => onDeleteHolowork(holowork)}           disabled={isDisabled || hasActiveMembers} >削除</button></td>
+                      <td className="         px-1      py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-success" onClick={() => onSubmit(holowork, 'complete')} disabled={isDisabled || !hasActiveMembers}>完了</button></td>
+                      <td className="         px-1      py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-warning" onClick={() => onSubmit(holowork, 'abort')}    disabled={isDisabled || !hasActiveMembers}>中断</button></td>
+                      <td className="         pl-1 pr-0 py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-error"   onClick={() => onDelete(holowork)}           disabled={isDisabled || hasActiveMembers} >削除</button></td>
                     </tr>
                   );
                 })}
@@ -113,7 +113,11 @@ export const HoloworksTable = ({ holoworks, isDisabled, onChangeSubmitting, onUp
       
       {/* ホロワーク開始モーダル */}
       {startingHolowork != null && (
-        <StartHoloworkModal holowork={startingHolowork} onClose={() => setStartingHolowork(null)} onStarted={onUpdated} />
+        <StartHoloworkModal
+          holowork={startingHolowork}
+          onClose={() => setStartingHolowork(null)}
+          onStarted={onUpdated}
+        />
       )}
     </>
   );
