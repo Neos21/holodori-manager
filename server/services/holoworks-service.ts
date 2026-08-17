@@ -22,7 +22,8 @@ export class HoloworksService {
         holomems.id         AS holomems_id,
         holomems.sort_order AS holomems_sort_order,
         holomems.group_name AS holomems_group_name,
-        holomems.name       AS holomems_name
+        holomems.name       AS holomems_name,
+        holomems.note       AS holomems_note
       FROM holoworks
       LEFT JOIN active_holowork_members
         ON active_holowork_members.holoworks_id = holoworks.id
@@ -52,7 +53,8 @@ export class HoloworksService {
         holomems_id        : row.holomems_id,
         holomems_sort_order: row.holomems_sort_order,
         holomems_group_name: row.holomems_group_name,
-        holomems_name      : row.holomems_name
+        holomems_name      : row.holomems_name,
+        holomems_note      : row.holomems_note  // ホロワーク枠一覧では表示してないけど型定義に合わせて拾っておく
       });
     }
     
@@ -102,8 +104,8 @@ export class HoloworksService {
     const holomemsIds = activeMembers.map(activeMember => activeMember.holomems_id);
     const statements = holomemsIds.map(holomemsId => this.db
       .prepare(`
-        INSERT INTO holowork_achievements (holomems_id, current_count, note)
-        VALUES (?, 1, NULL)
+        INSERT INTO holowork_achievements (holomems_id, current_count)
+        VALUES (?, 1)
         ON CONFLICT(holomems_id) DO UPDATE SET current_count = current_count + 1
       `)
       .bind(holomemsId));

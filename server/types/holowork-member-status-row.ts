@@ -1,9 +1,9 @@
-import type { HoloworkMemberWithAchievementNote } from '../../shared/types/app/holowork-display';
+import type { HoloworkMember } from '../../shared/types/app/holowork-display';
 import type { HoloworkMemberStatus } from '../../shared/types/app/holowork-member-status';
 import type { BoardNodeYellowTarget } from '../../shared/types/holodori/board-node-types';
 
 /** ホロメン別ステータスの SQL 行とフロントエンド用モデルで値が一致する項目 */
-type HoloworkMemberStatusBaseRow = HoloworkMemberWithAchievementNote & Pick<HoloworkMemberStatus, 'holowork_achievements_id' | 'current_count' | 'active_holoworks_id' | 'active_holoworks_name'>;
+type HoloworkMemberStatusBaseRow = HoloworkMember & Pick<HoloworkMemberStatus, 'holowork_achievements_id' | 'current_count' | 'active_holoworks_id' | 'active_holoworks_name'>;
 
 /**
  * ホロメン別ステータス取得 SQL の1行を表す内部型

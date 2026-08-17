@@ -1,12 +1,12 @@
 import type { HoloworkAchievementProgress } from './holowork-achievement-progress';
-import type { HoloworkMemberWithAchievementNote } from './holowork-display';
+import type { HoloworkMember } from './holowork-display';
 import type { candidatePriorities } from '../../constants/app-constants';
 
 /** ホロワーク優先モードの全選択肢を示す型 */
 export type CandidatePriority = typeof candidatePriorities[number];
 
 /** 優先モードにかかわらず候補者レスポンスに含める共通項目 */
-export type HoloworkCandidateBase = HoloworkMemberWithAchievementNote;
+export type HoloworkCandidateBase = HoloworkMember;
 
 /** 完了回数重視を選択した場合の候補者1人を表現した型 */
 export type HoloworkCountCandidate = HoloworkCandidateBase & {

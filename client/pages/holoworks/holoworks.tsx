@@ -1,12 +1,10 @@
 import { type ReactElement, useEffect, useState } from 'react';
 
 import { CreateHoloworkModal } from './components/create-holowork-modal';
-import { HoloworkAchievementModal } from './components/holowork-achievement-modal';
 import { HoloworkMemberStatusesTable } from './components/holowork-member-statuses-table';
 import { HoloworksTable } from './components/holoworks-table';
-import { StartHoloworkModal } from './components/start-holowork-modal';
 import { isEmpty } from '../../../shared/helpers/is-empty';
-import { failedToDeleteMessage, failedToFetchMessage, generalFailedMessage } from '../../constants/client-messages';
+import { failedToFetchMessage } from '../../constants/client-messages';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
 
@@ -15,17 +13,12 @@ import type { HoloworkMemberStatus } from '../../../shared/types/app/holowork-me
 
 /** ホロワーク管理ページ */
 export default function HoloworksPage(): ReactElement {
-  const [isLoading     , setIsLoading     ] = useState<boolean>(true);                    // 初回の枠一覧・メンバー状況取得中か否か
-  const [holoworks     , setHoloworks     ] = useState<Array<HoloworkDisplay>>([]);       // 活動中メンバーを含む枠一覧
-  const [memberStatuses, setMemberStatuses] = useState<Array<HoloworkMemberStatus>>([]);  // 達成状況・活動状況・黄マス集計一覧
-  const [listError     , setListError     ] = useState<string>('');                       // 一覧取得時のエラーメッセージ
-  const [actionError   , setActionError   ] = useState<string>('');                       // 完了・中断・削除時のエラーメッセージ
-  
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);  // 親ページでの枠操作中か否か・一覧操作と枠追加を無効化する
-  
-  const [isCreateModalOpen  , setIsCreateModalOpen  ] = useState<boolean>(false);                     // 枠追加モーダルを表示中か否か
-  const [startingHolowork   , setStartingHolowork   ] = useState<HoloworkDisplay | null>(null);       // `null` は開始対象未選択を表す
-  const [editingMemberStatus, setEditingMemberStatus] = useState<HoloworkMemberStatus | null>(null);  // `null` は達成状況の編集対象未選択を表す
+  const [isLoading        , setIsLoading        ] = useState<boolean>(true);                    // 初回の枠一覧・メンバー状況取得中か否か
+  const [holoworks        , setHoloworks        ] = useState<Array<HoloworkDisplay>>([]);       // 活動中メンバーを含む枠一覧
+  const [memberStatuses   , setMemberStatuses   ] = useState<Array<HoloworkMemberStatus>>([]);  // 達成状況・活動状況・黄マス集計一覧
+  const [listError        , setListError        ] = useState<string>('');                       // 一覧取得時のエラーメッセージ
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);                   // 枠追加モーダルを表示中か否か
+  const [isSubmitting     , setIsSubmitting     ] = useState<boolean>(false);                   // 枠操作中か否か・枠操作、枠追加、メンバー編集の開始を無効化する
   
   /** 活動中メンバーを含むホロワーク枠一覧を取得する */
   const onLoadHoloworks = async (): Promise<void> => {
@@ -68,56 +61,12 @@ export default function HoloworksPage(): ReactElement {
     })();
   }, []);
   
-  /** `window.confirm()` で確認後に対象枠を完了または中断し、関連一覧を再取得する */
-  const onSubmitAction = async (holowork: HoloworkDisplay, action: 'complete' | 'abort'): Promise<void> => {
-    const confirmationMessage = action === 'complete'
-      ? `「${holowork.name}」を完了しますか？\n活動中メンバー全員のホロワーク完了回数が 1 増えます。`
-      : `「${holowork.name}」を中断しますか？\n中断ではホロワーク完了回数は増えません。`;
-    if(!window.confirm(confirmationMessage)) return;
-    
-    setActionError('');
-    setIsSubmitting(true);
-    try {
-      await adminApi.post(`/api/holoworks/${holowork.id}/${action}`);
-      await onLoadData();
-    }
-    catch(error) {
-      setActionError(extractApiErrorMessage(error, action === 'complete' ? generalFailedMessage('ホロワークの完了') : generalFailedMessage('ホロワークの中断')));
-    }
-    finally {
-      setIsSubmitting(false);
-    }
-  };
-  
-  /** `window.confirm()` で確認後、活動中メンバーがいない対象枠を削除する */
-  const onDeleteHolowork = async (holowork: HoloworkDisplay): Promise<void> => {
-    if(!window.confirm('このホロワーク枠を削除しますか？')) return;
-    
-    setActionError('');
-    setIsSubmitting(true);
-    try {
-      await adminApi.delete(`/api/holoworks/${holowork.id}`);
-      await onLoadData();
-    }
-    catch(error) {
-      setActionError(extractApiErrorMessage(error, failedToDeleteMessage('ホロワーク枠')));
-    }
-    finally {
-      setIsSubmitting(false);
-    }
-  };
-  
   return (
     <main>
       <h1>ホロワーク管理</h1>
       
       {!isEmpty(listError) && (
         <div className="alert alert-error alert-soft mb-4">{listError}</div>
-      )}
-      
-      {/* 完了・中断・削除時のエラー表示 */}
-      {!isEmpty(actionError) && (
-        <div className="alert alert-error alert-soft mb-4">{actionError}</div>
       )}
       
       {isLoading ? (
@@ -130,14 +79,16 @@ export default function HoloworksPage(): ReactElement {
           <HoloworksTable
             holoworks={holoworks}
             isDisabled={isSubmitting}
-            onStart={setStartingHolowork}
-            onComplete={holowork => onSubmitAction(holowork, 'complete')}
-            onAbort={holowork => onSubmitAction(holowork, 'abort')}
-            onDelete={onDeleteHolowork}
+            onChangeSubmitting={setIsSubmitting}
+            onUpdated={onLoadData}
           />
           
           {/* ホロメン別ホロワーク達成状況・黄マス情報テーブル */}
-          <HoloworkMemberStatusesTable memberStatuses={memberStatuses} onEdit={setEditingMemberStatus} />
+          <HoloworkMemberStatusesTable
+            memberStatuses={memberStatuses}
+            isDisabled={isSubmitting}
+            onUpdated={onLoadMemberStatuses}
+          />
           
           <div className="text-right">
             <button type="button" className="btn btn-info" onClick={() => setIsCreateModalOpen(true)} disabled={isSubmitting}>ホロワークの枠追加</button>
@@ -148,16 +99,6 @@ export default function HoloworksPage(): ReactElement {
       {/* 新規ホロワーク枠追加モーダル */}
       {isCreateModalOpen && (
         <CreateHoloworkModal onClose={() => setIsCreateModalOpen(false)} onCreated={onLoadData} />
-      )}
-      
-      {/* ホロワーク開始モーダル */}
-      {startingHolowork != null && (
-        <StartHoloworkModal holowork={startingHolowork} onClose={() => setStartingHolowork(null)} onStarted={onLoadData} />
-      )}
-      
-      {/* ホロワーク達成状況編集モーダル */}
-      {editingMemberStatus != null && (
-        <HoloworkAchievementModal memberStatus={editingMemberStatus} onClose={() => setEditingMemberStatus(null)} onUpdated={onLoadMemberStatuses} />
       )}
     </main>
   );

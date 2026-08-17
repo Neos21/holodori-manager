@@ -1,6 +1,6 @@
 import type { Holowork } from '../entities/holowork';
 
-/** ホロワーク管理ページの表示・候補選択で共通して参照するホロメン基本情報 */
+/** ホロワーク管理ページの表示・候補選択で共通して参照するホロメン基本情報とメモ */
 export type HoloworkMember = {
   /** ホロメン ID (`holomems.id`) */
   holomems_id: number;
@@ -10,12 +10,8 @@ export type HoloworkMember = {
   holomems_group_name: string;
   /** タレント名 (`holomems.name`) */
   holomems_name: string;
-};
-
-/** ホロワーク管理ページで共通して表示するホロメン基本情報と達成状況メモ */
-export type HoloworkMemberWithAchievementNote = HoloworkMember & {
-  /** ホロワーク達成状況の自由記入欄 (`holowork_achievements.note`)・未設定の場合は `null` または `undefined` */
-  achievement_note: string | null | undefined;
+  /** ホロメンの自由記入欄 (`holomems.note`)・未設定の場合は `null` または `undefined` */
+  holomems_note: string | null | undefined;
 };
 
 /** 活動中メンバーを含むフロントエンド表示用のホロワーク枠 */

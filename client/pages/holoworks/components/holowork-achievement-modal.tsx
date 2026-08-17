@@ -2,7 +2,7 @@ import { type ChangeEvent, type ReactElement, type SubmitEvent, useState } from 
 
 import { isEmpty } from '../../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
-import { achievementNoteDisplayName, currentCountDisplayName, holoworkAchievementSchema } from '../../../../shared/schemas/holowork-achievement-schema';
+import { currentCountDisplayName, holoworkAchievementSchema } from '../../../../shared/schemas/holowork-achievement-schema';
 import { failedToUpdateMessage } from '../../../constants/client-messages';
 import { adminApi } from '../../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../../helpers/extract-api-error-message';
@@ -20,28 +20,25 @@ type HoloworkAchievementModalProps = {
   onUpdated   : () => Promise<void>;
 };
 
-/** ホロワーク達成状況編集フォームの入力値・完了回数もフォーム要素に合わせて文字列として扱う */
+/** ホロワーク達成状況編集フォームの入力値・フォーム要素に合わせて文字列として扱う */
 type AchievementFormState = {
   /** 編集中のホロワーク完了回数 */
   current_count: NumberToStringValue;
-  /** 編集中の達成状況メモ・未入力時は空文字 */
-  note         : string;
 };
 
 /** 本モーダルで更新を許可する項目だけに限定したスキーマ */
-const achievementFormSchema = holoworkAchievementSchema.pick({ current_count: true, note: true });
+const achievementFormSchema = holoworkAchievementSchema.pick({ current_count: true });
 
 /** ホロワーク達成状況編集モーダル */
 export const HoloworkAchievementModal = ({ memberStatus, onClose, onUpdated }: HoloworkAchievementModalProps): ReactElement => {
   const [form, setForm] = useState<AchievementFormState>({  // 編集対象の現在値から生成するフォーム
-    current_count: String(memberStatus.current_count) as NumberToStringValue,
-    note         : memberStatus.achievement_note ?? ''
+    current_count: String(memberStatus.current_count) as NumberToStringValue
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);  // 達成状況更新の送信中か否か
   const [formError   , setFormError   ] = useState<string>('');      // バリデーション・API エラー
   
-  /** 完了回数またはメモの入力値をフォーム State に反映する */
-  const onChangeForm = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
+  /** 完了回数の入力値をフォーム State に反映する */
+  const onChangeForm = (event: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = event.target;
     setForm(prevForm => ({ ...prevForm, [name]: value }) as AchievementFormState);
   };
@@ -80,9 +77,6 @@ export const HoloworkAchievementModal = ({ memberStatus, onClose, onUpdated }: H
             
             <label className="fieldset-label">{currentCountDisplayName}</label>
             <input className="input w-full" name="current_count" type="number" min="0" step="1" value={form.current_count} onChange={onChangeForm} required />
-            
-            <label className="fieldset-label">{achievementNoteDisplayName}</label>
-            <textarea className="textarea w-full" name="note" value={form.note} onChange={onChangeForm} />
           </fieldset>
           
           {!isEmpty(formError) && (

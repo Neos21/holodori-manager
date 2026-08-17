@@ -1,8 +1,8 @@
 import type { HoloworkAchievementProgress } from './holowork-achievement-progress';
-import type { HoloworkMemberWithAchievementNote } from './holowork-display';
+import type { HoloworkMember } from './holowork-display';
 
 /** ホロメン別のホロワーク達成状況・活動状況・黄マス情報 */
-export type HoloworkMemberStatus = HoloworkMemberWithAchievementNote & HoloworkAchievementProgress & {
+export type HoloworkMemberStatus = HoloworkMember & HoloworkAchievementProgress & {
   /** ホロワーク達成状況 ID (`holowork_achievements.id`) */
   holowork_achievements_id: number;
   /** 現在のホロワーク完了回数 */

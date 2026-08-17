@@ -10,8 +10,7 @@ export class HoloworkAchievementsRepository {
   public async update(id: number, achievement: Partial<HoloworkAchievement>): Promise<void> {
     // ホロメン ID は編集不可とする
     const { sets, values } = buildUpdateQuery([
-      { column: 'current_count', value: achievement.current_count },
-      { column: 'note'         , value: achievement.note          }
+      { column: 'current_count', value: achievement.current_count }
     ]);
     
     if(sets.length === 0) return;

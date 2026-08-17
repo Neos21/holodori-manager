@@ -29,7 +29,7 @@ export class HoloworkCandidatesService {
         holomems_sort_order: row.holomems_sort_order,
         holomems_group_name: row.holomems_group_name,
         holomems_name      : row.holomems_name,
-        achievement_note   : row.achievement_note,
+        holomems_note      : row.holomems_note,
         current_count      : row.current_count,
         next_threshold     : progress.next_threshold,
         remaining_count    : progress.remaining_count
@@ -70,7 +70,7 @@ export class HoloworkCandidatesService {
           holomems_sort_order: row.holomems_sort_order,
           holomems_group_name: row.holomems_group_name,
           holomems_name      : row.holomems_name,
-          achievement_note   : row.achievement_note,
+          holomems_note      : row.holomems_note,
           total_rate         : 0
         };
         candidatesByHolomemsId.set(row.holomems_id, candidate);
@@ -103,7 +103,7 @@ export class HoloworkCandidatesService {
         holomems.sort_order                              AS holomems_sort_order,
         holomems.group_name                              AS holomems_group_name,
         holomems.name                                    AS holomems_name,
-        holowork_achievements.note                       AS achievement_note,
+        holomems.note                                    AS holomems_note,
         COALESCE(holowork_achievements.current_count, 0) AS current_count
       FROM holomems
       LEFT JOIN holowork_achievements
@@ -125,14 +125,14 @@ export class HoloworkCandidatesService {
   private async findRateCandidateRows(priority: Exclude<CandidatePriority, typeof candidatePriorityCount>): Promise<Array<HoloworkRateCandidateRow>> {
     const sql = `
       SELECT
-        holomems.id                AS holomems_id,
-        holomems.sort_order        AS holomems_sort_order,
-        holomems.group_name        AS holomems_group_name,
-        holomems.name              AS holomems_name,
-        holowork_achievements.note AS achievement_note,
-        board_nodes.yellow_target  AS yellow_target,
-        board_nodes.amount         AS amount,
-        board_nodes.connect_rate   AS connect_rate
+        holomems.id               AS holomems_id,
+        holomems.sort_order       AS holomems_sort_order,
+        holomems.group_name       AS holomems_group_name,
+        holomems.name             AS holomems_name,
+        holomems.note             AS holomems_note,
+        board_nodes.yellow_target AS yellow_target,
+        board_nodes.amount        AS amount,
+        board_nodes.connect_rate  AS connect_rate
       FROM holomems
       LEFT JOIN holowork_achievements
         ON holowork_achievements.holomems_id = holomems.id

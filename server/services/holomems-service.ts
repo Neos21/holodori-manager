@@ -18,10 +18,10 @@ export class HolomemsService {
       .prepare('INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) SELECT seq, ?, ?, ?, ?, ? FROM sqlite_sequence WHERE name = \'holomems\'')
       .bind(rarity, '通常版', booleanNumberFalse, defaultCardLevel, bloom0));
     
-    // ホロワーク達成状況のレコードを作っておく (D1 に `undefined` を渡すと `Type 'undefined' not supported for value 'undefined'` エラーになるので `null` を明示的に渡す)
+    // ホロワーク達成状況のレコードを作っておく
     const achievementStatement = this.db
-      .prepare('INSERT INTO holowork_achievements (holomems_id, current_count, note) SELECT seq, ?, ? FROM sqlite_sequence WHERE name = \'holomems\'')
-      .bind(0, null);
+      .prepare('INSERT INTO holowork_achievements (holomems_id, current_count) SELECT seq, ? FROM sqlite_sequence WHERE name = \'holomems\'')
+      .bind(0);
     
     // Batch は単一トランザクションとして実行される・先頭の `INSERT` で確定したホロメン ID を後続 SQL が `sqlite_sequence` から参照する
     const [holomemResult] = await this.db.batch([holomemStatement, ...cardStatements, achievementStatement]);

@@ -7,8 +7,8 @@ import { formatDecimal } from '../../../shared/helpers/format-decimal';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { amountDisplayName, boardNodeSchema, categoryDisplayName, connectRateDisplayName, descriptionDisplayName, isUnlockedDisplayName, yellowTargetDisplayName } from '../../../shared/schemas/board-node-schema';
-import { holomemSchema, noteDisplayName } from '../../../shared/schemas/holomem-schema';
 import { BoardNodesService } from '../../../shared/services/board-nodes-service';
+import { HolomemNote } from '../../components/holomem-note/holomem-note';
 import { failedToCreateMessage, failedToDeleteMessage, failedToFetchMessage, failedToUpdateMessage } from '../../constants/client-messages';
 import { adminApi } from '../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../helpers/extract-api-error-message';
@@ -31,11 +31,6 @@ type BoardNodeFormState = {
   amount       : NumberToStringValue;
   /** 未入力時は空文字とし、Schema で `null` に正規化する */
   connect_rate : NumberToStringValue;
-};
-
-/** ホロメンメモ編集フォームの入力値 */
-type HolomemNoteFormState = {
-  note: string;
 };
 
 /** カテゴリ名に対応する画面表記 */
@@ -102,17 +97,13 @@ export default function BoardNodesPage(): ReactElement {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);                               // フォーム送信中か否か
   const [formError   , setFormError   ] = useState<string>('');                                   // フォームのエラーメッセージ
   
+  // ホロメンメモの編集対象・`null` はモーダルを閉じている状態
+  const [noteTargetHolomem, setNoteTargetHolomem] = useState<Holomem | null>(null);
+  
   /** 編集中のフォームが参照するホロメン。新規追加時または対象を取得できない場合は `null` */
   const editingHolomem             = editingId      == null ? null : holomems.find(holomem => holomem.id === Number(form.holomems_id)) ?? null;
   /** 編集時に読み取り専用で表示するホロメン情報。対象を取得できない場合は空文字 */
   const editingHolomemDisplayValue = editingHolomem == null ? ''   : `${editingHolomem.group_name} : ${editingHolomem.name} (ID : ${form.holomems_id})`;
-  
-  // ホロメンメモモーダル用 State
-  const [isNoteModalOpen  , setIsNoteModalOpen  ] = useState<boolean>(false);                      // ホロメンメモ編集モーダルを表示中か否か
-  const [holomemNoteForm  , setHolomemNoteForm  ] = useState<HolomemNoteFormState>({ note: '' });  // ホロメンメモ編集フォームの入力値
-  const [noteTargetHolomem, setNoteTargetHolomem] = useState<Holomem | null>(null);                // 編集対象のホロメン・モーダルを閉じている場合は `null`
-  const [isSubmittingNote , setIsSubmittingNote ] = useState<boolean>(false);                      // ホロメンメモ送信中か否か
-  const [noteFormError    , setNoteFormError    ] = useState<string>('');                          // ホロメンメモフォームのエラーメッセージ
   
   /** ボードマス一覧を API から取得し、取得エラーを画面表示用 State に反映する */
   const onLoadBoardNodes = async (): Promise<void> => {
@@ -252,48 +243,17 @@ export default function BoardNodesPage(): ReactElement {
   /** ホロメンメモの編集を開始する */
   const onOpenNoteModal = (holomem: Holomem): void => {
     setNoteTargetHolomem(holomem);
-    setHolomemNoteForm({ note: holomem.note ?? '' });
-    setNoteFormError('');
-    setIsNoteModalOpen(true);
   };
   
-  /** 変更されたホロメンメモの値をフォーム State に反映する */
-  const onChangeNoteForm = (event: ChangeEvent<HTMLTextAreaElement>): void => {
-    const { name, value } = event.target;
-    setHolomemNoteForm(prevHolomemNoteForm => ({ ...prevHolomemNoteForm, [name]: value }));
-  };
-  
-  /** 関連 State をリセットしてホロメンメモ編集モーダルを閉じる */
+  /** 編集対象をリセットしてホロメンメモ編集モーダルを閉じる */
   const onCloseNoteModal = (): void => {
-    setIsNoteModalOpen(false);  // 先にモーダルを閉じてから関連 State をリセットしておく
     setNoteTargetHolomem(null);
-    setHolomemNoteForm({ note: '' });
-    setNoteFormError('');
   };
   
-  /** ホロメンメモを検証して更新し、共有するホロメン一覧を再読込する */
-  const onSubmitNote = async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
-    event.preventDefault();
-    
-    if(noteTargetHolomem == null) return window.alert('異常 : 更新対象のホロメンが選択されていません');
-    setNoteFormError('');
-    
-    const parsed = holomemSchema.pick({ note: true }).safeParse({ note: holomemNoteForm.note });
-    if(!parsed.success) return setNoteFormError(mergeIssues(parsed.error));
-    
-    setIsSubmittingNote(true);
-    try {
-      await adminApi.patch(`/api/holomems/${noteTargetHolomem.id}`, { json: parsed.data });
-      onCloseNoteModal();  // 先にモーダルを閉じる
-      const reloadResult = await useHolomemsStore.getState().reloadHolomems();  // ホロメン一覧を再読込する
-      if(reloadResult.error != null) setListError(reloadResult.error);
-    }
-    catch(error) {
-      setNoteFormError(extractApiErrorMessage(error, failedToUpdateMessage('ホロメンメモ')));
-    }
-    finally {
-      setIsSubmittingNote(false);
-    }
+  /** 更新後に共有するホロメン一覧を再読込する */
+  const onUpdateHolomemNote = async (): Promise<void> => {
+    const reloadResult = await useHolomemsStore.getState().reloadHolomems();
+    if(reloadResult.error != null) setListError(reloadResult.error);
   };
   
   return (
@@ -468,33 +428,8 @@ export default function BoardNodesPage(): ReactElement {
         </div>
       )}
       
-      {isNoteModalOpen && (
-        <div className="modal modal-open">
-          <div className="modal-box max-w-xl">
-            <h2 className="mb-4 text-lg font-bold">ホロメンメモ編集</h2>
-            
-            {!isEmpty(noteFormError) && (
-              <div className="alert alert-error alert-soft mb-4">{noteFormError}</div>
-            )}
-            
-            <form onSubmit={onSubmitNote}>
-              <fieldset className="fieldset">
-                <label className="fieldset-label">ホロメン</label>
-                <input className="input w-full" type="text" readOnly disabled value={noteTargetHolomem == null ? '' : `${noteTargetHolomem.group_name} : ${noteTargetHolomem.name}`} />
-                
-                <label className="fieldset-label">{noteDisplayName}</label>
-                <textarea className="textarea w-full min-h-24" name="note" value={holomemNoteForm.note} onChange={onChangeNoteForm} />
-              </fieldset>
-              
-              <div className="modal-action justify-between">
-                <button type="button" className="btn" onClick={onCloseNoteModal} disabled={isSubmittingNote}>キャンセル</button>
-                <button type="submit" className="btn btn-info" disabled={isSubmittingNote}>更新する</button>
-              </div>
-            </form>
-          </div>
-          
-          <div className="modal-backdrop" onClick={onCloseNoteModal} />
-        </div>
+      {noteTargetHolomem != null && (
+        <HolomemNote holomem={noteTargetHolomem} onClose={onCloseNoteModal} onUpdated={onUpdateHolomemNote} />
       )}
     </main>
   );

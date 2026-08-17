@@ -33,8 +33,7 @@ CREATE TABLE board_nodes (  -- ホロメンボードのマス
 CREATE TABLE holowork_achievements (  -- ホロワーク達成状況
   id             INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
   holomems_id    INTEGER  NOT NULL  UNIQUE,            -- FK → holomems.id・ユニーク
-  current_count  INTEGER  NOT NULL  DEFAULT 0,         -- ホロワーク完了回数
-  note           TEXT                                  -- 自由記入欄
+  current_count  INTEGER  NOT NULL  DEFAULT 0          -- ホロワーク完了回数
 );
 
 CREATE TABLE holoworks (  -- ホロワークの枠

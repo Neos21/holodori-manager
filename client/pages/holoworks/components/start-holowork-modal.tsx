@@ -34,8 +34,9 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
   const [priority , setPriority ] = useState<CandidatePriority | ''>('');  // 優先モードの選択値・空文字は未選択を表す
   const [isLoading, setIsLoading] = useState<boolean>(false);              // 優先モード変更時の候補取得中か否か
   
-  const [priorityCandidates, setPriorityCandidates] = useState<Array<HoloworkCandidate>>([]);  // API が優先条件に合致すると判定した候補
-  const [otherCandidates   , setOtherCandidates   ] = useState<Array<HoloworkCandidate>>([]);  // API が返す、優先候補と重複しない選択可能候補
+  const [priorityCandidates    , setPriorityCandidates    ] = useState<Array<HoloworkCandidate>>([]);  // API が優先条件に合致すると判定した候補
+  const [otherCandidates       , setOtherCandidates       ] = useState<Array<HoloworkCandidate>>([]);  // API が返す、優先候補と重複しない選択可能候補
+  const [expandedNoteHolomemIds, setExpandedNoteHolomemIds] = useState<Array<number>>([]);             // メモ欄を展開しているホロメン ID
   
   const [selectedHolomemsIds, setSelectedHolomemsIds] = useState<Array<number>>([]);  // 両候補テーブルで共有する選択済みのメンバー ID
   const [isSubmitting       , setIsSubmitting       ] = useState<boolean>(false);     // ホロワーク開始の送信中か否か
@@ -49,6 +50,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
     setSelectedHolomemsIds([]);  // 優先モードが変わると候補集合と比較条件も変わるため、旧モードでの選択は引き継がない
     setPriorityCandidates([]);
     setOtherCandidates([]);
+    setExpandedNoteHolomemIds([]);
     setFormError('');
     
     if(isEmpty(selectedPriority)) return;  // 未選択に戻した場合は API コールしない
@@ -65,6 +67,13 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
     finally {
       setIsLoading(false);
     }
+  };
+  
+  /** メモ欄を1行省略表示と全文折り返し表示で切り替える */
+  const onToggleNote = (holomemId: number): void => {
+    setExpandedNoteHolomemIds(prevExpandedNoteHolomemIds => prevExpandedNoteHolomemIds.includes(holomemId)
+      ? prevExpandedNoteHolomemIds.filter(id => id !== holomemId)
+      : [...prevExpandedNoteHolomemIds, holomemId]);
   };
   
   /** 両候補テーブルで共有するホロメン選択を最大人数以内で更新する */
@@ -117,7 +126,16 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
         ) : (
           <td className="px-1 whitespace-nowrap text-right">{candidate.total_rate > 0 ? formatDecimal(candidate.total_rate) + '%' : '-'}</td>
         )}
-        <td className="pl-1 pr-0 whitespace-pre-wrap">{isEmpty(candidate.achievement_note) ? '-' : candidate.achievement_note}</td>
+        <td className="pl-1 pr-0">
+          {isEmpty(candidate.holomems_note) ? '-' : (
+            <div
+              className={`cursor-pointer ${expandedNoteHolomemIds.includes(candidate.holomems_id) ? 'whitespace-pre-wrap' : 'line-clamp-1'}`}
+              onClick={() => onToggleNote(candidate.holomems_id)}
+            >
+              {candidate.holomems_note}
+            </div>
+          )}
+        </td>
       </tr>
     );
   };
@@ -146,7 +164,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
                 ) : (
                   <th className="px-1 w-px text-right">合計レート</th>
                 )}
-                <th className="pl-1 pr-0">達成状況メモ</th>
+                <th className="pl-1 pr-0">ホロメンメモ</th>
               </tr>
             </thead>
             <tbody>
