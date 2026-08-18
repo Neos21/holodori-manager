@@ -1,7 +1,7 @@
-import { type ChangeEvent, type ReactElement, type SubmitEvent, useEffect, useState } from 'react';
+import { type ChangeEvent, type ReactElement, type SubmitEvent, useEffect, useMemo, useState } from 'react';
 
 import { booleanNumberTrue, booleanStringFalse, booleanStringTrue } from '../../../shared/constants/boolean-constants';
-import { bloom0, blooms, defaultCardLevel, rarities, star5 } from '../../../shared/constants/holodori-constants';
+import { bloom0, bloom1, blooms, defaultCardLevel, rarities, star5 } from '../../../shared/constants/holodori-constants';
 import { isEmpty } from '../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../shared/helpers/merge-issues';
 import { bloomDisplayName, cardNameDisplayName, cardSchema, isOwnedDisplayName, levelDisplayName, rarityDisplayName } from '../../../shared/schemas/card-schema';
@@ -14,8 +14,27 @@ import { useHolomemsStore } from '../../stores/holomems-store';
 import type { CardDisplay } from '../../../shared/types/app/card-display';
 import type { Card } from '../../../shared/types/entities/card';
 import type { Holomem } from '../../../shared/types/entities/holomem';
+import type { Rarity } from '../../../shared/types/holodori/card-types';
 import type { BooleanString } from '../../../shared/types/utilities/boolean-types';
 import type { NumberToStringValue } from '../../../shared/types/utilities/number-types';
+
+/**
+ * カード一覧の並び順
+ * 
+ * - `orderOnly`  : ホロメン順 : デフォルトのソート順・表示順 ASC → ホロメン ID ASC → レア度 DESC → カード ID ASC
+ * - `orderOwned` : 所有優先   : 「所有済 → 未所有」 → 表示順 ASC → ホロメン ID ASC
+ * - `power`      : 強さ順     : 「所有済 → 未所有」 → レア度 DESC → レベル DESC → 開花度 DESC → 表示順 ASC → ホロメン ID ASC
+ */
+type CardSortMode = 'orderOnly' | 'orderOwned' | 'power';
+
+/**
+ * カード一覧の所有状況による絞り込み条件
+ * 
+ * - `all`      : 全て
+ * - `owned`    : 所有済のみ
+ * - `notOwned` : 未所有のみ
+ */
+type CardOwnedFilter = 'all' | 'owned' | 'notOwned';
 
 /** カードの新規追加・編集フォームの入力値・数値項目もフォーム要素に合わせて文字列として扱う */
 type CardFormState = {
@@ -45,9 +64,34 @@ const createCardDisplays = (cards: Array<Card>, holomems: Array<Holomem>): Array
     .sort((cardA, cardB) => cardB.rarity - cardA.rarity || cardA.id - cardB.id)
     .map(card => ({
       ...card,
+      holomem_sort_order: holomem.sort_order,
       holomem_group_name: holomem.group_name,
       holomem_name      : holomem.name
     })));
+
+/** 選択された並び順に従って2件のカードの表示順を比較する */
+const compareCardDisplays = (cardA: CardDisplay, cardB: CardDisplay, sortMode: CardSortMode): number => {
+  // デフォルトの `orderOnly` モード以外では「所有済」→「未所有」で予めソートする
+  if(sortMode !== 'orderOnly' && cardA.is_owned !== cardB.is_owned) return cardA.is_owned === booleanNumberTrue ? -1 : 1;
+  
+  // 以降はソートモードに応じて処理する
+  switch(sortMode) {
+    case 'orderOnly':  // 表示順 ASC → ホロメン ID ASC → レア度 DESC → カード ID ASC
+      return cardA.holomem_sort_order - cardB.holomem_sort_order
+        || cardA.holomems_id - cardB.holomems_id
+        || cardB.rarity - cardA.rarity
+        || cardA.id - cardB.id;
+    case 'orderOwned':  // (前述の「所有済 → 未所有」ソートの後) 表示順 ASC → ホロメン ID ASC
+      return cardA.holomem_sort_order - cardB.holomem_sort_order
+        || cardA.id - cardB.id;
+    case 'power':  // レア度 DESC → レベル DESC → 開花度 DESC → 表示順 ASC → ホロメン ID ASC
+      return cardB.rarity - cardA.rarity
+        || cardB.level - cardA.level
+        || cardB.bloom - cardA.bloom
+        || cardA.holomem_sort_order - cardB.holomem_sort_order
+        || cardA.id - cardB.id;
+  }
+};
 
 /**
  * カード一覧ページ
@@ -57,11 +101,29 @@ const createCardDisplays = (cards: Array<Card>, holomems: Array<Holomem>): Array
  * - カードの物理削除には対応していない (現状対応予定なし)
  */
 export default function CardsPage(): ReactElement {
-  const [isLoading, setIsLoading] = useState<boolean>(true);                    // 一覧の初期読込中か否か
-  const [cards    , setCards    ] = useState<Array<Card>>([]);                  // API から取得したカード一覧
-  const [listError, setListError] = useState<string>('');                       // 一覧読込時のエラーメッセージ
-  const holomems                  = useHolomemsStore(state => state.holomems);  // カードの表示情報との合成・新規カード追加時の選択肢に利用する
-  const cardDisplays              = createCardDisplays(cards, holomems);        // API から個別に取得したカードとホロメンから導出する表示用一覧
+  const [isLoading, setIsLoading] = useState<boolean>(true);    // 一覧の初期読込中か否か
+  const [cards    , setCards    ] = useState<Array<Card>>([]);  // API から取得したカード一覧
+  const [listError, setListError] = useState<string>('');       // 一覧読込時のエラーメッセージ
+  
+  const holomems     = useHolomemsStore(state => state.holomems);                              // カードの表示情報との合成・新規カード追加時の選択肢に利用する
+  const cardDisplays = useMemo(() => createCardDisplays(cards, holomems), [cards, holomems]);  // API から個別に取得したカードとホロメンから導出する表示用一覧
+  
+  const [sortMode       , setSortMode       ] = useState<CardSortMode>('orderOnly');       // カード一覧の並び順
+  const [ownedFilter    , setOwnedFilter    ] = useState<CardOwnedFilter>('all');          // 所有状況による絞り込み条件
+  const [rarityFilter   , setRarityFilter   ] = useState<Set<Rarity>>(new Set<Rarity>());  // 空なら全レア度を表示する
+  const [isBloomFilterOn, setIsBloomFilterOn] = useState<boolean>(false);                  // 開花度1以上のカードだけを表示するか否か
+  
+  /** 全カードに絞り込み条件を適用し、選択された並び順でソートした表示対象 */
+  const visibleCards = useMemo(() => cardDisplays
+    .filter(card => {
+      if(ownedFilter === 'owned'    && card.is_owned !== booleanNumberTrue) return false;  // 「所有済のみ」の時は `is_owned = true` のみ通るようにする
+      if(ownedFilter === 'notOwned' && card.is_owned === booleanNumberTrue) return false;  // 「未所有のみ」の時は `is_owned = false` のみ通るようにする
+      if(rarityFilter.size > 0      && !rarityFilter.has(card.rarity))      return false;  // レア度が指定された時は指定のレア度のみ通るようにする
+      if(isBloomFilterOn            && card.bloom < bloom1)                 return false;  // 「開花度1以上のみ」が選択された時は開花度0のモノを除外する
+      return true;
+    })
+    .sort((cardA, cardB) => compareCardDisplays(cardA, cardB, sortMode)),
+  [cardDisplays, sortMode, ownedFilter, rarityFilter, isBloomFilterOn]);
   
   const [isModalOpen , setIsModalOpen ] = useState<boolean>(false);                          // 新規追加・編集モーダルを表示中か否か
   const [form        , setForm        ] = useState<CardFormState>(createEmptyFormValues());  // 新規追加・編集フォームの入力値
@@ -144,6 +206,23 @@ export default function CardsPage(): ReactElement {
     setForm(prevForm => ({ ...prevForm, is_owned: event.target.checked ? booleanStringTrue : booleanStringFalse }));
   };
   
+  /** 選択された並び順をカード一覧に反映する */
+  const onChangeSortMode = (event: ChangeEvent<HTMLSelectElement>): void => setSortMode(event.target.value as CardSortMode);
+  
+  /** 選択された所有状況の絞り込み条件をカード一覧に反映する */
+  const onChangeOwnedFilter = (event: ChangeEvent<HTMLSelectElement>): void => setOwnedFilter(event.target.value as CardOwnedFilter);
+  
+  /** 指定されたレア度の絞り込みを切り替える */
+  const onToggleRarityFilter = (rarity: Rarity): void => setRarityFilter(prevRarityFilter => {
+    const nextRarityFilter = new Set(prevRarityFilter);
+    if(nextRarityFilter.has(rarity)) nextRarityFilter.delete(rarity);
+    else                             nextRarityFilter.add(rarity);
+    return nextRarityFilter;
+  });
+  
+  /** 開花度による絞り込みの有効・無効を切り替える */
+  const onChangeIsBloomFilterOn = (event: ChangeEvent<HTMLInputElement>): void => setIsBloomFilterOn(event.target.checked);
+  
   /** フォーム情報をリセットしてモーダルを閉じる */
   const onCloseModal = (): void => {
     resetForm();
@@ -198,35 +277,76 @@ export default function CardsPage(): ReactElement {
           {cardDisplays.length === 0 ? (
             <p className="mb-4">登録されているカードはありません。</p>
           ) : (
-            <div className="mb-4 overflow-x-auto">
-              <table className="table table-xs">
-                <thead>
-                  <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                    <th className="w-px pl-0 pr-1            ">{groupNameDisplayName}</th>
-                    <th className="w-px px-1                 ">名前</th>
-                    <th className="w-px px-1      text-center">★</th>
-                    <th className="     px-1                 ">{cardNameDisplayName}</th>
-                    <th className="w-px px-1      text-center">Lv</th>
-                    <th className="w-px px-1      text-center">開花</th>
-                    <th className="w-px pl-1 pr-0 text-center">編集</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* 未所有カードの行はグレー背景で表示する */}
-                  {cardDisplays.map(card => (
-                    <tr key={card.id} className={`[&>td]:align-top ${card.is_owned === booleanNumberTrue ? '' : 'bg-base-300'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                      <td className="         pl-0 pr-1      whitespace-nowrap              ">{card.holomem_group_name}</td>
-                      <td className="         px-1           whitespace-nowrap              ">{card.holomem_name}</td>
-                      <td className="         px-1           whitespace-nowrap text-center  ">{card.rarity}</td>
-                      <td className="min-w-36 px-1                                          ">{card.name}</td>
-                      <td className="         px-1           whitespace-nowrap text-right   ">{card.level}</td>
-                      <td className="         px-1           whitespace-nowrap text-center  ">{card.bloom}</td>
-                      <td className="         pl-1 pr-0 py-0 whitespace-nowrap !align-middle"><button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(card)}>編集</button></td>
-                    </tr>
+            <>
+              <div className="mb-1 grid grid-cols-2 gap-x-2 min-w-80">
+                <fieldset className="fieldset">
+                  <label className="fieldset-label">並び順</label>
+                  <select className="select select-sm w-full" value={sortMode} onChange={onChangeSortMode}>
+                    <option value="orderOnly">ホロメン順</option>
+                    <option value="orderOwned">所有優先</option>
+                    <option value="power">強さ順</option>
+                  </select>
+                </fieldset>
+                
+                <fieldset className="fieldset">
+                  <label className="fieldset-label">所有状況</label>
+                  <select className="select select-sm w-full" value={ownedFilter} onChange={onChangeOwnedFilter}>
+                    <option value="all">全て</option>
+                    <option value="owned">所有済のみ</option>
+                    <option value="notOwned">未所有のみ</option>
+                  </select>
+                </fieldset>
+              </div>
+              
+              <div className="mb-2 grid grid-cols-2 gap-x-2 items-end min-w-80">
+                <div className="join">
+                  {[...rarities].reverse().map(rarity => (
+                    <button key={rarity} type="button" className={`btn btn-sm join-item ${rarityFilter.has(rarity) ? 'btn-info' : ''}`} onClick={() => onToggleRarityFilter(rarity)}>★{rarity}</button>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </div>
+                
+                <label className="fieldset-label text-sm whitespace-nowrap">
+                  <input className="checkbox checkbox-sm" type="checkbox" checked={isBloomFilterOn} onChange={onChangeIsBloomFilterOn} />
+                  開花度1以上のみ
+                </label>
+              </div>
+              
+              <p className="mb-4 text-xs text-right">{visibleCards.length} / {cardDisplays.length} 件表示</p>
+              
+              {visibleCards.length === 0 ? (
+                <p className="mb-4 text-sm">絞り込み条件に一致するカードはありません。</p>
+              ) : (
+                <div className="mb-4 overflow-x-auto">
+                  <table className="table table-xs">
+                    <thead>
+                      <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
+                        <th className="w-px pl-0 pr-1            ">{groupNameDisplayName}</th>
+                        <th className="w-px px-1                 ">名前</th>
+                        <th className="     px-1                 ">{cardNameDisplayName}</th>
+                        <th className="w-px px-1      text-center">★</th>
+                        <th className="w-px px-1      text-center">Lv</th>
+                        <th className="w-px px-1      text-center">開花</th>
+                        <th className="w-px pl-1 pr-0 text-center">編集</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* 未所有カードの行はグレー背景で表示する */}
+                      {visibleCards.map(card => (
+                        <tr key={card.id} className={`[&>td]:align-top ${card.is_owned === booleanNumberTrue ? '' : 'bg-base-300'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
+                          <td className="         pl-0 pr-1      whitespace-nowrap              ">{card.holomem_group_name}</td>
+                          <td className="         px-1           whitespace-nowrap              ">{card.holomem_name}</td>
+                          <td className="min-w-36 px-1                                          ">{card.name}</td>
+                          <td className="         px-1           whitespace-nowrap text-center  ">{card.rarity}</td>
+                          <td className="         px-1           whitespace-nowrap text-right   ">{card.level}</td>
+                          <td className="         px-1           whitespace-nowrap text-center  ">{card.bloom}</td>
+                          <td className="         pl-1 pr-0 py-0 whitespace-nowrap !align-middle"><button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(card)}>編集</button></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           )}
           
           <div className="text-right">
