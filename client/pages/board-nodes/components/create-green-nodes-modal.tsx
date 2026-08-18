@@ -152,9 +152,9 @@ export const CreateGreenNodesModal = ({ holomems, onClose, onUpdated }: CreateGr
               <tbody>
                 {rows.map((row, rowIndex) => (
                   <tr key={rowIndex} className="[&>td]:align-top">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                    <td className="pl-0 pr-1                    "><input className="input input-sm w-full" type="text"              name="description"  value={row.description}                         onChange={event => onChangeRow(rowIndex, event)} /></td>
-                    <td className="px-1                         "><input className="input input-sm w-full" type="number" step="any" name="amount"       value={row.amount}                              onChange={event => onChangeRow(rowIndex, event)} /></td>
-                    <td className="px-1                         "><input className="input input-sm w-full" type="number" step="any" name="connect_rate" value={row.connect_rate}                        onChange={event => onChangeRow(rowIndex, event)} /></td>
+                    <td className="pl-0 pr-1                    "><input className="input input-xs w-full" type="text"              name="description"  value={row.description}                         onChange={event => onChangeRow(rowIndex, event)} /></td>
+                    <td className="px-1                         "><input className="input input-xs w-full" type="number" step="any" name="amount"       value={row.amount}                              onChange={event => onChangeRow(rowIndex, event)} /></td>
+                    <td className="px-1                         "><input className="input input-xs w-full" type="number" step="any" name="connect_rate" value={row.connect_rate}                        onChange={event => onChangeRow(rowIndex, event)} /></td>
                     <td className="p-0 text-center !align-middle"><input className="checkbox checkbox-sm"  type="checkbox"                              checked={row.is_unlocked === booleanStringTrue} onChange={event => onChangeIsUnlocked(rowIndex, event)} /></td>
                   </tr>
                 ))}

@@ -59,7 +59,7 @@ export default function AdminLayout(): ReactElement {
         </header>
         
         {/* コンテンツ部分 */}
-        <div className="min-h-screen pt-4 px-3 pb-8">
+        <div className="min-h-screen pt-4 px-3 pb-12">
           <Outlet />
         </div>
       </div>
