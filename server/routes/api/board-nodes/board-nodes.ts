@@ -3,7 +3,7 @@ import { jwt } from 'hono/jwt';
 
 import { httpStatusCode } from '../../../../shared/constants/http-status-code';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
-import { boardNodeSchema } from '../../../../shared/schemas/board-node-schema';
+import { boardNodeSchema, createBoardNodesSchema } from '../../../../shared/schemas/board-node-schema';
 import { invalidIdErrorMessage, invalidRequestBodyErrorMessage } from '../../../constants/server-messages';
 import { BoardNodesRepository } from '../../../repositories/board-nodes-repository';
 
@@ -18,6 +18,18 @@ boardNodes.use((context, next) => jwt({ secret: context.env.ADMIN_JWT_SECRET, al
 boardNodes.get('/', async context => {
   const boardNodes = await new BoardNodesRepository(context.env.DB).findAll();
   return context.json({ result: boardNodes }, httpStatusCode.ok);
+});
+
+/** 複数のボードマスを一括追加する */
+boardNodes.post('/bulk', async context => {
+  const body = await context.req.json().catch(() => null);
+  if(body == null) return context.json({ error: invalidRequestBodyErrorMessage }, httpStatusCode.badRequest);
+  
+  const parsed = createBoardNodesSchema.safeParse(body);
+  if(!parsed.success) return context.json({ error: mergeIssues(parsed.error) }, httpStatusCode.badRequest);
+  
+  const ids = await new BoardNodesRepository(context.env.DB).createMany(parsed.data.board_nodes);
+  return context.json({ result: { ids } }, httpStatusCode.created);
 });
 
 /** ボードマスを追加する */

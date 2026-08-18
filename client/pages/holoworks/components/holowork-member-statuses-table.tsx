@@ -76,7 +76,10 @@ export const HoloworkMemberStatusesTable = ({ memberStatuses, isDisabled, onUpda
                     <td className="         px-1      whitespace-nowrap   text-right               ">{memberStatus.cube_total_rate      > 0 ? formatDecimal(memberStatus.cube_total_rate     ) + '%' : '-'}</td>
                     <td className="         px-1      whitespace-nowrap   text-right               ">{memberStatus.training_total_rate  > 0 ? formatDecimal(memberStatus.training_total_rate ) + '%' : '-'}</td>
                     <td className="         px-1      whitespace-nowrap   text-right               ">{memberStatus.lesson_pt_total_rate > 0 ? formatDecimal(memberStatus.lesson_pt_total_rate) + '%' : '-'}</td>
-                    <td className="min-w-35 pl-1 pr-0 line-clamp-1                  cursor-pointer" onClick={() => onEditNote(memberStatus)}>{isEmpty(memberStatus.holomems_note) ? '-' : memberStatus.holomems_note}</td>
+                    <td className="min-w-35 pl-1 pr-0                               cursor-pointer" onClick={() => onEditNote(memberStatus)}>
+                      {/* `td` 要素に `line-clamp-1` を付けると折り返された文字が見切れるため `div` 必須 */}
+                      <div className="line-clamp-1">{isEmpty(memberStatus.holomems_note) ? '-' : memberStatus.holomems_note}</div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -82,6 +82,15 @@ $ wrangler d1 execute holodori-manager --local  --command='SELECT * FROM sqlite_
 $ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM sqlite_master WHERE type = '\''table'\'''
 $ wrangler d1 execute holodori-manager --local  --command='SELECT * FROM sqlite_master WHERE type = '\''index'\'''
 $ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM sqlite_master WHERE type = '\''index'\'''
+
+# リモートのデータをバックアップとして取得するコマンド例
+$ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM holomems'                --json | jq --compact-output '.[].results[]' > ./migrations/backups/holomems.jsonl
+$ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM cards'                   --json | jq --compact-output '.[].results[]' > ./migrations/backups/cards.jsonl
+$ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM board_nodes'             --json | jq --compact-output '.[].results[]' > ./migrations/backups/board-nodes.jsonl
+$ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM holowork_achievements'   --json | jq --compact-output '.[].results[]' > ./migrations/backups/holowork-achievements.jsonl
+$ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM holoworks'               --json | jq --compact-output '.[].results[]' > ./migrations/backups/holoworks.jsonl
+$ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM active_holowork_members' --json | jq --compact-output '.[].results[]' > ./migrations/backups/active-holowork-members.jsonl
+$ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM memos'                   --json | jq --compact-output '.[].results[]' > ./migrations/backups/memos.jsonl
 ```
 
 

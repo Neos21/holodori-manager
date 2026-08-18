@@ -34,6 +34,7 @@ Hono で提供する `/api` 配下の API 契約を示す。各項目の厳密�
 | カード             | `PATCH`  | `/api/cards/:id`                                                      | 更新する                                         |
 | ボードノード       | `GET`    | `/api/board-nodes`                                                    | 一覧を取得する                                   |
 | ボードノード       | `POST`   | `/api/board-nodes`                                                    | 追加する                                         |
+| ボードノード       | `POST`   | `/api/board-nodes/bulk`                                               | 複数件を一括追加する                             |
 | ボードノード       | `PATCH`  | `/api/board-nodes/:id`                                                | 更新する                                         |
 | ボードノード       | `DELETE` | `/api/board-nodes/:id`                                                | 削除する                                         |
 | ホロワーク達成状況 | `PATCH`  | `/api/holowork-achievements/:id`                                      | 更新する                                         |
@@ -51,6 +52,17 @@ Hono で提供する `/api` 配下の API 契約を示す。各項目の厳密�
 | メモ               | `DELETE` | `/api/memos/:id`                                                      | ID 1 以外を削除する                              |
 
 Hono のルート定義では、`member-statuses` と `candidates` の固定パスを `/:id` を含むルートより前に置く。
+
+
+## ボードノード一括追加
+
+`POST /api/board-nodes/bulk` は、単体追加と同じボードマス入力を `board_nodes` 配列で受け取る。配列は1件以上とし、全件の Schema 検証後に同じ D1 Batch で作成する。
+
+```ts
+type CreateBoardNodesRequest = {
+  board_nodes: Array<Omit<BoardNode, 'id'>>;
+};
+```
 
 
 ## ホロワーク候補

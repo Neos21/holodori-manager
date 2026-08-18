@@ -60,3 +60,9 @@ export const boardNodeSchema = z.object({
     context.addIssue({ code: 'custom', message: `${yellowTargetDisplayName}は黄マス以外では指定できません` });
   }
 });
+
+/** 複数のホロメンボードマスを一括追加する際の入力スキーマ */
+export const createBoardNodesSchema = z.object({
+  board_nodes: z.array(boardNodeSchema)
+    .min(1, { error: '追加対象のマスを1件以上入力してください' })
+});

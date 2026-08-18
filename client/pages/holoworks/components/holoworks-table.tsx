@@ -98,10 +98,10 @@ export const HoloworksTable = ({ holoworks, isDisabled, onChangeSubmitting, onUp
                     <tr key={holowork.id}>
                       <td className="         pl-0 pr-1      whitespace-nowrap            ">{holowork.name}</td>
                       <td className="min-w-35 px-1                                        ">{hasActiveMembers ? holowork.active_members.map(activeMember => (<div key={activeMember.holomems_id}>{activeMember.holomems_group_name} {activeMember.holomems_name}</div>)) : '-'}</td>
-                      <td className="         px-1      py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-info"    onClick={() => setStartingHolowork(holowork)}        disabled={isDisabled || hasActiveMembers} >開始</button></td>
+                      <td className="         px-1      py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-info"    onClick={() => setStartingHolowork(holowork)}  disabled={isDisabled || hasActiveMembers} >開始</button></td>
                       <td className="         px-1      py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-success" onClick={() => onSubmit(holowork, 'complete')} disabled={isDisabled || !hasActiveMembers}>完了</button></td>
                       <td className="         px-1      py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-warning" onClick={() => onSubmit(holowork, 'abort')}    disabled={isDisabled || !hasActiveMembers}>中断</button></td>
-                      <td className="         pl-1 pr-0 py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-error"   onClick={() => onDelete(holowork)}           disabled={isDisabled || hasActiveMembers} >削除</button></td>
+                      <td className="         pl-1 pr-0 py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-error"   onClick={() => onDelete(holowork)}             disabled={isDisabled || hasActiveMembers} >削除</button></td>
                     </tr>
                   );
                 })}

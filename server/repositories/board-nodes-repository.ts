@@ -23,6 +23,17 @@ export class BoardNodesRepository {
     return result.meta.last_row_id;
   }
   
+  /** 複数のボードマスを一括作成して、作成された ID を返す */
+  public async createMany(boardNodes: Array<Partial<BoardNode>>): Promise<Array<number>> {
+    if(boardNodes.length === 0) return [];
+    
+    const statements = boardNodes.map(boardNode => this.db
+      .prepare('INSERT INTO board_nodes (holomems_id, category, yellow_target, description, is_unlocked, amount, connect_rate) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .bind(boardNode.holomems_id, boardNode.category, boardNode.yellow_target, boardNode.description, boardNode.is_unlocked, boardNode.amount, boardNode.connect_rate));
+    const results = await this.db.batch(statements);
+    return results.map(result => result.meta.last_row_id);
+  }
+  
   /** 対象ボードマスの変更可能な項目だけを更新する */
   public async update(id: number, boardNode: Partial<BoardNode>): Promise<void> {
     // ホロメン ID、カテゴリ、黄マス時の報酬アップ対象アイテムは編集を許可しないため含めない
