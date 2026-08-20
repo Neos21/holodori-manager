@@ -2,6 +2,7 @@ import { type ChangeEvent, type ReactElement, useState } from 'react';
 
 import { DoubleUpSection } from './components/double-up-section';
 import { PokerSection } from './components/poker-section';
+import { isEmpty } from '../../../shared/helpers/is-empty';
 
 /** ゲーム段階を定義する */
 type GamePhase = 'poker' | 'double-up';
@@ -45,7 +46,7 @@ export default function HighAndLowCalculatorPage(): ReactElement {
     setPlayKey(currentPlayKey => currentPlayKey + 1);
     setResultMessage(isForced
       ? `1プレイの上限を超えたため、${coins.toLocaleString()}枚で自動確定しました`
-      : `${coins.toLocaleString()}枚で辞退し、本日の獲得コインへ加算しました`);
+      : `${coins.toLocaleString()}枚で辞退し、本日の獲得コインに加算しました`);
   };
   
   /** ダブルアップ失敗を反映し、コインを加算せず新規プレイ入力へ戻る */
@@ -69,14 +70,24 @@ export default function HighAndLowCalculatorPage(): ReactElement {
       </fieldset>
       <p className="text-base-content/60 mb-4 text-xs">プレイ結果の確定時に自動加算されます。途中から使う場合は手動で修正できます。</p>
       
-      {resultMessage !== '' && (
+      {!isEmpty(resultMessage) && (
         <div className="alert alert-info alert-soft mb-4">{resultMessage}</div>
       )}
       
       {gamePhase === 'poker' ? (
-        <PokerSection key={playKey} isPlayDisabled={isNewPlayDisabled} onWin={onPokerWin} onNoPayout={onPokerNoPayout} />
+        <PokerSection
+          key={playKey}
+          isPlayDisabled={isNewPlayDisabled}
+          onStartCalculation={() => setResultMessage('')}
+          onWin={onPokerWin}
+          onNoPayout={onPokerNoPayout}
+        />
       ) : (
-        <DoubleUpSection initialCoins={doubleUpCoins} onCollect={onDoubleUpCollect} onLose={onDoubleUpLose} />
+        <DoubleUpSection
+          initialCoins={doubleUpCoins}
+          onCollect={onDoubleUpCollect}
+          onLose={onDoubleUpLose}
+        />
       )}
     </main>
   );

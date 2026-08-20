@@ -1,14 +1,16 @@
 import { type ChangeEvent, type ReactElement, useState } from 'react';
 
 import { PlayingCardInput, type PlayingCardSelection } from './playing-card-input';
+import { isEmpty } from '../../../../shared/helpers/is-empty';
 import { PokerService } from '../services/poker-service';
 
 import type { CalculationMode, HandCategory, HoldOption, PokerCard } from '../types/poker-types';
 
 type PokerSectionProps = {
-  isPlayDisabled: boolean;
-  onWin         : (coins: number) => void;
-  onNoPayout    : () => void;
+  isPlayDisabled    : boolean;
+  onStartCalculation: () => void;
+  onWin             : (coins: number) => void;
+  onNoPayout        : () => void;
 };
 
 const handCategories: Array<HandCategory> = [
@@ -51,7 +53,7 @@ const toPokerCard = (playingCardSelection: PlayingCardSelection): PokerCard | nu
 const pokerCardKey = (pokerCard: PokerCard): string => pokerCard.suit === 'joker' ? 'joker' : `${pokerCard.suit}-${pokerCard.rank}`;
 
 /** ポーカーの初期手札入力、保持推奨計算、交換後に成立した役の入力を扱う */
-export const PokerSection = ({ isPlayDisabled, onWin, onNoPayout }: PokerSectionProps): ReactElement => {
+export const PokerSection = ({ isPlayDisabled, onStartCalculation, onWin, onNoPayout }: PokerSectionProps): ReactElement => {
   const pokerService = new PokerService();
   
   const [playingCardSelections, setPlayingCardSelections] = useState<Array<PlayingCardSelection>>(createEmptyHandSelections());  // 交換前の5枚・入力途中の値を含む
@@ -86,6 +88,7 @@ export const PokerSection = ({ isPlayDisabled, onWin, onNoPayout }: PokerSection
   
   /** 入力済み手札の全32保持パターンを計算する */
   const onCalculateHoldOptions = (): void => {
+    onStartCalculation();
     if(!isHandComplete) return setCalculationError('5枚全てのスートとランクを入力してください');
     if(hasDuplicateCard) return setCalculationError('同じカードまたはジョーカーを重複して入力することはできません');
     
@@ -144,7 +147,7 @@ export const PokerSection = ({ isPlayDisabled, onWin, onNoPayout }: PokerSection
       </div>
       
       {initialHandCategory != null && (
-        <div className="alert alert-info alert-soft mb-4">交換前の役：{handCategoryDisplayNames[initialHandCategory]}</div>
+        <div className="alert alert-info alert-soft mb-4">交換前の役 : {handCategoryDisplayNames[initialHandCategory]}</div>
       )}
       
       <div className="flex gap-2 mb-4">
@@ -159,7 +162,7 @@ export const PokerSection = ({ isPlayDisabled, onWin, onNoPayout }: PokerSection
         <div className="alert alert-warning alert-soft mb-4">厳密 EV 計算は完了まで十数秒かかる場合があります。</div>
       )}
       
-      {calculationError !== '' && (
+      {!isEmpty(calculationError) && (
         <div className="alert alert-error alert-soft mb-4">{calculationError}</div>
       )}
       
@@ -168,7 +171,7 @@ export const PokerSection = ({ isPlayDisabled, onWin, onNoPayout }: PokerSection
           <details className="mb-4 border border-base-300 rounded-box">
             <summary className="py-2 px-3 font-bold text-sm cursor-pointer">
               全パターンの計算結果
-              {calculationDuration != null && (<span className="font-normal text-xs"> (計算時間 : {(calculationDuration / 1000).toFixed(3)}秒)</span>)}
+              {calculationDuration != null && (<span className="text-base-content/60 font-normal text-xs"> (計算時間 : {(calculationDuration / 1000).toFixed(3)}秒)</span>)}
             </summary>
             
             <div className="overflow-x-auto px-3">
@@ -187,7 +190,7 @@ export const PokerSection = ({ isPlayDisabled, onWin, onNoPayout }: PokerSection
                   {holdOptions.map((holdOption, optionIndex) => (
                     <tr key={holdOption.holdMask} className={`[&>td]:px-1 [&>td]:align-top ${optionIndex === 0 ? 'bg-success/10 font-bold' : ''}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
                       <td className="w-px text-right whitespace-nowrap">{optionIndex + 1}</td>
-                      <td>{holdOption.heldIndices.length === 0 ? 'なし' : holdOption.heldIndices.map(index => `${index + 1}`).join('・') + '枚目'}</td>
+                      <td                                              >{holdOption.heldIndices.length === 0 ? 'なし' : holdOption.heldIndices.map(index => `${index + 1}`).join('・') + '枚目'}</td>
                       <td className="w-px text-right whitespace-nowrap">{holdOption.discardCount}枚</td>
                       <td className="w-px text-right whitespace-nowrap">{holdOption.expectedValue.toFixed(1)}枚</td>
                       <td className="w-px            whitespace-nowrap">×{holdOption.expectedMultiplier.toFixed(3)}</td>

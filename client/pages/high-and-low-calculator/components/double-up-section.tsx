@@ -28,7 +28,7 @@ const toPlayingCard = (playingCardSelection: PlayingCardSelection): PlayingCard 
   return { suit: playingCardSelection.suit, rank: playingCardSelection.rank };
 };
 
-/** 数値ランクをゲーム画面に近い表記へ変換する */
+/** 数値ランクをゲーム上の表記に変換する */
 const rankDisplayName = (rank: PlayingCard['rank']): string => {
   if(rank === 11) return 'J';
   if(rank === 12) return 'Q';
@@ -101,9 +101,8 @@ export const DoubleUpSection = ({ initialCoins, onCollect, onLose }: DoubleUpSec
     <section>
       <h2 className="mb-2 text-xl font-bold">ダブルアップチャンス</h2>
       
-      <p className="mb-4 mb-4">
-        <span className="text-base-content/60 text-sm">現在の見込みコイン : </span>
-        <span className="text-lg font-bold text-info">{currentCoins.toLocaleString()}枚</span>
+      <p className="mb-4">
+        <span className="text-base-content/60 text-sm">現在の見込みコイン : </span><span className="text-lg font-bold text-info">{currentCoins.toLocaleString()}枚</span>
       </p>
       
       {!isChallengeActive ? (

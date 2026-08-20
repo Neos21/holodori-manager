@@ -52,7 +52,7 @@ export const PlayingCardInput = ({ label, value, isDisabled = false, isJokerShow
   
   return (
     <fieldset className="rounded-box border border-base-300 pt-0 px-1 pb-2 min-w-38">
-      <legend className="px-1 font-bold">{label}</legend>
+      <legend className="px-1 font-bold text-sm">{label}</legend>
       
       <div className="grid grid-cols-4 mb-1">
         {suits.map(suit => (
