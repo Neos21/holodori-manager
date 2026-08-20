@@ -13,42 +13,53 @@ export class DoubleUpService {
   private readonly perPlayCap: number = 10_000;
   
   /**
-   * 提示カードに対する「たかい」「ひくい」それぞれの成功確率を計算する
+   * 提示トランプカードに対する「たかい」「ひくい」それぞれの成功確率を計算する
    * 
    * 計算の考え方 :
    * 
-   * 1. ジョーカーを含まない52枚のデッキから、これまでに登場した (提示された・めくられた) カードを全て除いた「残りデッキ」を作る
-   * 2. 残りデッキの中で、提示カードよりランクが高いカード・低いカードの枚数をそれぞれ数える
-   * 3. 同ランクのカードは「たかい」「ひくい」どちらの判定にも使われず、再提示される仕様なので、確率の分母 (`decisiveCardCount`) からは除外する
+   * 1. ジョーカーを含まない52枚のデッキから、これまでに登場した (提示された・めくられた) トランプカードを全て除いた「残りデッキ」を作る
+   * 2. 残りデッキの中で、提示トランプカードよりランクが高いトランプカード・低いトランプカードの枚数をそれぞれ数える
+   * 3. 同ランクのトランプカードは「たかい」「ひくい」どちらの判定にも使われず、再提示される仕様なので、確率の分母 (`decisivePlayingCardCount`) からは除外する
    *     - (A は最上位・2 は最下位なので、これらが提示された場合は必ずどちらかに決着がつく)
    */
   public calcProbabilities(shownPlayingCard: PlayingCard, seenPlayingCards: Array<PlayingCard>): DoubleUpProbabilities {
-    const plainDeck = this.buildPlainDeck();
-    const seenPlayingCardKeys = new Set([...seenPlayingCards, shownPlayingCard].map(playingCard => `${playingCard.suit}-${playingCard.rank}`));
-    const remainingPlayingCards = plainDeck.filter(playingCard => !seenPlayingCardKeys.has(`${playingCard.suit}-${playingCard.rank}`));
+    /** ダブルアップで使用するジョーカーなしの完全なトランプカードデッキ */
+    const plainPlayingCardDeck = this.buildPlainPlayingCardDeck();
+    /** 完全なデッキから現在までの提示分を除外するためのトランプカードキー */
+    const seenPlayingCardKeys = new Set([...seenPlayingCards, shownPlayingCard].map(seenPlayingCard => `${seenPlayingCard.suit}-${seenPlayingCard.rank}`));
+    /** 次の1枚として出現しうる未提示のトランプカード */
+    const remainingPlayingCards = plainPlayingCardDeck.filter(plainPlayingCard => !seenPlayingCardKeys.has(`${plainPlayingCard.suit}-${plainPlayingCard.rank}`));
     
-    const higherCardCount   = remainingPlayingCards.filter(playingCard => playingCard.rank >   shownPlayingCard.rank).length;
-    const lowerCardCount    = remainingPlayingCards.filter(playingCard => playingCard.rank <   shownPlayingCard.rank).length;
-    const sameRankRemaining = remainingPlayingCards.filter(playingCard => playingCard.rank === shownPlayingCard.rank).length;
+    /** 提示ランクより高く「たかい」で成功するトランプカード枚数 */
+    const higherPlayingCardCount = remainingPlayingCards.filter(remainingPlayingCard => remainingPlayingCard.rank > shownPlayingCard.rank).length;
+    /** 提示ランクより低く「ひくい」で成功するトランプカード枚数 */
+    const lowerPlayingCardCount  = remainingPlayingCards.filter(remainingPlayingCard => remainingPlayingCard.rank < shownPlayingCard.rank).length;
+    /** どちらの成否にも含まれず再選択となる同ランクのトランプカード枚数 */
+    const sameRankRemainingPlayingCardCount = remainingPlayingCards.filter(remainingPlayingCard => remainingPlayingCard.rank === shownPlayingCard.rank).length;
     
-    const decisiveCardCount = higherCardCount + lowerCardCount;
+    /** 同ランクを除いた成功・失敗のいずれかが確定するトランプカード枚数 */
+    const decisivePlayingCardCount = higherPlayingCardCount + lowerPlayingCardCount;
     
     return {
-      higher: decisiveCardCount === 0 ? 0 : higherCardCount / decisiveCardCount,
-      lower : decisiveCardCount === 0 ? 0 : lowerCardCount  / decisiveCardCount,
-      sameRankRemaining
+      higher: decisivePlayingCardCount === 0 ? 0 : higherPlayingCardCount / decisivePlayingCardCount,
+      lower : decisivePlayingCardCount === 0 ? 0 : lowerPlayingCardCount  / decisivePlayingCardCount,
+      sameRankRemainingPlayingCardCount
     };
   }
   
-  /** 次の提示カードが不明な時点で、各カードに対して有利な側を選び続けた場合の平均成功確率を計算する */
+  /** 次の提示トランプカードが不明な時点で、各トランプカードに対して有利な側を選び続けた場合の平均成功確率を計算する */
   public calcExpectedBestSideProbability(seenPlayingCards: Array<PlayingCard>): number {
-    const seenPlayingCardKeys = new Set(seenPlayingCards.map(playingCard => `${playingCard.suit}-${playingCard.rank}`));
-    const remainingPlayingCards = this.buildPlainDeck().filter(playingCard => !seenPlayingCardKeys.has(`${playingCard.suit}-${playingCard.rank}`));
+    /** 完全なデッキから現在までの提示分を除外するためのトランプカードキー */
+    const seenPlayingCardKeys = new Set(seenPlayingCards.map(seenPlayingCard => `${seenPlayingCard.suit}-${seenPlayingCard.rank}`));
+    /** 次回の提示候補となる全ての未提示トランプカード */
+    const remainingPlayingCards = this.buildPlainPlayingCardDeck().filter(plainPlayingCard => !seenPlayingCardKeys.has(`${plainPlayingCard.suit}-${plainPlayingCard.rank}`));
     if(remainingPlayingCards.length === 0) return 0;
     
-    const totalBestSideProbability = remainingPlayingCards.reduce((totalProbability, shownPlayingCard) => {
-      const probabilities = this.calcProbabilities(shownPlayingCard, seenPlayingCards);
-      return totalProbability + Math.max(probabilities.higher, probabilities.lower);
+    /** 各提示候補で「たかい」「ひくい」の有利な側を選んだ成功確率の合計 */
+    const totalBestSideProbability = remainingPlayingCards.reduce((accumulatedBestSideProbability, remainingPlayingCard) => {
+      /** 現在のトランプカードが提示された場合の両予測の成功確率 */
+      const doubleUpProbabilities = this.calcProbabilities(remainingPlayingCard, seenPlayingCards);
+      return accumulatedBestSideProbability + Math.max(doubleUpProbabilities.higher, doubleUpProbabilities.lower);
     }, 0);
     return totalBestSideProbability / remainingPlayingCards.length;
   }
@@ -71,7 +82,10 @@ export class DoubleUpService {
    */
   public recommendAction(doubleUpDecisionInput: DoubleUpDecisionInput): DoubleUpDecision {
     const { currentCoins, bestSideProbability } = doubleUpDecisionInput;
+    
+    /** ダブルアップ成功時に獲得できるコイン */
     const nextCoinsIfSuccess = currentCoins * 2;
+    /** 失敗時の0枚も含めた継続時の期待獲得コイン */
     const expectedValueIfContinue = nextCoinsIfSuccess * bestSideProbability;
     
     if(this.isPerPlayCapExceeded(currentCoins)) {
@@ -106,13 +120,14 @@ export class DoubleUpService {
   }
   
   /** ジョーカーを含まない52枚のデッキを組み立てる (ダブルアップはジョーカーを使わない) */
-  private buildPlainDeck(): Array<PlayingCard> {
-    const deck: Array<PlayingCard> = [];
+  private buildPlainPlayingCardDeck(): Array<PlayingCard> {
+    /** 4スートと13ランクの全組合せを格納するダブルアップ用デッキ */
+    const playingCardDeck: Array<PlayingCard> = [];
     for(const suit of this.allSuits) {
       for(const rank of this.allRanks) {
-        deck.push({ suit, rank });
+        playingCardDeck.push({ suit, rank });
       }
     }
-    return deck;
+    return playingCardDeck;
   }
 }

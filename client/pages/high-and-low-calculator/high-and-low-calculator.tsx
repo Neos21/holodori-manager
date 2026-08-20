@@ -15,41 +15,48 @@ export default function HighAndLowCalculatorPage(): ReactElement {
   const [todayEarnedCoinsInput, setTodayEarnedCoinsInput] = useState<string>('0');         // 本日の確定済み獲得コイン・手動修正を許可する入力値
   const [gamePhase            , setGamePhase            ] = useState<GamePhase>('poker');  // 現在入力中のゲーム段階
   const [doubleUpCoins        , setDoubleUpCoins        ] = useState<number>(0);           // ダブルアップ開始時の獲得コイン
-  const [playKey              , setPlayKey              ] = useState<number>(0);           // 新規プレイへ戻る際にポーカー内部 State を初期化するキー
+  const [playKey              , setPlayKey              ] = useState<number>(0);           // 新規プレイに戻る際にポーカー内部 State を初期化するキー
   const [resultMessage        , setResultMessage        ] = useState<string>('');          // 直前に確定したプレイ結果
   
+  /** 手動編集可能な入力文字列を日次上限判定と自動加算に使用する数値に変換した値 */
   const parsedTodayEarnedCoins = Number(todayEarnedCoinsInput);
+  /** 空文字や負数などを0として扱い、小数を切り捨てた本日の確定済み獲得コイン */
   const todayEarnedCoins = Number.isFinite(parsedTodayEarnedCoins) && parsedTodayEarnedCoins >= 0 ? Math.floor(parsedTodayEarnedCoins) : 0;
+  /** 本日の確定済みコインが上限を超え、新しいポーカーを開始できないか否か */
   const isNewPlayDisabled = todayEarnedCoins > dailyCoinCap;
   
   /** 本日の獲得済みコイン入力を更新する */
   const onChangeTodayEarnedCoins = (event: ChangeEvent<HTMLInputElement>): void => setTodayEarnedCoinsInput(event.target.value);
   
-  /** 配当のある役が成立したら、その獲得コインでダブルアップ段階へ進む */
-  const onPokerWin = (coins: number): void => {
-    setDoubleUpCoins(coins);
+  /** 新しい保持推奨計算を始める際に直前のプレイ結果表示を消去する */
+  const onStartPokerCalculation = (): void => setResultMessage('');
+  
+  /** 配当のある役が成立したら、その獲得コインでダブルアップ段階に進む */
+  const onPokerWin = (pokerPayoutCoins: number): void => {
+    setDoubleUpCoins(pokerPayoutCoins);
     setGamePhase('double-up');
     setResultMessage('');
   };
   
-  /** 配当なしでポーカーが終了したら新規プレイ入力へ戻る */
+  /** 配当なしでポーカーが終了したら新規プレイ入力に戻る */
   const onPokerNoPayout = (): void => {
     setPlayKey(currentPlayKey => currentPlayKey + 1);
     setResultMessage('役不成立またはワンペアのため、獲得コインはありませんでした');
   };
   
-  /** ダブルアップを終了し、確定したコインを本日の累計へ加算して新規プレイ入力へ戻る */
-  const onDoubleUpCollect = (coins: number, isForced: boolean): void => {
-    const nextTodayEarnedCoins = todayEarnedCoins + coins;
+  /** ダブルアップを終了し、確定したコインを本日の累計に加算して新規プレイ入力に戻る */
+  const onDoubleUpCollect = (collectedCoins: number, isForced: boolean): void => {
+    /** 今回確定したコインを加算した後の本日累計 */
+    const nextTodayEarnedCoins = todayEarnedCoins + collectedCoins;
     setTodayEarnedCoinsInput(String(nextTodayEarnedCoins));
     setGamePhase('poker');
     setPlayKey(currentPlayKey => currentPlayKey + 1);
     setResultMessage(isForced
-      ? `1プレイの上限を超えたため、${coins.toLocaleString()}枚で自動確定しました`
-      : `${coins.toLocaleString()}枚で辞退し、本日の獲得コインに加算しました`);
+      ? `1プレイの上限を超えたため、${collectedCoins.toLocaleString()}枚で自動確定しました`
+      : `${collectedCoins.toLocaleString()}枚で辞退し、本日の獲得コインに加算しました`);
   };
   
-  /** ダブルアップ失敗を反映し、コインを加算せず新規プレイ入力へ戻る */
+  /** ダブルアップ失敗を反映し、コインを加算せず新規プレイ入力に戻る */
   const onDoubleUpLose = (): void => {
     setGamePhase('poker');
     setPlayKey(currentPlayKey => currentPlayKey + 1);
@@ -78,7 +85,7 @@ export default function HighAndLowCalculatorPage(): ReactElement {
         <PokerSection
           key={playKey}
           isPlayDisabled={isNewPlayDisabled}
-          onStartCalculation={() => setResultMessage('')}
+          onStartCalculation={onStartPokerCalculation}
           onWin={onPokerWin}
           onNoPayout={onPokerNoPayout}
         />

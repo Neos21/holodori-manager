@@ -4,8 +4,8 @@ export type DoubleUpProbabilities = {
   higher: number;
   /** 「ひくい」の成功確率 */
   lower: number;
-  /** 残りデッキ中、判定に使われない同ランクのカード枚数 (参考値) */
-  sameRankRemaining: number;
+  /** 残りデッキ中、判定に使われない同ランクのトランプカード枚数 (参考値) */
+  sameRankRemainingPlayingCardCount: number;
 };
 
 /** ダブルアップを継続すべきか判断するための入力値 */

@@ -47,7 +47,7 @@ const createInitialRows = (): Array<YellowNodeFormRow> => boardNodeYellowTargets
   is_unlocked  : booleanStringFalse
 })));
 
-/** 黄マス一括追加フォームへ追加する空行を返す */
+/** 黄マス一括追加フォームに追加する空行を返す */
 const createEmptyRow = (): YellowNodeFormRow => ({
   yellow_target: '',
   description  : '',
@@ -75,7 +75,7 @@ export const CreateYellowNodesModal = ({ holomems, onClose, onUpdated }: CreateY
       if(index !== rowIndex) return row;
       
       const updatedRow = { ...row, [name]: value } as YellowNodeFormRow;
-      if(name === 'yellow_target') updatedRow.description = updatedRow.yellow_target === '' ? '' : yellowTargetNames[updatedRow.yellow_target];
+      if(name === 'yellow_target') updatedRow.description = isEmpty(updatedRow.yellow_target) ? '' : yellowTargetNames[updatedRow.yellow_target as BoardNodeYellowTarget];
       return updatedRow;
     }));
   };

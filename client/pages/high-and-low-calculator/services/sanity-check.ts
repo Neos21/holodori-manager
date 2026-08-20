@@ -2,18 +2,25 @@ import { DoubleUpService } from './double-up-service';
 import { PokerService } from './poker-service';
 
 import type { PlayingCard } from '../types/playing-card-types';
-import type { PokerCard } from '../types/poker-types';
+import type { PokerPlayingCard } from '../types/poker-types';
 
 // TODO : ユニットテスト的なファイル・tsx とかで実行して確認する用に残しておくが、最終的にこのファイルの取り扱いをどうするかは要検討
 
+/** スートとランクから通常のトランプカードを生成する */
 const makePlayingCard = (suit: PlayingCard['suit'], rank: PlayingCard['rank']): PlayingCard => ({ suit, rank });
 
+/** ポーカーの役判定と保持期待値を検証する Service */
 const pokerService    = new PokerService();
+/** ダブルアップの成功確率と継続判断を検証する Service */
 const doubleUpService = new DoubleUpService();
 
+/** 成功した検証件数 */
 let passCount = 0;
+/** 失敗した検証件数 */
 let failCount = 0;
+/** 実際値と期待値をJSON表現で比較して検証件数に反映する */
 const check = (label: string, actual: unknown, expected: unknown): void => {
+  /** オブジェクトを含む値が期待値と一致するか否か */
   const isMatch = JSON.stringify(actual) === JSON.stringify(expected);
   if(isMatch) {
     passCount++;
@@ -106,36 +113,41 @@ check(
 console.log(`役判定テスト : ${passCount} Passed・${failCount} Failed\n`);
 
 // ダブルアップ確率
-const sevenProbabilities = doubleUpService.calcProbabilities(makePlayingCard('heart', 7), []);
-console.log(`提示カード7 (既出なし) の確率 : higher=${sevenProbabilities.higher.toFixed(3)} lower=${sevenProbabilities.lower.toFixed(3)} sameRankRemaining=${sevenProbabilities.sameRankRemaining}`);
+/** ハートの7が最初に提示された場合の「たかい」「ひくい」成功確率 */
+const sevenDoubleUpProbabilities = doubleUpService.calcProbabilities(makePlayingCard('heart', 7), []);
+console.log(`提示カード7 (既出なし) の確率 : higher=${sevenDoubleUpProbabilities.higher.toFixed(3)} lower=${sevenDoubleUpProbabilities.lower.toFixed(3)} sameRankRemainingPlayingCardCount=${sevenDoubleUpProbabilities.sameRankRemainingPlayingCardCount}`);
 // 7 より大きい : 8・9・10・J・Q・K・A = 7ランク × 4枚 = 28枚 … 7 より小さい : 2..6 = 5ランク × 4枚 = 20枚 (決着48枚中)
-check('7 提示時の higher 確率', Math.round(sevenProbabilities.higher * 1000) / 1000, Math.round((28 / 48) * 1000) / 1000);
-check('7 提示時の lower 確率' , Math.round(sevenProbabilities.lower  * 1000) / 1000, Math.round((20 / 48) * 1000) / 1000);
+check('7 提示時の higher 確率', Math.round(sevenDoubleUpProbabilities.higher * 1000) / 1000, Math.round((28 / 48) * 1000) / 1000);
+check('7 提示時の lower 確率' , Math.round(sevenDoubleUpProbabilities.lower  * 1000) / 1000, Math.round((20 / 48) * 1000) / 1000);
 
 check('エース提示時は higher が 0 (最上位)', doubleUpService.calcProbabilities(makePlayingCard('heart', 14), []).higher, 0);
 check('2 提示時は lower が 0 (最下位)'     , doubleUpService.calcProbabilities(makePlayingCard('heart',  2), []).lower , 0);
 
 // ダブルアップ継続判断
-const continueDecision = doubleUpService.recommendAction({
+/** 期待値が現在のコインを上回る場合の継続判断 */
+const continueDoubleUpDecision = doubleUpService.recommendAction({
   currentCoins: 200,
   bestSideProbability: 28 / 48
 });
-console.log(`\n200枚・成功率 58.3% での判断 : ${continueDecision.recommendation} (${continueDecision.reason})`);
-check('EV 有利なら継続推奨', continueDecision.recommendation, 'continue');
+console.log(`\n200枚・成功率 58.3% での判断 : ${continueDoubleUpDecision.recommendation} (${continueDoubleUpDecision.reason})`);
+check('EV 有利なら継続推奨', continueDoubleUpDecision.recommendation, 'continue');
 
-const capDecision = doubleUpService.recommendAction({
+/** 1プレイ上限を超えた場合の強制辞退判断 */
+const capDoubleUpDecision = doubleUpService.recommendAction({
   currentCoins: 12800,
   bestSideProbability: .9
 });
-check('プレイ内上限超なら強制辞退', capDecision.recommendation, 'collect');
+check('プレイ内上限超なら強制辞退', capDoubleUpDecision.recommendation, 'collect');
 
+/** 未使用デッキ全体から最善の予測方向を選び続けた場合の平均成功確率 */
 const expectedBestSideProbability = doubleUpService.calcExpectedBestSideProbability([]);
 check('未使用デッキ全体の有利な側の平均成功確率は 50% を超える', expectedBestSideProbability > .5, true);
 
 console.log(`\n役判定 + ダブルアップ 最終結果 : ${passCount} Passed・${failCount} Failed`);
 
 // `shortcut` モードの速度・内訳確認
-const dealtHand: Array<PokerCard> = [
+/** ショートカット計算と厳密計算を比較する交換前のトランプカード5枚 */
+const dealtPokerPlayingCards: Array<PokerPlayingCard> = [
   makePlayingCard('spade'  ,  9),
   makePlayingCard('heart'  ,  9),
   makePlayingCard('diamond',  4),
@@ -144,26 +156,29 @@ const dealtHand: Array<PokerCard> = [
 ];
 
 console.time('`shortcut` モード (自動 : 軽い保持は厳密・重い保持はサンプリング)');
-const shortcutOptions = pokerService.evaluateAllHoldOptions(dealtHand);  // `mode` 省略 = `shortcut`
+/** 厳密列挙とサンプリングを自動選択した全保持パターン */
+const shortcutHoldOptions = pokerService.evaluateAllHoldOptions(dealtPokerPlayingCards);  // `mode` 省略 = `shortcut`
 console.timeEnd('`shortcut` モード (自動 : 軽い保持は厳密・重い保持はサンプリング)');
 
 console.log('\n`shortcut` モード上位3パターン :');
-for(const option of shortcutOptions.slice(0, 3)) console.log(`  holdMask=${option.holdMask.toString(2).padStart(5, '0')} discard=${option.discardCount} EV=${option.expectedValue.toFixed(2)}枚 (${option.resultType}・n=${option.sampleSize})`);
+for(const holdOption of shortcutHoldOptions.slice(0, 3)) console.log(`  holdMask=${holdOption.holdMask.toString(2).padStart(5, '0')} discard=${holdOption.discardCount} EV=${holdOption.expectedValue.toFixed(2)}枚 (${holdOption.resultType}・n=${holdOption.sampleSize})`);
 
 console.log('\n`discardCount` ごとの `resultType` 確認');
+/** 交換枚数ごとに厳密列挙とサンプリングのどちらが選ばれたかを保持する */
 const resultTypeByDiscardCount = new Map<number, string>();
-for(const option of shortcutOptions) {
-  if(!resultTypeByDiscardCount.has(option.discardCount)) resultTypeByDiscardCount.set(option.discardCount, option.resultType);
+for(const holdOption of shortcutHoldOptions) {
+  if(!resultTypeByDiscardCount.has(holdOption.discardCount)) resultTypeByDiscardCount.set(holdOption.discardCount, holdOption.resultType);
 }
-for(const [discardCount, resultType] of [...resultTypeByDiscardCount.entries()].sort((entryA, entryB) => entryA[0] - entryB[0])) console.log(`  discard=${discardCount} -> ${resultType}`);
+for(const [discardCount, resultType] of [...resultTypeByDiscardCount.entries()].sort((resultTypeEntryA, resultTypeEntryB) => resultTypeEntryA[0] - resultTypeEntryB[0])) console.log(`  discard=${discardCount} -> ${resultType}`);
 
 console.time('`exact` モード (全パターン強制厳密計算・比較用)');
-const exactOptions = pokerService.evaluateAllHoldOptions(dealtHand, { mode: 'exact' });
+/** 全保持パターンを強制的に全列挙した比較基準 */
+const exactHoldOptions = pokerService.evaluateAllHoldOptions(dealtPokerPlayingCards, { mode: 'exact' });
 console.timeEnd('`exact` モード (全パターン強制厳密計算・比較用)');
 
 console.log('\n`exact` モードと `shortcut` モードの最良パターンを比較 :');
-console.log(`  exact    : holdMask=${   exactOptions[0].holdMask.toString(2).padStart(5, '0')} EV=${   exactOptions[0].expectedValue.toFixed(2)}`);
-console.log(`  shortcut : holdMask=${shortcutOptions[0].holdMask.toString(2).padStart(5, '0')} EV=${shortcutOptions[0].expectedValue.toFixed(2)}`);
+console.log(`  exact    : holdMask=${   exactHoldOptions[0].holdMask.toString(2).padStart(5, '0')} EV=${   exactHoldOptions[0].expectedValue.toFixed(2)}`);
+console.log(`  shortcut : holdMask=${shortcutHoldOptions[0].holdMask.toString(2).padStart(5, '0')} EV=${shortcutHoldOptions[0].expectedValue.toFixed(2)}`);
 
 if(failCount > 0) process.exit(1);
 
@@ -172,7 +187,7 @@ if(failCount > 0) process.exit(1);
 $ npx tsx ./client/pages/high-and-low-calculator/services/sanity-check.ts
 役判定テスト : 15 Passed , 0 Failed
 
-提示カード7 (既出なし) の確率 : higher=0.583 lower=0.417 sameRankRemaining=3
+提示カード7 (既出なし) の確率 : higher=0.583 lower=0.417 sameRankRemainingPlayingCardCount=3
 
 200枚・成功率 58.3% での判断 : continue (成功確率 58.3%、継続時の期待値 233 枚 > 現在の 200 枚のため継続が有利です)
 

@@ -9,3 +9,5 @@ tsconfig.tsbuildinfo
 .wrangler/
 build/
 node_modules/
+
+migrations/backups/

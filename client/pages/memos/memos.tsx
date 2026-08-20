@@ -32,7 +32,7 @@ export default function MemosPage(): ReactElement {
   /** ページ遷移前に確認を入れるための Blocker */
   const blocker = useBlocker(isDirty);
   
-  // 未保存の変更がある状態で別ページへ遷移する場合は、承認された時だけ遷移を続行する
+  // 未保存の変更がある状態で別ページに遷移する場合は、承認された時だけ遷移を続行する
   useEffect(() => {
     if(blocker.state !== 'blocked') return;
     if(window.confirm(discardChangesConfirmationMessage)) blocker.proceed();
@@ -122,7 +122,7 @@ export default function MemosPage(): ReactElement {
     }
   };
   
-  /** 確認後に編集中のメモを削除し、デフォルトのメモへ切り替える */
+  /** 確認後に編集中のメモを削除し、デフォルトのメモに切り替える */
   const onDelete = async (): Promise<void> => {
     if(editingId === defaultMemoId) return window.alert('デフォルトのメモは削除できません');
     if(!window.confirm('このメモを削除しますか？')) return;

@@ -26,10 +26,10 @@
 - `handleHoge` 系の命名を使わない
 - UX で発火するフォーム送信は `react` から Type Import した `SubmitEvent` を使い、`FormEvent` は使わない
 - 入力バリデーションには `shared/schemas/` の Zod Schema を使い、空文字チェックには `isEmpty()` を使う
-- `ky` の `json<T>()` は `json<{ result: Array<Holomem>; }>()` のように型引数末尾へセミコロンを付ける
+- `ky` の `json<T>()` は `json<{ result: Array<Holomem>; }>()` のように型引数末尾にセミコロンを付ける
 - API 呼び出しの例外は `try`・`catch` の中に閉じ込め、Promise の `.then()`・`.catch()` を使わない
 - 「取得・追加・更新・削除に失敗しました」の定型文言は `client/constants/client-messages.ts` の生成関数を使う
-- 使用箇所が1つだけの固定文言は定数化せず、呼出元へ直接記述する
+- 使用箇所が1つだけの固定文言は定数化せず、呼出元に直接記述する
 
 
 ## JSX とレイアウト

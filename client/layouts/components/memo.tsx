@@ -42,7 +42,7 @@ export const Memo = (): ReactElement => {
   const savedContentRef = useRef<string>('');                    // API 取得時または保存成功時の内容を保持し、変更がない場合の重複保存を避ける
   const savedMessageTimeoutIdRef = useRef<number | null>(null);  // 保存成功メッセージを非表示にするタイマー ID
   
-  // 初期表示時にメモ一覧を Store へ読み込む
+  // 初期表示時にメモ一覧を Store に読み込む
   useEffect(() => {
     // 他のコンポーネントでデフォルトメモが保存された場合は、入力途中の内容も保存済みの最新内容で置き換える
     const unsubscribeMemosStore = useMemosStore.subscribe((state, prevState) => {

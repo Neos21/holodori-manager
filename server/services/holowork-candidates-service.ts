@@ -21,7 +21,7 @@ export class HoloworkCandidatesService {
   private async getCountCandidates(priority: typeof candidatePriorityCount): Promise<HoloworkCandidates> {
     const rows = await this.findCountCandidateRows();
     
-    // DB から得た現在回数に進捗計算結果を加え、クライアントへと返す完成済み候補モデルを作る
+    // DB から得た現在回数に進捗計算結果を加え、クライアントに返す完成済み候補モデルを作る
     const candidates = rows.map((row): HoloworkCountCandidate => {
       const progress = HoloworkAchievementsService.calcProgress(row.current_count);
       return {

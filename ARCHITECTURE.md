@@ -58,7 +58,7 @@ Repository と Service の境界を選んだ理由は [ADR-001](./docs/decisions
 
 ## レイヤーの境界
 
-`shared/` には `client/`・`server/` 間で共有する契約と処理を置き、サーバ内部だけで扱う DB 取得直後の表現は `server/` に閉じる。複合 Read Model は Service が公開可能なモデルへ変換してから Route に渡す。
+`shared/` には `client/`・`server/` 間で共有する契約と処理を置き、サーバ内部だけで扱う DB 取得直後の表現は `server/` に閉じる。複合 Read Model は Service が公開可能なモデルに変換してから Route に渡す。
 
 型の分類と配置に関する実装ルールは [Shared Rules](./docs/agent-rules/shared.md)、サーバ各層の実装ルールは [Backend Rules](./docs/agent-rules/backend.md) を参照のこと。
 

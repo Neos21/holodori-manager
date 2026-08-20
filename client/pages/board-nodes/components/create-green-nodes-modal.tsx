@@ -42,7 +42,7 @@ const createInitialRows = (): Array<GreenNodeFormRow> => initialDescriptions.map
   is_unlocked : booleanStringFalse
 }));
 
-/** 緑マス一括追加フォームへ追加する空行を返す */
+/** 緑マス一括追加フォームに追加する空行を返す */
 const createEmptyRow = (): GreenNodeFormRow => ({
   description : '',
   amount      : '',

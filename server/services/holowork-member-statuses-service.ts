@@ -15,7 +15,7 @@ export class HoloworkMemberStatusesService {
   public async findAll(): Promise<Array<HoloworkMemberStatus>> {
     const rows = await this.findAllRows();
     
-    // SQL は黄マス情報の行数だけ同じホロメンを返すため、ID ごとにフロントエンド用モデルを1件へ集約する
+    // SQL は黄マス情報の行数だけ同じホロメンを返すため、ID ごとにフロントエンド用モデルを1件に集約する
     const statuses = new Map<number, HoloworkMemberStatus>();
     
     for(const row of rows) {
