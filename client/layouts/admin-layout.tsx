@@ -16,12 +16,13 @@ export default function AdminLayout(): ReactElement {
   
   /** サイドメニューに表示する管理ページのリンク */
   const menuItems = [
-    { to: '/home'       , label: 'ホーム'         },
-    { to: '/holomems'   , label: 'ホロメン'       },
-    { to: '/cards'      , label: 'カード'         },
-    { to: '/board-nodes', label: 'ホロメンボード' },
-    { to: '/holoworks'  , label: 'ホロワーク'     },
-    { to: '/memos'      , label: 'メモ'           }
+    { to: '/home'                   , label: 'ホーム'         },
+    { to: '/holomems'               , label: 'ホロメン'       },
+    { to: '/cards'                  , label: 'カード'         },
+    { to: '/board-nodes'            , label: 'ホロメンボード' },
+    { to: '/holoworks'              , label: 'ホロワーク'     },
+    { to: '/high-and-low-calculator', label: 'High & Low'     },
+    { to: '/memos'                  , label: 'メモ'           }
   ];
   
   /** サイドメニューを開閉する */

@@ -296,8 +296,8 @@ INSERT INTO holowork_achievements (holomems_id, current_count) VALUES (54, 0);
 -- ホロワークの枠
 INSERT INTO holoworks (name) VALUES ('歌配信'    );
 INSERT INTO holoworks (name) VALUES ('ゲーム配信');
-INSERT INTO holoworks (name) VALUES ('雑談配信'  );
 INSERT INTO holoworks (name) VALUES ('収録'      );
+INSERT INTO holoworks (name) VALUES ('雑談配信'  );
 
 -- デフォルトの自由メモ : ID 1 の必須レコードとして扱う
 INSERT INTO memos (content) VALUES (NULL);

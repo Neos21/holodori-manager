@@ -38,7 +38,7 @@ CREATE TABLE holowork_achievements (  -- ホロワーク達成状況
 
 CREATE TABLE holoworks (  -- ホロワークの枠
   id    INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
-  name  TEXT     NOT NULL                     -- 枠の名前 (例 : 「歌配信」「ゲーム配信」「雑談配信」「収録」)
+  name  TEXT     NOT NULL                     -- 枠の名前 (例 : 「歌配信」「ゲーム配信」「収録」「雑談配信」)
 );
 
 CREATE TABLE active_holowork_members (  -- ホロワーク活動中のホロメン
