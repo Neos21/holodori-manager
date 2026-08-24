@@ -5,10 +5,11 @@
 
 ## 一覧
 
-| ファイル                           | 機能                     |
-|------------------------------------|--------------------------|
-| [board-nodes.md](./board-nodes.md) | ホロメンボード管理機能   |
-| [holoworks.md](./holoworks.md)     | ホロワーク管理機能       |
-| [memos.md](./memos.md)             | メモ管理機能             |
+| ファイル                                                   | 機能                     |
+|------------------------------------------------------------|--------------------------|
+| [board-nodes.md](./board-nodes.md)                         | ホロメンボード管理機能   |
+| [high-and-low-calculator.md](./high-and-low-calculator.md) | High & Low 計算機能      |
+| [holoworks.md](./holoworks.md)                             | ホロワーク管理機能       |
+| [memos.md](./memos.md)                                     | メモ管理機能             |
 
 新しい機能文書を追加した場合は、この一覧にもリンクを追加する。
