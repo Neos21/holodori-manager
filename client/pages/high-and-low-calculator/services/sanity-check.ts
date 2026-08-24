@@ -126,18 +126,54 @@ check('2 提示時は lower が 0 (最下位)'     , doubleUpService.calcProbabi
 // ダブルアップ継続判断
 /** 期待値が現在のコインを上回る場合の継続判断 */
 const continueDoubleUpDecision = doubleUpService.recommendAction({
-  currentCoins: 200,
-  bestSideProbability: 28 / 48
+  currentCoins         : 200,
+  bestSideProbability  : 28 / 48,
+  remainingBalanceCoins: 950,
+  todayEarnedCoins     : 0,
+  todayBetCoins        : 50
 });
 console.log(`\n200枚・成功率 58.3% での判断 : ${continueDoubleUpDecision.recommendation} (${continueDoubleUpDecision.reason})`);
 check('EV 有利なら継続推奨', continueDoubleUpDecision.recommendation, 'continue');
 
 /** 1プレイ上限を超えた場合の強制辞退判断 */
 const capDoubleUpDecision = doubleUpService.recommendAction({
-  currentCoins: 12800,
-  bestSideProbability: .9
+  currentCoins         : 12800,
+  bestSideProbability  : .9,
+  remainingBalanceCoins: 950,
+  todayEarnedCoins     : 0,
+  todayBetCoins        : 50
 });
 check('プレイ内上限超なら強制辞退', capDoubleUpDecision.recommendation, 'collect');
+
+/** 次のプレイに必要な所持金を残せない場合の判断 */
+const lowBalanceDoubleUpDecision = doubleUpService.recommendAction({
+  currentCoins         : 200,
+  bestSideProbability  : .6,
+  remainingBalanceCoins: 0,
+  todayEarnedCoins     : 0,
+  todayBetCoins        : 50
+});
+check('所持金不足なら初回でも利確推奨', lowBalanceDoubleUpDecision.recommendation, 'collect');
+
+/** 過去プレイの赤字を現在の見込みコインで解消できる場合の判断 */
+const recoverLossDoubleUpDecision = doubleUpService.recommendAction({
+  currentCoins         : 400,
+  bestSideProbability  : .6,
+  remainingBalanceCoins: 500,
+  todayEarnedCoins     : 200,
+  todayBetCoins        : 600
+});
+check('利確で本日の赤字を解消できるなら利確推奨', recoverLossDoubleUpDecision.recommendation, 'collect');
+
+/** 利確しても本日の赤字を解消できない場合の判断 */
+const remainLossDoubleUpDecision = doubleUpService.recommendAction({
+  currentCoins         : 200,
+  bestSideProbability  : .6,
+  remainingBalanceCoins: 500,
+  todayEarnedCoins     : 0,
+  todayBetCoins        : 600
+});
+check('利確しても赤字なら期待値に基づいて継続推奨', remainLossDoubleUpDecision.recommendation, 'continue');
 
 /** 未使用デッキ全体から最善の予測方向を選び続けた場合の平均成功確率 */
 const expectedBestSideProbability = doubleUpService.calcExpectedBestSideProbability([]);

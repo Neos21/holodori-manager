@@ -1,3 +1,5 @@
+import { betCoinsPerPlay } from '../constants/high-and-low-constants';
+
 import type { DoubleUpDecision, DoubleUpDecisionInput, DoubleUpProbabilities } from '../types/double-up-types';
 import type { PlayingCard, Rank, Suit } from '../types/playing-card-types';
 
@@ -75,30 +77,54 @@ export class DoubleUpService {
    * 判断の考え方 (優先順位順) :
    * 
    * 1. すでにプレイ内上限 (1万枚超) に達している場合、ルール上それ以上ダブルアップできないため強制的に辞退扱い
-   * 2. 成功確率が 50% 以下なら、期待値計算をするまでもなく継続は不利
-   * 3. 以上に該当しなければ、「継続時の期待値 = 次のコイン額 × 成功確率」を現在の確定コインと比較し、期待値が上回る場合のみ継続を推奨する
+   * 2. 利確しないと次のプレイに必要なベットを残せない場合、ゲームを続けられるよう利確を推奨する
+   * 3. 最初のプレイ以外で本日の収支が赤字、かつ今回の利確で収支を0以上に戻せる場合、赤字解消を優先して利確を推奨する
+   * 4. 成功確率が 50% 以下なら、期待値計算をするまでもなく継続は不利
+   * 5. 以上に該当しなければ、「継続時の期待値 = 次のコイン額 × 成功確率」を現在の確定コインと比較し、期待値が上回る場合のみ継続を推奨する
    * 
    * 日次上限は新しいプレイを開始できるか否かだけに影響するため、この判断には含めない
    */
   public recommendAction(doubleUpDecisionInput: DoubleUpDecisionInput): DoubleUpDecision {
-    const { currentCoins, bestSideProbability } = doubleUpDecisionInput;
+    const { currentCoins, bestSideProbability, remainingBalanceCoins, todayEarnedCoins, todayBetCoins } = doubleUpDecisionInput;
     
     /** ダブルアップ成功時に獲得できるコイン */
     const nextCoinsIfSuccess = currentCoins * 2;
     /** 失敗時の0枚も含めた継続時の期待獲得コイン */
     const expectedValueIfContinue = nextCoinsIfSuccess * bestSideProbability;
+    /** 現在進行中のプレイで見込んでいるコインを含まない本日の確定収支 */
+    const todayNetCoins = todayEarnedCoins - todayBetCoins;
+    /** 現在の見込みコインを利確した場合の本日の収支 */
+    const todayNetCoinsIfCollect = todayNetCoins + currentCoins;
     
     if(this.isPerPlayCapExceeded(currentCoins)) {
       return {
         recommendation: 'collect',
+        isForced      : true,
         reason: 'このプレイの上限 (1万枚超) に達しているため、これ以上ダブルアップできません',
         expectedValueIfContinue
       };
     }
+    if(remainingBalanceCoins < betCoinsPerPlay) {
+      return {
+        recommendation: 'collect',
+        isForced      : false,
+        reason: `現在の所持金が次のベットに必要な${betCoinsPerPlay}枚を下回っているため、ゲームを続けられるよう利確を推奨します`,
+        expectedValueIfContinue
+      };
+    }
     
+    if(todayBetCoins > betCoinsPerPlay && todayNetCoins < 0 && todayNetCoinsIfCollect >= 0) {
+      return {
+        recommendation: 'collect',
+        isForced      : false,
+        reason: `現在の見込みコインを利確すると本日の収支が${todayNetCoinsIfCollect.toLocaleString()}枚となり、赤字を解消できます`,
+        expectedValueIfContinue
+      };
+    }
     if(bestSideProbability <= .5) {
       return {
         recommendation: 'collect',
+        isForced      : false,
         reason: `成功確率が ${(bestSideProbability * 100).toFixed(1)}% と 50% 以下のため、期待値では継続が不利です`,
         expectedValueIfContinue
       };
@@ -107,6 +133,7 @@ export class DoubleUpService {
     if(expectedValueIfContinue <= currentCoins) {
       return {
         recommendation: 'collect',
+        isForced      : false,
         reason: '期待値で見ると、現在の確定コインの方が有利です',
         expectedValueIfContinue
       };
@@ -114,6 +141,7 @@ export class DoubleUpService {
     
     return {
       recommendation: 'continue',
+      isForced      : false,
       reason: `成功確率 ${(bestSideProbability * 100).toFixed(1)}%・継続時の期待値 ${expectedValueIfContinue.toFixed(0)} 枚 > 現在の ${currentCoins} 枚のため継続が有利です`,
       expectedValueIfContinue
     };

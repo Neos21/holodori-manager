@@ -9,11 +9,17 @@ import type { PlayingCard } from '../types/playing-card-types';
 /** ダブルアップ開始時の配当とゲーム終了イベント */
 type DoubleUpSectionProps = {
   /** ポーカーの成立役から引き継ぐ最初の見込みコイン */
-  initialCoins: number;
+  initialCoins         : number;
+  /** 現在進行中のプレイのベットを支払った後の所持金 */
+  remainingBalanceCoins: number;
+  /** 本日確定済みの総獲得コイン */
+  todayEarnedCoins     : number;
+  /** 現在進行中のプレイを含む本日のベット累計 */
+  todayBetCoins        : number;
   /** 辞退または上限到達で確定したコインを親ページに通知するイベント */
-  onCollect   : (coins: number, isForced: boolean) => void;
+  onCollect            : (coins: number, isForced: boolean) => void;
   /** 失敗により獲得0枚で新規プレイに戻すイベント */
-  onLose      : () => void;
+  onLose               : () => void;
 };
 
 /** ゲーム画面で選択する次のトランプカードの予測方向 (たかい or ひくい) */
@@ -49,13 +55,13 @@ const suitDisplayName = (suit: PlayingCard['suit']): string => {
 const playingCardDisplayName = (playingCard: PlayingCard): string => `${suitDisplayName(playingCard.suit)}${rankDisplayName(playingCard.rank)}`;
 
 /** ダブルアップの継続判断、提示カードの確率表示、実際の結果入力を扱う */
-export const DoubleUpSection = ({ initialCoins, onCollect, onLose }: DoubleUpSectionProps): ReactElement => {
+export const DoubleUpSection = ({ initialCoins, remainingBalanceCoins, todayEarnedCoins, todayBetCoins, onCollect, onLose }: DoubleUpSectionProps): ReactElement => {
   /** 成功確率、継続判断、1プレイ上限判定を担当する Service */
   const doubleUpService = new DoubleUpService();
   
   const [currentCoins                , setCurrentCoins                ] = useState<number>(initialCoins);                             // 現在のダブルアップ対象コイン
   const [seenPlayingCards            , setSeenPlayingCards            ] = useState<Array<PlayingCard>>([]);                           // 現在の提示カードより前に登場し、確率計算から除外するカード
-  const [isChallengeActive           , setIsChallengeActive           ] = useState<boolean>(true);                                    // 挑戦中として予測とめくられたカードを入力するか否か
+  const [isChallengeActive           , setIsChallengeActive           ] = useState<boolean>(false);                                   // 挑戦中として予測とめくられたカードを入力するか否か
   const [shownPlayingCardSelection   , setShownPlayingCardSelection   ] = useState<PlayingCardSelection>(emptyPlayingCardSelection);  // 大小比較の基準となる現在の提示カード
   const [revealedPlayingCardSelection, setRevealedPlayingCardSelection] = useState<PlayingCardSelection>(emptyPlayingCardSelection);  // 予測後にめくられたカード
   const [playingCardInputError       , setPlayingCardInputError       ] = useState<string>('');                                       // 既出カードを再入力した場合のエラー
@@ -68,8 +74,12 @@ export const DoubleUpSection = ({ initialCoins, onCollect, onLose }: DoubleUpSec
   const recommendedPrediction: Prediction | null = doubleUpProbabilities == null ? null : doubleUpProbabilities.higher >= doubleUpProbabilities.lower ? 'higher' : 'lower';
   /** 現在の提示カードで有利な側を選んだ場合の成功確率 */
   const bestSideProbability = doubleUpProbabilities == null ? 0 : Math.max(doubleUpProbabilities.higher, doubleUpProbabilities.lower);
-  /** 現在コインと現在の提示カードの成功確率から導出した継続・辞退の推奨 */
-  const doubleUpDecision = doubleUpService.recommendAction({ currentCoins, bestSideProbability });
+  /** 提示カードが不明な初回は残りデッキ全体の平均、判明後は現在の提示カードで有利な側を選んだ成功確率 */
+  const decisionProbability = shownPlayingCard == null ? doubleUpService.calcExpectedBestSideProbability(seenPlayingCards) : bestSideProbability;
+  /** 現在コイン、成功確率、日次収支、所持金から導出した継続・辞退の推奨 */
+  const doubleUpDecision = doubleUpService.recommendAction({ currentCoins, bestSideProbability: decisionProbability, remainingBalanceCoins, todayEarnedCoins, todayBetCoins });
+  /** 現在の見込みコインを利確した場合の本日の収支 */
+  const todayNetCoinsIfCollect = todayEarnedCoins - todayBetCoins + currentCoins;
   
   /** 提示カード入力を更新し、以前の結果入力を消去する */
   const onChangeShownPlayingCard = (playingCardSelection: PlayingCardSelection): void => {
@@ -135,9 +145,16 @@ export const DoubleUpSection = ({ initialCoins, onCollect, onLose }: DoubleUpSec
               <div>次の提示カード : <span className="font-bold">{playingCardDisplayName(shownPlayingCard)}</span>・有利な側の成功確率 : <span className="font-bold">{(bestSideProbability * 100).toFixed(1)}%</span></div>
             </div>
           )}
+          
+          {shownPlayingCard == null && (
+            <div className="alert alert-info alert-soft mb-4">次の提示カードが不明な状態で有利な側を選び続けた平均成功確率 : <span className="font-bold">{(decisionProbability * 100).toFixed(1)}%</span></div>
+          )}
+          
+          <p className="text-base-content/60 mb-2 text-sm">今ここで利確した場合 : 所持金 {(remainingBalanceCoins + currentCoins).toLocaleString()}枚・本日の収支 {todayNetCoinsIfCollect.toLocaleString()}枚</p>
           <p className={`mb-4 font-bold ${doubleUpDecision.recommendation === 'continue' ? 'text-success' : 'text-warning'}`}>{doubleUpDecision.reason}</p>
+          
           <div className="flex gap-2">
-            <button type="button" className="btn btn-info"    onClick={onStartChallenge} disabled={doubleUpDecision.recommendation === 'collect'}>挑戦する</button>
+            <button type="button" className="btn btn-info"    onClick={onStartChallenge} disabled={doubleUpDecision.isForced}>挑戦する</button>
             <button type="button" className="btn btn-outline" onClick={() => onCollect(currentCoins, false)}>辞退する (利確)</button>
           </div>
         </>

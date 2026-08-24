@@ -8,8 +8,12 @@ import type { CalculationMode, HandCategory, HoldOption, PokerPlayingCard } from
 
 /** ポーカー部分の表示制御とゲーム進行イベント */
 type PokerSectionProps = {
-  /** 日次上限超過により新しいプレイの入力を無効化するか否か */
+  /** 日次上限超過または所持金不足により新しいプレイの入力を無効化するか否か */
   isPlayDisabled    : boolean;
+  /** 新しいプレイを開始できない場合に表示する理由 */
+  playDisabledReason: string;
+  /** 最初の入力時に1プレイ分のベットを記録するイベント・開始できた場合は `true` */
+  onStartPlay       : () => boolean;
   /** 保持推奨計算の開始時に前回のプレイ結果表示を消去するイベント */
   onStartCalculation: () => void;
   /** 配当ありの役で獲得したコインをダブルアップに引き渡すイベント */
@@ -62,7 +66,7 @@ const toPokerPlayingCard = (playingCardSelection: PlayingCardSelection): PokerPl
 const pokerPlayingCardKey = (pokerPlayingCard: PokerPlayingCard): string => pokerPlayingCard.suit === 'joker' ? 'joker' : `${pokerPlayingCard.suit}-${pokerPlayingCard.rank}`;
 
 /** ポーカーの初期手札入力、保持推奨計算、交換後に成立した役の入力を扱う */
-export const PokerSection = ({ isPlayDisabled, onStartCalculation, onWin, onNoPayout }: PokerSectionProps): ReactElement => {
+export const PokerSection = ({ isPlayDisabled, playDisabledReason, onStartPlay, onStartCalculation, onWin, onNoPayout }: PokerSectionProps): ReactElement => {
   /** 役判定、配当計算、全保持パターンの期待値計算を担当する Service */
   const pokerService = new PokerService();
   
@@ -72,6 +76,7 @@ export const PokerSection = ({ isPlayDisabled, onStartCalculation, onWin, onNoPa
   const [isCalculating        , setIsCalculating        ] = useState<boolean>(false);                                                   // 保持推奨を計算中か否か
   const [calculationError     , setCalculationError     ] = useState<string>('');                                                       // 手札入力・保持推奨計算のエラー
   const [calculationDuration  , setCalculationDuration  ] = useState<number | null>(null);                                              // 保持推奨の計算処理にかかったミリ秒・未計算なら `null`
+  const [hasPlayStarted       , setHasPlayStarted       ] = useState<boolean>(false);                                                   // この表示中のプレイでベットを記録済みか否か
   
   /** 入力中の5枠を確定済みポーカー用トランプカードまたは `null` に変換した値 */
   const pokerPlayingCards = playingCardSelections.map(toPokerPlayingCard);
@@ -87,6 +92,16 @@ export const PokerSection = ({ isPlayDisabled, onStartCalculation, onWin, onNoPa
   const initialHandCategory = isPokerPlayingCardHandComplete && !hasDuplicatePlayingCard ? pokerService.evaluateHand(dealtPokerPlayingCards) : null;
   /** EV が最大となる先頭の保持パターン・未計算なら `null` */
   const bestHoldOption = holdOptions[0] ?? null;
+  /** 新しいプレイを開始できない状態でも、開始済みのプレイ入力を継続できるようにした無効状態 */
+  const isPokerInputDisabled = isPlayDisabled && !hasPlayStarted;
+  
+  /** この表示中のプレイで未記録の場合のみベットを記録する */
+  const startPlayIfNeeded = (): boolean => {
+    if(hasPlayStarted) return true;
+    if(!onStartPlay()) return false;
+    setHasPlayStarted(true);
+    return true;
+  };
   
   /** 指定した手札と計算方法で全32保持パターンを計算する */
   const calculateHoldOptions = (calculationPlayingCards: Array<PokerPlayingCard>, selectedCalculationMode: CalculationMode): void => {
@@ -112,6 +127,8 @@ export const PokerSection = ({ isPlayDisabled, onStartCalculation, onWin, onNoPa
   
   /** 指定位置のカード入力を更新し、5枚揃ったショートカット計算を自動開始する */
   const onChangePlayingCard = (playingCardIndex: number, playingCardSelection: PlayingCardSelection): void => {
+    if(!startPlayIfNeeded()) return;
+    
     /** 今回選択したカードを反映した後の5枠 */
     const nextPlayingCardSelections = playingCardSelections.map((currentPlayingCardSelection, currentPlayingCardIndex) => currentPlayingCardIndex === playingCardIndex ? playingCardSelection : currentPlayingCardSelection);
     /** 自動計算に渡せる確定済みトランプカード・入力途中なら `null` を含む */
@@ -147,15 +164,22 @@ export const PokerSection = ({ isPlayDisabled, onStartCalculation, onWin, onNoPa
   /** ゲーム画面に表示された配当ありの成立役を選択した時点でダブルアップに進む */
   const onChangeResultCategory = (event: ChangeEvent<HTMLSelectElement>): void => {
     if(isEmpty(event.target.value)) return;
+    if(!startPlayIfNeeded()) return;
     onWin(pokerService.calculatePayout(event.target.value as HandCategory));
+  };
+  
+  /** 配当なしの結果を確定する前に、このプレイのベットを記録する */
+  const onSelectNoPayout = (): void => {
+    if(!startPlayIfNeeded()) return;
+    onNoPayout();
   };
   
   return (
     <section>
       <h2 className="mb-2 text-xl font-bold">ポーカー</h2>
       
-      {isPlayDisabled && (
-        <div className="alert alert-warning alert-soft mb-4">本日の獲得コインが20,000枚を超えているため、新しいプレイは開始できません</div>
+      {isPokerInputDisabled && (
+        <div className="alert alert-warning alert-soft mb-4">{playDisabledReason}</div>
       )}
       
       <div className="text-base-content/60 mb-2 text-sm">最初に配られた5枚を入力してください。</div>
@@ -166,7 +190,7 @@ export const PokerSection = ({ isPlayDisabled, onStartCalculation, onWin, onNoPa
               <PlayingCardInput
                 label={`${playingCardIndex + 1}枚目`}
                 playingCardSelection={playingCardSelection}
-                isDisabled={isPlayDisabled || isCalculating}
+                isDisabled={isPokerInputDisabled || isCalculating}
                 isJokerShown
                 onChangePlayingCardSelection={changedPlayingCardSelection => onChangePlayingCard(playingCardIndex, changedPlayingCardSelection)}
               />
@@ -185,11 +209,11 @@ export const PokerSection = ({ isPlayDisabled, onStartCalculation, onWin, onNoPa
       )}
       
       <div className="flex gap-2 mb-4">
-        <select className="select select-sm min-w-50" value={calculationMode} onChange={onChangeCalculationMode} disabled={isPlayDisabled || isCalculating}>
+        <select className="select select-sm min-w-50" value={calculationMode} onChange={onChangeCalculationMode} disabled={isPokerInputDisabled || isCalculating}>
           <option value="shortcut">ショートカット計算</option>
           <option value="exact">厳密 EV 計算</option>
         </select>
-        <button type="button" className="btn btn-sm btn-info" onClick={onCalculateHoldOptions} disabled={isPlayDisabled || isCalculating}>計算する</button>
+        <button type="button" className="btn btn-sm btn-info" onClick={onCalculateHoldOptions} disabled={isPokerInputDisabled || isCalculating}>計算する</button>
       </div>
       
       {calculationMode === 'exact' && (
@@ -239,13 +263,13 @@ export const PokerSection = ({ isPlayDisabled, onStartCalculation, onWin, onNoPa
       <h3 className="mb-2 text-lg font-bold">交換後の結果</h3>
       <p className="text-base-content/60 mb-2 text-sm">保持推奨を計算しない場合も、成立した役を直接選択できます。</p>
       <div className="flex gap-2 mb-4">
-        <select className="select select-sm min-w-50" defaultValue="" onChange={onChangeResultCategory} disabled={isPlayDisabled}>
+        <select className="select select-sm min-w-50" defaultValue="" onChange={onChangeResultCategory} disabled={isPokerInputDisabled}>
           <option value="">成立した役を選択</option>
           {payoutHandCategories.map(payoutHandCategory => (
             <option key={payoutHandCategory} value={payoutHandCategory}>{handCategoryDisplayNames[payoutHandCategory]}</option>
           ))}
         </select>
-        <button type="button" className="btn btn-sm btn-outline" onClick={onNoPayout} disabled={isPlayDisabled}>不成立 (ワンペア)</button>
+        <button type="button" className="btn btn-sm btn-outline" onClick={onSelectNoPayout} disabled={isPokerInputDisabled}>不成立 (ワンペア)</button>
       </div>
     </section>
   );

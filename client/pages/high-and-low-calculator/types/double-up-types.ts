@@ -11,9 +11,15 @@ export type DoubleUpProbabilities = {
 /** ダブルアップを継続すべきか判断するための入力値 */
 export type DoubleUpDecisionInput = {
   /** 現在確定していない、チャレンジ中の見込みコイン */
-  currentCoins: number;
+  currentCoins         : number;
   /** 「たかい」「ひくい」のうち、確率が高い方を選んだ場合の成功確率 */
-  bestSideProbability: number;
+  bestSideProbability  : number;
+  /** 現在進行中のプレイのベットを支払った後の所持金 */
+  remainingBalanceCoins: number;
+  /** 本日確定済みの総獲得コイン */
+  todayEarnedCoins     : number;
+  /** 現在進行中のプレイを含む本日のベット累計 */
+  todayBetCoins        : number;
 };
 
 /** ダブルアップの推奨アクション (継続 or 辞退・確定) */
@@ -23,6 +29,8 @@ export type DoubleUpRecommendation = 'continue' | 'collect';
 export type DoubleUpDecision = {
   /** 推奨アクション */
   recommendation: DoubleUpRecommendation;
+  /** ルール上ダブルアップを継続できず、推奨を変更できないか否か */
+  isForced: boolean;
   /** 理由 */
   reason: string;
   /** 継続する場合の期待値 */
