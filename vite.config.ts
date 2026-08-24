@@ -4,17 +4,19 @@ import tailwindcss from '@tailwindcss/vite';
 import serverAdapter from 'hono-react-router-adapter/vite';
 import { defineConfig } from 'vite';
 
+/** Vite 設定 */
 export default defineConfig({
   plugins: [
-    tailwindcss(),
-    reactRouter(),
-    serverAdapter({
+    tailwindcss(),   // TailwindCSS プラグイン
+    reactRouter(),   // React Router プラグイン
+    serverAdapter({  // Hono + React Router 構成を認識させるプラグイン
       adapter: cloudflareAdapter,
       entry: './server/index.ts'
     })
   ],
   build: {
     rollupOptions: {
+      // フロントエンドのビルド資材の命名ルールを変更する
       output: {
         entryFileNames: `assets/entry-[hash].js`,
         chunkFileNames: `assets/chunk-[hash].js`,

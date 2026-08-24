@@ -8,6 +8,7 @@
     "types": [
       "node",
       "vite/client",
+      "@testing-library/jest-dom/vitest",
       "./worker-configuration.d.ts"
     ],
     "target": "ES2022",

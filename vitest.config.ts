@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config';
 
+/** Vitest 設定 */
 export default defineConfig({
   test: {
     environment: 'node',

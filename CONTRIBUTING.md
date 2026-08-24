@@ -26,7 +26,7 @@ $ npm run dev
 # ユニットテストを実行する (コードカバレッジを `coverage/` に出力する)
 $ npm run test
 
-# ユニットテストを Watch モードで実行する
+# ユニットテストを Watch モードで実行する (npm run-script 向けのタスクランナーやモノレポ管理ツールなどの慣例に沿ってコロンでカテゴリを区切る)
 $ npm run test:watch
 
 # ベンチマークを実行する
@@ -48,7 +48,7 @@ $ npm run preview
 $ npm run lint && npm run build
 ```
 
-※ `$ npm run test` を実行しても問題ないが、対応するユニットテストを実装していない場合が多いので除外している。
+※ `$ npm run test` を実行しても問題ないが、対応するユニットテストを実装していない場合が多いので必須とはしていない。
 
 
 ## Cloudflare Workers へのデプロイ

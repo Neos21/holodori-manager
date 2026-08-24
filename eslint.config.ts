@@ -8,6 +8,7 @@ import pluginTailwindcss from 'eslint-plugin-tailwindcss';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+/** ESLint 設定 */
 export default defineConfig([
   // ベースルール
   {
