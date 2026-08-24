@@ -102,6 +102,7 @@ export default defineConfig([
       '.wrangler/**',
       '.react-router/**',
       'build/**',
+      'coverage/**',
       'worker-configuration.d.ts'
     ]
   }

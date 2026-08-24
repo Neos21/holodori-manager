@@ -23,6 +23,15 @@ $ npm install
 # 開発サーバを起動する
 $ npm run dev
 
+# ユニットテストを実行する (コードカバレッジを `coverage/` に出力する)
+$ npm run test
+
+# ユニットテストを Watch モードで実行する
+$ npm run test:watch
+
+# ベンチマークを実行する
+$ npm run test:benchmark
+
 # Lint を実行する
 $ npm run lint
 
@@ -38,6 +47,8 @@ $ npm run preview
 ```bash
 $ npm run lint && npm run build
 ```
+
+※ `$ npm run test` を実行しても問題ないが、対応するユニットテストを実装していない場合が多いので除外している。
 
 
 ## Cloudflare Workers へのデプロイ

@@ -8,6 +8,7 @@ tsconfig.tsbuildinfo
 .react-router/
 .wrangler/
 build/
+coverage/
 node_modules/
 
 migrations/backups/
