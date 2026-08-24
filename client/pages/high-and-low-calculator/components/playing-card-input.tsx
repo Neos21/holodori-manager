@@ -2,7 +2,7 @@ import { type ReactElement } from 'react';
 
 import type { Rank, Suit } from '../types/playing-card-types';
 
-/** トランプカード1枚分の入力途中の値・ジョーカーまたはスートとランクの両方が揃うと確定する */
+/** トランプカード1枚分の選択値・未選択時はスートとランクがともに `null` */
 export type PlayingCardSelection = {
   /** 選択中のスート・未選択またはジョーカーなら `null` */
   suit   : Suit | null;
@@ -16,13 +16,13 @@ export type PlayingCardSelection = {
 type PlayingCardInputProps = {
   /** 何枚目または提示分かを示す入力欄見出し */
   label                       : string;
-  /** スート・ランク・ジョーカーの現在の選択状態 */
+  /** トランプカードまたはジョーカーの現在の選択状態 */
   playingCardSelection        : PlayingCardSelection;
   /** 全ての選択ボタンを操作不可にするか否か */
   isDisabled                 ?: boolean;
   /** ランク選択肢の末尾にジョーカーを表示するか否か */
   isJokerShown               ?: boolean;
-  /** 選択状態が変化した際に入力途中の値を通知するイベント */
+  /** 選択状態が変化した際に選択値を通知するイベント */
   onChangePlayingCardSelection: (playingCardSelection: PlayingCardSelection) => void;
 };
 
@@ -44,12 +44,12 @@ type PlayingCardRankOption = {
   label: string;
 };
 
-/** コントラクトブリッジ (スーツの強い順) */
+/** 配色的に分かりやすい「ニュー・デッキ・オーダー」順にする */
 const playingCardSuitOptions: Array<PlayingCardSuitOption> = [
   { value: 'spade'  , label: '♠', className: 'text-base-content' },
-  { value: 'heart'  , label: '♥', className: 'text-error'        },
   { value: 'diamond', label: '♦', className: 'text-error'        },
-  { value: 'club'   , label: '♣', className: 'text-base-content' }
+  { value: 'club'   , label: '♣', className: 'text-base-content' },
+  { value: 'heart'  , label: '♥', className: 'text-error'        }
 ];
 
 /** ゲーム内と同じ昇順で表示するランク選択肢 */
@@ -69,51 +69,39 @@ const playingCardRankOptions: Array<PlayingCardRankOption> = [
   { value: 14, label: 'A'  }
 ];
 
-/** スートとランクを常時表示してトランプカード1枚を入力する */
+/** 4スート×13ランクの各トランプカードを直接選択して1枚を入力する */
 export const PlayingCardInput = ({ label, playingCardSelection, isDisabled = false, isJokerShown = false, onChangePlayingCardSelection }: PlayingCardInputProps): ReactElement => {
-  /** 通常のトランプカードのスートを選択し、ジョーカー選択を解除する */
-  const onSelectSuit = (suit: Suit): void => onChangePlayingCardSelection({ suit, rank: playingCardSelection.rank, isJoker: false });
-  /** 通常のトランプカードのランクを選択し、ジョーカー選択を解除する */
-  const onSelectRank = (rank: Rank): void => onChangePlayingCardSelection({ suit: playingCardSelection.suit, rank, isJoker: false });
+  /** 通常のトランプカード1枚を選択し、ジョーカー選択を解除する */
+  const onSelectPlayingCard = (suit: Suit, rank: Rank): void => onChangePlayingCardSelection({ suit, rank, isJoker: false });
   /** ジョーカーを選択する */
   const onSelectJoker = (): void => onChangePlayingCardSelection({ suit: null, rank: null, isJoker: true });
   
   return (
-    <fieldset className="rounded-box border border-base-300 pt-0 px-1 pb-2 min-w-38">
+    <fieldset className="rounded-box border border-base-300 pt-0 px-1 pb-2 min-w-42">
       <legend className="px-1 font-bold text-sm">{label}</legend>
       
-      <div className="grid grid-cols-4 mb-1">
-        {playingCardSuitOptions.map(playingCardSuitOption => (
-          <button
-            key={playingCardSuitOption.value} type="button"
-            className={`btn btn-sm px-0 text-lg ${playingCardSelection.isJoker === false && playingCardSelection.suit === playingCardSuitOption.value ? 'btn-info' : 'btn-ghost'} ${playingCardSuitOption.className}`}
-            onClick={() => onSelectSuit(playingCardSuitOption.value)} disabled={isDisabled}
-          >
-            {playingCardSuitOption.label}
-          </button>
-        ))}
-      </div>
-      
-      <div className="grid grid-cols-7">
+      <div className="grid grid-cols-4">
         {playingCardRankOptions.map(playingCardRankOption => (
-          <button
-            key={playingCardRankOption.value} type="button"
-            className={`btn btn-xs p-0 ${playingCardSelection.isJoker === false && playingCardSelection.rank === playingCardRankOption.value ? 'btn-info' : 'btn-ghost'}`}
-            onClick={() => onSelectRank(playingCardRankOption.value)} disabled={isDisabled}
-          >
-            {playingCardRankOption.label}
-          </button>
+          playingCardSuitOptions.map(playingCardSuitOption => (
+            <button
+              key={`${playingCardSuitOption.value}-${playingCardRankOption.value}`} type="button"
+              className={`btn btn-xs p-0 ${playingCardSelection.isJoker === false && playingCardSelection.suit === playingCardSuitOption.value && playingCardSelection.rank === playingCardRankOption.value ? 'btn-info' : 'btn-ghost'} ${playingCardSuitOption.className}`}
+              onClick={() => onSelectPlayingCard(playingCardSuitOption.value, playingCardRankOption.value)} disabled={isDisabled}
+            >
+              {playingCardSuitOption.label}{playingCardRankOption.label}
+            </button>
+          ))
         ))}
-        {isJokerShown && (
-          <button
-            type="button"
-            className={`btn btn-xs p-0 ${playingCardSelection.isJoker ? 'btn-secondary' : 'btn-ghost'}`}
-            onClick={onSelectJoker} disabled={isDisabled}
-          >
-            🎃
-          </button>
-        )}
       </div>
+      {isJokerShown && (
+        <button
+          type="button"
+          className={`btn btn-xs w-full ${playingCardSelection.isJoker ? 'btn-secondary' : 'btn-ghost'}`}
+          onClick={onSelectJoker} disabled={isDisabled}
+        >
+          🎃 ジョーカー
+        </button>
+      )}
     </fieldset>
   );
 };

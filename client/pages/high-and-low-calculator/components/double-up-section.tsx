@@ -19,17 +19,6 @@ type DoubleUpSectionProps = {
 /** ゲーム画面で選択する次のトランプカードの予測方向 (たかい or ひくい) */
 type Prediction = 'higher' | 'lower';
 
-/** 予測後にゲーム画面に表示された結果 (成功・同値・失敗) */
-type ChallengeResult = 'success' | 'same-rank' | 'failure';
-
-/** 前回の予測結果から制約される次の提示トランプカード */
-type ExpectedNextPlayingCard = {
-  /** 大小関係を比較する基準となる前回の提示トランプカード */
-  previousPlayingCard: PlayingCard;
-  /** 次の提示ランクに必要な大小関係 */
-  relation           : Prediction | 'same-rank';
-};
-
 /** 提示トランプカードを未選択に戻す際に使用する入力状態 */
 const emptyPlayingCardSelection: PlayingCardSelection = { suit: null, rank: null, isJoker: false };
 
@@ -48,67 +37,78 @@ const rankDisplayName = (rank: PlayingCard['rank']): string => {
   return String(rank);
 };
 
+/** スートをゲーム画面上の記号に変換する */
+const suitDisplayName = (suit: PlayingCard['suit']): string => {
+  if(suit === 'spade'  ) return '♠';
+  if(suit === 'heart'  ) return '♥';
+  if(suit === 'diamond') return '♦';
+  return '♣';
+};
+
+/** トランプカードをゲーム画面上のスートとランク表記に変換する */
+const playingCardDisplayName = (playingCard: PlayingCard): string => `${suitDisplayName(playingCard.suit)}${rankDisplayName(playingCard.rank)}`;
+
 /** ダブルアップの継続判断、提示カードの確率表示、実際の結果入力を扱う */
 export const DoubleUpSection = ({ initialCoins, onCollect, onLose }: DoubleUpSectionProps): ReactElement => {
   /** 成功確率、継続判断、1プレイ上限判定を担当する Service */
   const doubleUpService = new DoubleUpService();
   
-  const [currentCoins             , setCurrentCoins             ] = useState<number>(initialCoins);                             // 現在のダブルアップ対象コイン
-  const [seenPlayingCards         , setSeenPlayingCards         ] = useState<Array<PlayingCard>>([]);                           // 確率計算から除外する過去の提示カード
-  const [isChallengeActive        , setIsChallengeActive        ] = useState<boolean>(true);                                    // 挑戦を選び、提示カードと予測を入力中か否か
-  const [isInitialChallenge       , setIsInitialChallenge       ] = useState<boolean>(true);                                    // ポーカー成立直後の初回挑戦か否か
-  const [shownPlayingCardSelection, setShownPlayingCardSelection] = useState<PlayingCardSelection>(emptyPlayingCardSelection);  // 現在の提示カード・入力途中の値を含む
-  const [prediction               , setPrediction               ] = useState<Prediction | ''>('');                              // ユーザがゲーム内で選んだ「たかい」「ひくい」
-  const [expectedNextPlayingCard  , setExpectedNextPlayingCard  ] = useState<ExpectedNextPlayingCard | null>(null);             // 前回入力した結果から決まる次の提示カードの大小関係
+  const [currentCoins                , setCurrentCoins                ] = useState<number>(initialCoins);                             // 現在のダブルアップ対象コイン
+  const [seenPlayingCards            , setSeenPlayingCards            ] = useState<Array<PlayingCard>>([]);                           // 現在の提示カードより前に登場し、確率計算から除外するカード
+  const [isChallengeActive           , setIsChallengeActive           ] = useState<boolean>(true);                                    // 挑戦中として予測とめくられたカードを入力するか否か
+  const [shownPlayingCardSelection   , setShownPlayingCardSelection   ] = useState<PlayingCardSelection>(emptyPlayingCardSelection);  // 大小比較の基準となる現在の提示カード
+  const [revealedPlayingCardSelection, setRevealedPlayingCardSelection] = useState<PlayingCardSelection>(emptyPlayingCardSelection);  // 予測後にめくられたカード
+  const [playingCardInputError       , setPlayingCardInputError       ] = useState<string>('');                                       // 既出カードを再入力した場合のエラー
   
   /** 現在の入力が確定している場合の提示トランプカード・入力途中なら `null` */
   const shownPlayingCard = toPlayingCard(shownPlayingCardSelection);
-  /** 現在の入力がダブルアップ中に既出のトランプカードと完全一致するか否か */
-  const isShownPlayingCardUsed = shownPlayingCard == null ? false : seenPlayingCards.some(seenPlayingCard => seenPlayingCard.suit === shownPlayingCard.suit && seenPlayingCard.rank === shownPlayingCard.rank);
-  /** 現在の提示トランプカードに対する両予測の成功確率・未確定または重複なら `null` */
-  const doubleUpProbabilities = shownPlayingCard == null || isShownPlayingCardUsed ? null : doubleUpService.calcProbabilities(shownPlayingCard, seenPlayingCards);
+  /** 現在の提示トランプカードに対する両予測の成功確率・未確定なら `null` */
+  const doubleUpProbabilities = shownPlayingCard == null ? null : doubleUpService.calcProbabilities(shownPlayingCard, seenPlayingCards);
   /** 現在の提示トランプカードに対して成功確率が高い予測方向 */
   const recommendedPrediction: Prediction | null = doubleUpProbabilities == null ? null : doubleUpProbabilities.higher >= doubleUpProbabilities.lower ? 'higher' : 'lower';
-  /** 次の提示内容が不明な継続判断時に使用する残りデッキ全体の平均最善成功確率 */
-  const expectedBestSideProbability = doubleUpService.calcExpectedBestSideProbability(seenPlayingCards);
-  /** 現在コインと平均成功確率から導出した継続・辞退の推奨 */
-  const doubleUpDecision = doubleUpService.recommendAction({ currentCoins, bestSideProbability: expectedBestSideProbability });
-  /** 前回入力した成功・同値結果と現在の提示ランクが矛盾するか否か */
-  const hasExpectedRelationMismatch = shownPlayingCard != null && expectedNextPlayingCard != null && (
-       (expectedNextPlayingCard.relation === 'higher'    && shownPlayingCard.rank <=  expectedNextPlayingCard.previousPlayingCard.rank)
-    || (expectedNextPlayingCard.relation === 'lower'     && shownPlayingCard.rank >=  expectedNextPlayingCard.previousPlayingCard.rank)
-    || (expectedNextPlayingCard.relation === 'same-rank' && shownPlayingCard.rank !== expectedNextPlayingCard.previousPlayingCard.rank)
-  );
-  /** 矛盾警告に表示する前回ランクと必要な大小関係 */
-  const expectedRankCondition = expectedNextPlayingCard == null
-    ? ''
-    : `${rankDisplayName(expectedNextPlayingCard.previousPlayingCard.rank)}${expectedNextPlayingCard.relation === 'higher' ? 'より高い' : expectedNextPlayingCard.relation === 'lower' ? 'より低い' : 'と同じ'}数字`;
+  /** 現在の提示カードで有利な側を選んだ場合の成功確率 */
+  const bestSideProbability = doubleUpProbabilities == null ? 0 : Math.max(doubleUpProbabilities.higher, doubleUpProbabilities.lower);
+  /** 現在コインと現在の提示カードの成功確率から導出した継続・辞退の推奨 */
+  const doubleUpDecision = doubleUpService.recommendAction({ currentCoins, bestSideProbability });
   
-  /** 提示カード入力を更新し、以前に選んだ予測を消去する */
+  /** 提示カード入力を更新し、以前の結果入力を消去する */
   const onChangeShownPlayingCard = (playingCardSelection: PlayingCardSelection): void => {
     setShownPlayingCardSelection(playingCardSelection);
-    setPrediction('');
+    setRevealedPlayingCardSelection(emptyPlayingCardSelection);
+    setPlayingCardInputError('');
   };
   
   /** 次のダブルアップ挑戦を開始する */
   const onStartChallenge = (): void => {
     setIsChallengeActive(true);
-    setShownPlayingCardSelection(emptyPlayingCardSelection);
-    setPrediction('');
+    setRevealedPlayingCardSelection(emptyPlayingCardSelection);
+    setPlayingCardInputError('');
   };
   
-  /** 実際のゲーム結果を反映し、成功時はコインを倍化する */
-  const onSelectResult = (challengeResult: ChallengeResult): void => {
-    if(shownPlayingCard == null || isEmpty(prediction) || isShownPlayingCardUsed) return;
-    if(challengeResult === 'failure') return onLose();
+  /** めくられたカードから成否を自動判定し、成功時はコインを倍化する */
+  const onChangeRevealedPlayingCard = (playingCardSelection: PlayingCardSelection): void => {
+    setRevealedPlayingCardSelection(playingCardSelection);
+    const revealedPlayingCard = toPlayingCard(playingCardSelection);
+    if(shownPlayingCard == null || revealedPlayingCard == null || recommendedPrediction == null) return;
     
-    setIsInitialChallenge(false);
-    setSeenPlayingCards(currentSeenPlayingCards => [...currentSeenPlayingCards, shownPlayingCard]);
-    setExpectedNextPlayingCard({ previousPlayingCard: shownPlayingCard, relation: challengeResult === 'same-rank' ? 'same-rank' : prediction as Prediction });
-    setShownPlayingCardSelection(emptyPlayingCardSelection);
-    setPrediction('');
+    /** 現在までに登場したカードと同じカードを入力しているか否か */
+    const isRevealedPlayingCardUsed = [...seenPlayingCards, shownPlayingCard].some(seenPlayingCard => seenPlayingCard.suit === revealedPlayingCard.suit && seenPlayingCard.rank === revealedPlayingCard.rank);
+    if(isRevealedPlayingCardUsed) return setPlayingCardInputError('以前に提示されたカードと同じカードは選択できません');
     
-    if(challengeResult === 'same-rank') return;
+    /** 成功確率が高い予測方向と2枚のランク比較から判定した成功か否か */
+    const isSuccess = (recommendedPrediction === 'higher' && revealedPlayingCard.rank > shownPlayingCard.rank)
+                   || (recommendedPrediction === 'lower'  && revealedPlayingCard.rank < shownPlayingCard.rank);
+    /** 次回の確率計算から現在の提示カードを除外した既出カード */
+    const nextSeenPlayingCards = [...seenPlayingCards, shownPlayingCard];
+    
+    if(revealedPlayingCard.rank !== shownPlayingCard.rank && !isSuccess) return onLose();
+    
+    setSeenPlayingCards(nextSeenPlayingCards);
+    setShownPlayingCardSelection(playingCardSelection);
+    setRevealedPlayingCardSelection(emptyPlayingCardSelection);
+    setPlayingCardInputError('');
+    
+    if(revealedPlayingCard.rank === shownPlayingCard.rank) return;
     
     /** 成功によって倍増し、上限判定後に次回に引き継ぐ見込みコイン */
     const nextCoins = currentCoins * 2;
@@ -130,64 +130,66 @@ export const DoubleUpSection = ({ initialCoins, onCollect, onLose }: DoubleUpSec
         <>
           <h3 className="mb-2 text-lg font-bold">挑戦するか選択する</h3>
           
-          <p className="mb-2 text-sm">残りデッキで毎回有利な側を選ぶ場合の平均成功率 : <span className="font-bold text-base">{(expectedBestSideProbability * 100).toFixed(1)}%</span></p>
+          {shownPlayingCard != null && (
+            <div className="alert alert-info alert-soft mb-4">
+              <div>次の提示カード : <span className="font-bold">{playingCardDisplayName(shownPlayingCard)}</span>・有利な側の成功確率 : <span className="font-bold">{(bestSideProbability * 100).toFixed(1)}%</span></div>
+            </div>
+          )}
           <p className={`mb-4 font-bold ${doubleUpDecision.recommendation === 'continue' ? 'text-success' : 'text-warning'}`}>{doubleUpDecision.reason}</p>
           <div className="flex gap-2">
             <button type="button" className="btn btn-info"    onClick={onStartChallenge} disabled={doubleUpDecision.recommendation === 'collect'}>挑戦する</button>
-            <button type="button" className="btn btn-outline" onClick={() => onCollect(currentCoins, false)}>辞退する</button>
+            <button type="button" className="btn btn-outline" onClick={() => onCollect(currentCoins, false)}>辞退する (利確)</button>
           </div>
         </>
       ) : (
         <>
           <h3 className="mb-3 text-lg font-bold">提示カードと予測</h3>
           
-          {isInitialChallenge && (
-            <button type="button" className="btn btn-sm btn-outline mb-4" onClick={() => onCollect(currentCoins, false)}>ダブルアップせず辞退する</button>
-          )}
+          <button type="button" className="btn btn-sm btn-outline mb-4" onClick={() => onCollect(currentCoins, false)}>辞退する (利確)</button>
           
-          <div className="mb-4 max-w-38">
-            <PlayingCardInput
-              label="提示カード"
-              playingCardSelection={shownPlayingCardSelection}
-              onChangePlayingCardSelection={onChangeShownPlayingCard}
-            />
-          </div>
-          
-          {isShownPlayingCardUsed && (
-            <div className="alert alert-error alert-soft mb-4">以前に提示されたカードと同じカードは選択できません</div>
-          )}
-          
-          {hasExpectedRelationMismatch && expectedNextPlayingCard != null && (
-            <div className="alert alert-warning alert-soft mb-4">前回の入力結果では、今回のカードは「{expectedRankCondition}」である必要があります。入力したカードの数字を確認してください</div>
+          {seenPlayingCards.length === 0 ? (
+            <div className="overflow-x-auto mb-4">
+              <div className="max-w-42">
+                <PlayingCardInput
+                  label="提示カード"
+                  playingCardSelection={shownPlayingCardSelection}
+                  onChangePlayingCardSelection={onChangeShownPlayingCard}
+                />
+              </div>
+            </div>
+          ) : shownPlayingCard != null && (
+            <div className="alert alert-info alert-soft mb-4">現在の提示カード : {playingCardDisplayName(shownPlayingCard)}</div>
           )}
           
           {doubleUpProbabilities != null && (
             <>
               <div className="grid gap-2 grid-cols-2 mb-4">
-                <button
-                  type="button"
-                  className={`btn h-auto py-3 ${prediction === 'higher' ? 'btn-info' : recommendedPrediction === 'higher' ? 'btn-success btn-outline' : 'btn-outline'}`}
-                  onClick={() => setPrediction('higher')}
-                >
+                <div className={`rounded-box border py-3 text-center ${recommendedPrediction === 'higher' ? 'border-success bg-success/10 font-bold' : 'border-base-300'}`}>
                   たかい : {(doubleUpProbabilities.higher * 100).toFixed(1)}%{recommendedPrediction === 'higher' ? ' (推奨)' : ''}
-                </button>
-                <button
-                  type="button"
-                  className={`btn h-auto py-3 ${prediction === 'lower'  ? 'btn-info' : recommendedPrediction === 'lower'  ? 'btn-success btn-outline' : 'btn-outline'}`}
-                  onClick={() => setPrediction('lower')}
-                >
+                </div>
+                <div className={`rounded-box border py-3 text-center ${recommendedPrediction === 'lower' ? 'border-success bg-success/10 font-bold' : 'border-base-300'}`}>
                   ひくい : {(doubleUpProbabilities.lower * 100).toFixed(1)}%{recommendedPrediction === 'lower' ? ' (推奨)' : ''}
-                </button>
+                </div>
               </div>
               
               <p className="mb-4 text-base-content/60 text-sm">同じ数字の残りトランプカード : {doubleUpProbabilities.sameRankRemainingPlayingCardCount}枚</p>
               
-              <h4 className="mb-2 font-bold">ゲーム内の結果</h4>
-              <div className="flex gap-2">
-                <button type="button" className="btn btn-success" onClick={() => onSelectResult('success'  )} disabled={isEmpty(prediction)}>成功</button>
-                <button type="button" className="btn btn-warning" onClick={() => onSelectResult('same-rank')} disabled={isEmpty(prediction)}>同じ数字</button>
-                <button type="button" className="btn btn-error"   onClick={() => onSelectResult('failure'  )} disabled={isEmpty(prediction)}>失敗</button>
+              <h4 className="mb-2 font-bold">めくられたカード</h4>
+              <div className="overflow-x-auto mb-4">
+                <div className="max-w-42">
+                  <PlayingCardInput
+                    label="結果"
+                    playingCardSelection={revealedPlayingCardSelection}
+                    onChangePlayingCardSelection={onChangeRevealedPlayingCard}
+                  />
+                </div>
               </div>
+              
+              {!isEmpty(playingCardInputError) && (
+                <div className="alert alert-error alert-soft mb-4">{playingCardInputError}</div>
+              )}
+              
+              <button type="button" className="btn btn-error" onClick={onLose}>失敗 (外した)</button>
             </>
           )}
         </>
