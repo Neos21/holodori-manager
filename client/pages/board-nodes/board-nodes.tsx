@@ -128,7 +128,7 @@ export default function BoardNodesPage(): ReactElement {
       <h1>ホロメンボード一覧</h1>
       
       {!isEmpty(listError) && (
-        <div className="alert alert-error alert-soft mb-4">{listError}</div>
+        <div className="mb-4 alert alert-soft alert-error">{listError}</div>
       )}
       
       {isLoading ? (
@@ -175,23 +175,23 @@ export default function BoardNodesPage(): ReactElement {
                                 </colgroup>
                                 <thead>
                                   <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                                    {category === boardNodeCategoryYellow && (<th className="pl-0 pr-1">報酬 UP</th>)}
-                                    <th className={category === boardNodeCategoryYellow ? 'px-1' : 'pl-0 pr-1'}>マス効果</th>
+                                    {category === boardNodeCategoryYellow && (<th className="pr-1 pl-0">報酬 UP</th>)}
+                                    <th className={category === boardNodeCategoryYellow ? 'px-1' : 'pr-1 pl-0'}>マス効果</th>
                                     <th className="px-1      text-right ">効果</th>
                                     <th className="px-1      text-right ">コネクト</th>
                                     <th className="px-1      text-right ">合計</th>
-                                    <th className="pl-1 pr-0 text-center">編集</th>
+                                    <th className="pr-0 pl-1 text-center">編集</th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {nodes.map(node => (
                                     <tr key={node.id} className={`[&>td]:align-top ${node.is_unlocked === booleanNumberTrue ? '' : 'bg-base-300'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                                      {category === boardNodeCategoryYellow && (<td className="pl-0 pr-1 whitespace-nowrap">{isEmpty(node.yellow_target) ? '-' : yellowTargetNames[node.yellow_target!]}</td>)}
-                                      <td className={`${category === boardNodeCategoryYellow ? 'px-1' : 'pl-0 pr-1'} whitespace-pre-wrap`}>{node.description}</td>
-                                      <td className="px-1           whitespace-nowrap text-right               ">{formatDecimal(node.amount)}</td>
-                                      <td className="px-1           whitespace-nowrap text-right               ">{node.connect_rate == null ? '-' : `${node.connect_rate}%`}</td>
-                                      <td className="px-1           whitespace-nowrap text-right  font-bold    ">{formatDecimal(BoardNodesService.calcFinalRate(node.amount, node.connect_rate))}%</td>
-                                      <td className="pl-1 pr-0 py-0 whitespace-nowrap text-center !align-middle"><button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(node)}>編集</button></td>
+                                      {category === boardNodeCategoryYellow && (<td className="pr-1 pl-0 whitespace-nowrap">{isEmpty(node.yellow_target) ? '-' : yellowTargetNames[node.yellow_target!]}</td>)}
+                                      <td className={`${category === boardNodeCategoryYellow ? 'px-1' : 'pr-1 pl-0'} whitespace-pre-wrap`}>{node.description}</td>
+                                      <td className="px-1           text-right whitespace-nowrap               ">{formatDecimal(node.amount)}</td>
+                                      <td className="px-1           text-right whitespace-nowrap               ">{node.connect_rate == null ? '-' : `${node.connect_rate}%`}</td>
+                                      <td className="px-1           text-right font-bold  whitespace-nowrap    ">{formatDecimal(BoardNodesService.calcFinalRate(node.amount, node.connect_rate))}%</td>
+                                      <td className="py-0 pr-0 pl-1 text-center align-middle! whitespace-nowrap"><button type="button" className="btn w-full btn-xs" onClick={() => onStartEdit(node)}>編集</button></td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -201,12 +201,12 @@ export default function BoardNodesPage(): ReactElement {
                             <table className="table table-xs">
                               <thead>
                                 <tr>
-                                  <th className="pl-1 pr-0 whitespace-nowrap text-left">ホロメンメモ</th>
+                                  <th className="pr-0 pl-1 text-left whitespace-nowrap">ホロメンメモ</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 <tr>
-                                  <td className="pl-1 pr-0 text-xs whitespace-pre-wrap align-top cursor-pointer" onClick={() => onOpenNoteModal(holomem)}>{isEmpty(holomem.note) ? '-' : holomem.note}</td>  { }
+                                  <td className="cursor-pointer pr-0 pl-1 align-top text-xs whitespace-pre-wrap" onClick={() => onOpenNoteModal(holomem)}>{isEmpty(holomem.note) ? '-' : holomem.note}</td>  { }
                                 </tr>
                               </tbody>
                             </table>

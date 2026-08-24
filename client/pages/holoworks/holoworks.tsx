@@ -66,7 +66,7 @@ export default function HoloworksPage(): ReactElement {
       <h1>ホロワーク管理</h1>
       
       {!isEmpty(listError) && (
-        <div className="alert alert-error alert-soft mb-4">{listError}</div>
+        <div className="mb-4 alert alert-soft alert-error">{listError}</div>
       )}
       
       {isLoading ? (

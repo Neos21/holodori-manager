@@ -77,15 +77,15 @@ export const PlayingCardInput = ({ label, playingCardSelection, isDisabled = fal
   const onSelectJoker = (): void => onChangePlayingCardSelection({ suit: null, rank: null, isJoker: true });
   
   return (
-    <fieldset className="rounded-box border border-base-300 pt-0 px-1 pb-2 min-w-42">
-      <legend className="px-1 font-bold text-sm">{label}</legend>
+    <fieldset className="min-w-42 rounded-box border border-base-300 px-1 pt-0 pb-2">
+      <legend className="px-1 text-sm font-bold">{label}</legend>
       
       <div className="grid grid-cols-4">
         {playingCardRankOptions.map(playingCardRankOption => (
           playingCardSuitOptions.map(playingCardSuitOption => (
             <button
               key={`${playingCardSuitOption.value}-${playingCardRankOption.value}`} type="button"
-              className={`btn btn-xs p-0 ${playingCardSelection.isJoker === false && playingCardSelection.suit === playingCardSuitOption.value && playingCardSelection.rank === playingCardRankOption.value ? 'btn-info' : 'btn-ghost'} ${playingCardSuitOption.className}`}
+              className={`btn p-0 btn-xs ${playingCardSelection.isJoker === false && playingCardSelection.suit === playingCardSuitOption.value && playingCardSelection.rank === playingCardRankOption.value ? 'btn-info' : 'btn-ghost'} ${playingCardSuitOption.className}`}
               onClick={() => onSelectPlayingCard(playingCardSuitOption.value, playingCardRankOption.value)} disabled={isDisabled}
             >
               {playingCardSuitOption.label}{playingCardRankOption.label}
@@ -96,7 +96,7 @@ export const PlayingCardInput = ({ label, playingCardSelection, isDisabled = fal
       {isJokerShown && (
         <button
           type="button"
-          className={`btn btn-xs w-full ${playingCardSelection.isJoker ? 'btn-secondary' : 'btn-ghost'}`}
+          className={`btn w-full btn-xs ${playingCardSelection.isJoker ? 'btn-secondary' : 'btn-ghost'}`}
           onClick={onSelectJoker} disabled={isDisabled}
         >
           🎃 ジョーカー

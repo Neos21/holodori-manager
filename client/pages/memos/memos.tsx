@@ -149,7 +149,7 @@ export default function MemosPage(): ReactElement {
       <h1>メモ</h1>
       
       {!isEmpty(pageError) && (
-        <div className="alert alert-error alert-soft mb-4">{pageError}</div>
+        <div className="mb-4 alert alert-soft alert-error">{pageError}</div>
       )}
       
       <section className="mb-4">
@@ -163,13 +163,13 @@ export default function MemosPage(): ReactElement {
       <p className="mb-2 flex items-center justify-between gap-2">
         <span>ID : {editingId}</span>
         <span className="flex gap-2">
-          <button type="button" className="btn btn-sm btn-info"  onClick={onUpdate} disabled={isLoading || isSubmitting || !isDirty}>保存</button>
-          <button type="button" className="btn btn-sm btn-error" onClick={onDelete} disabled={isLoading || isSubmitting}            >削除</button>
+          <button type="button" className="btn btn-info  btn-sm" onClick={onUpdate} disabled={isLoading || isSubmitting || !isDirty}>保存</button>
+          <button type="button" className="btn btn-error btn-sm" onClick={onDelete} disabled={isLoading || isSubmitting}            >削除</button>
         </span>
       </p>
       
       <textarea
-        className="textarea w-full min-h-80 mb-4"
+        className="textarea mb-4 min-h-80 w-full"
         name="content" value={content} placeholder="メモ"
         onChange={onChangeContent} readOnly={isLoading || isSubmitting}
       />

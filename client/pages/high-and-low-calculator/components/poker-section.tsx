@@ -179,11 +179,11 @@ export const PokerSection = ({ isPlayDisabled, playDisabledReason, onStartPlay, 
       <h2 className="mb-2 text-xl font-bold">ポーカー</h2>
       
       {isPokerInputDisabled && (
-        <div className="alert alert-warning alert-soft mb-4">{playDisabledReason}</div>
+        <div className="mb-4 alert alert-soft alert-warning">{playDisabledReason}</div>
       )}
       
-      <div className="text-base-content/60 mb-2 text-sm">最初に配られた5枚を入力してください。</div>
-      <div className="overflow-x-auto mb-4">
+      <div className="mb-2 text-sm text-base-content/60">最初に配られた5枚を入力してください。</div>
+      <div className="mb-4 overflow-x-auto">
         <div className="flex gap-1">
           {playingCardSelections.map((playingCardSelection, playingCardIndex) => (
             <div key={playingCardIndex}>
@@ -205,30 +205,30 @@ export const PokerSection = ({ isPlayDisabled, playDisabledReason, onStartPlay, 
       </div>
       
       {initialHandCategory != null && (
-        <div className="alert alert-info alert-soft mb-4">交換前の役 : {handCategoryDisplayNames[initialHandCategory]}</div>
+        <div className="mb-4 alert alert-soft alert-info">交換前の役 : {handCategoryDisplayNames[initialHandCategory]}</div>
       )}
       
-      <div className="flex gap-2 mb-4">
-        <select className="select select-sm min-w-50" value={calculationMode} onChange={onChangeCalculationMode} disabled={isPokerInputDisabled || isCalculating}>
+      <div className="mb-4 flex gap-2">
+        <select className="select min-w-50 select-sm" value={calculationMode} onChange={onChangeCalculationMode} disabled={isPokerInputDisabled || isCalculating}>
           <option value="shortcut">ショートカット計算</option>
           <option value="exact">厳密 EV 計算</option>
         </select>
-        <button type="button" className="btn btn-sm btn-info" onClick={onCalculateHoldOptions} disabled={isPokerInputDisabled || isCalculating}>計算する</button>
+        <button type="button" className="btn btn-info btn-sm" onClick={onCalculateHoldOptions} disabled={isPokerInputDisabled || isCalculating}>計算する</button>
       </div>
       
       {calculationMode === 'exact' && (
-        <div className="alert alert-warning alert-soft mb-4">厳密 EV 計算は完了まで十数秒かかる場合があります。</div>
+        <div className="mb-4 alert alert-soft alert-warning">厳密 EV 計算は完了まで十数秒かかる場合があります。</div>
       )}
       
       {!isEmpty(calculationError) && (
-        <div className="alert alert-error alert-soft mb-4">{calculationError}</div>
+        <div className="mb-4 alert alert-soft alert-error">{calculationError}</div>
       )}
       
       {holdOptions.length > 0 && (
-        <details className="mb-4 border border-base-300 rounded-box">
-          <summary className="py-2 px-3 font-bold text-sm cursor-pointer">
+        <details className="mb-4 rounded-box border border-base-300">
+          <summary className="cursor-pointer px-3 py-2 text-sm font-bold">
             全パターンの計算結果
-            {calculationDuration != null && (<span className="text-base-content/60 font-normal text-xs"> (計算時間 : {(calculationDuration / 1000).toFixed(3)}秒)</span>)}
+            {calculationDuration != null && (<span className="text-xs font-normal text-base-content/60"> (計算時間 : {(calculationDuration / 1000).toFixed(3)}秒)</span>)}
           </summary>
           
           <div className="overflow-x-auto px-3">
@@ -261,15 +261,15 @@ export const PokerSection = ({ isPlayDisabled, playDisabledReason, onStartPlay, 
       )}
       
       <h3 className="mb-2 text-lg font-bold">交換後の結果</h3>
-      <p className="text-base-content/60 mb-2 text-sm">保持推奨を計算しない場合も、成立した役を直接選択できます。</p>
-      <div className="flex gap-2 mb-4">
-        <select className="select select-sm min-w-50" defaultValue="" onChange={onChangeResultCategory} disabled={isPokerInputDisabled}>
+      <p className="mb-2 text-sm text-base-content/60">保持推奨を計算しない場合も、成立した役を直接選択できます。</p>
+      <div className="mb-4 flex gap-2">
+        <select className="select min-w-50 select-sm" defaultValue="" onChange={onChangeResultCategory} disabled={isPokerInputDisabled}>
           <option value="">成立した役を選択</option>
           {payoutHandCategories.map(payoutHandCategory => (
             <option key={payoutHandCategory} value={payoutHandCategory}>{handCategoryDisplayNames[payoutHandCategory]}</option>
           ))}
         </select>
-        <button type="button" className="btn btn-sm btn-outline" onClick={onSelectNoPayout} disabled={isPokerInputDisabled}>不成立 (ワンペア)</button>
+        <button type="button" className="btn btn-outline btn-sm" onClick={onSelectNoPayout} disabled={isPokerInputDisabled}>不成立 (ワンペア)</button>
       </div>
     </section>
   );

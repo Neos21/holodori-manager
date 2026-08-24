@@ -101,7 +101,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): ReactElement
   }
   
   return (
-    <main className="alert alert-error alert-soft alert-vertical my-4 mx-3">
+    <main className="mx-3 my-4 alert alert-vertical alert-soft alert-error">
       <h1>{title}</h1>
       <p>{text}</p>
       

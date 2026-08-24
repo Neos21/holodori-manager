@@ -58,7 +58,7 @@ export const HolomemNoteModal = ({ holomem, onClose, onUpdated }: HolomemNoteMod
         <h2 className="mb-4 text-lg font-bold">ホロメンメモ編集</h2>
         
         {!isEmpty(formError) && (
-          <div className="alert alert-error alert-soft mb-4">{formError}</div>
+          <div className="mb-4 alert alert-soft alert-error">{formError}</div>
         )}
         
         <form onSubmit={onSubmit}>
@@ -67,7 +67,7 @@ export const HolomemNoteModal = ({ holomem, onClose, onUpdated }: HolomemNoteMod
             <p>{holomem.group_name} : {holomem.name}</p>
             
             <label className="fieldset-label">{noteDisplayName}</label>
-            <textarea className="textarea w-full min-h-24" name="note" value={note} onChange={onChangeNote} />
+            <textarea className="textarea min-h-24 w-full" name="note" value={note} onChange={onChangeNote} />
           </fieldset>
           
           <div className="modal-action justify-between">

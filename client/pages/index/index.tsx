@@ -53,12 +53,12 @@ export default function Index(): ReactElement {
   };
   
   return (
-    <main className="py-4 px-3">
+    <main className="px-3 py-4">
       {/* `main` 要素の余白は `admin-layout.tsx` の `Outlet` ラッパーと揃えておく */}
       <h1>Holodori Manager</h1>
       
       {shouldRequestRelogin && (
-        <div className="alert alert-warning alert-soft mb-4">再度ログインしてください</div>
+        <div className="mb-4 alert alert-soft alert-warning">再度ログインしてください</div>
       )}
       
       <form onSubmit={onSubmit} className="space-y-4">
@@ -69,7 +69,7 @@ export default function Index(): ReactElement {
         />
         
         {!isEmpty(errorMessage) && (
-          <div className="alert alert-error alert-soft">{errorMessage}</div>
+          <div className="alert alert-soft alert-error">{errorMessage}</div>
         )}
         
         <button type="submit" className="btn" disabled={isSubmitting || isEmpty(password)}>Login</button>

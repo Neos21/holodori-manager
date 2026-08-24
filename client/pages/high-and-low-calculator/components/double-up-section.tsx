@@ -133,7 +133,7 @@ export const DoubleUpSection = ({ initialCoins, remainingBalanceCoins, todayEarn
       <h2 className="mb-2 text-xl font-bold">ダブルアップチャンス</h2>
       
       <p className="mb-4">
-        <span className="text-base-content/60 text-sm">現在の見込みコイン : </span><span className="text-lg font-bold text-info">{currentCoins.toLocaleString()}枚</span>
+        <span className="text-sm text-base-content/60">現在の見込みコイン : </span><span className="text-lg font-bold text-info">{currentCoins.toLocaleString()}枚</span>
       </p>
       
       {!isChallengeActive ? (
@@ -141,16 +141,16 @@ export const DoubleUpSection = ({ initialCoins, remainingBalanceCoins, todayEarn
           <h3 className="mb-2 text-lg font-bold">挑戦するか選択する</h3>
           
           {shownPlayingCard != null && (
-            <div className="alert alert-info alert-soft mb-4">
+            <div className="mb-4 alert alert-soft alert-info">
               <div>次の提示カード : <span className="font-bold">{playingCardDisplayName(shownPlayingCard)}</span>・有利な側の成功確率 : <span className="font-bold">{(bestSideProbability * 100).toFixed(1)}%</span></div>
             </div>
           )}
           
           {shownPlayingCard == null && (
-            <div className="alert alert-info alert-soft mb-4">次の提示カードが不明な状態で有利な側を選び続けた平均成功確率 : <span className="font-bold">{(decisionProbability * 100).toFixed(1)}%</span></div>
+            <div className="mb-4 alert alert-soft alert-info">次の提示カードが不明な状態で有利な側を選び続けた平均成功確率 : <span className="font-bold">{(decisionProbability * 100).toFixed(1)}%</span></div>
           )}
           
-          <p className="text-base-content/60 mb-2 text-sm">今ここで利確した場合 : 所持金 {(remainingBalanceCoins + currentCoins).toLocaleString()}枚・本日の収支 {todayNetCoinsIfCollect.toLocaleString()}枚</p>
+          <p className="mb-2 text-sm text-base-content/60">今ここで利確した場合 : 所持金 {(remainingBalanceCoins + currentCoins).toLocaleString()}枚・本日の収支 {todayNetCoinsIfCollect.toLocaleString()}枚</p>
           <p className={`mb-4 font-bold ${doubleUpDecision.recommendation === 'continue' ? 'text-success' : 'text-warning'}`}>{doubleUpDecision.reason}</p>
           
           <div className="flex gap-2">
@@ -162,10 +162,10 @@ export const DoubleUpSection = ({ initialCoins, remainingBalanceCoins, todayEarn
         <>
           <h3 className="mb-3 text-lg font-bold">提示カードと予測</h3>
           
-          <button type="button" className="btn btn-sm btn-outline mb-4" onClick={() => onCollect(currentCoins, false)}>辞退する (利確)</button>
+          <button type="button" className="btn mb-4 btn-outline btn-sm" onClick={() => onCollect(currentCoins, false)}>辞退する (利確)</button>
           
           {seenPlayingCards.length === 0 ? (
-            <div className="overflow-x-auto mb-4">
+            <div className="mb-4 overflow-x-auto">
               <div className="max-w-42">
                 <PlayingCardInput
                   label="提示カード"
@@ -175,12 +175,12 @@ export const DoubleUpSection = ({ initialCoins, remainingBalanceCoins, todayEarn
               </div>
             </div>
           ) : shownPlayingCard != null && (
-            <div className="alert alert-info alert-soft mb-4">現在の提示カード : {playingCardDisplayName(shownPlayingCard)}</div>
+            <div className="mb-4 alert alert-soft alert-info">現在の提示カード : {playingCardDisplayName(shownPlayingCard)}</div>
           )}
           
           {doubleUpProbabilities != null && (
             <>
-              <div className="grid gap-2 grid-cols-2 mb-4">
+              <div className="mb-4 grid grid-cols-2 gap-2">
                 <div className={`rounded-box border py-3 text-center ${recommendedPrediction === 'higher' ? 'border-success bg-success/10 font-bold' : 'border-base-300'}`}>
                   たかい : {(doubleUpProbabilities.higher * 100).toFixed(1)}%{recommendedPrediction === 'higher' ? ' (推奨)' : ''}
                 </div>
@@ -189,10 +189,10 @@ export const DoubleUpSection = ({ initialCoins, remainingBalanceCoins, todayEarn
                 </div>
               </div>
               
-              <p className="mb-4 text-base-content/60 text-sm">同じ数字の残りトランプカード : {doubleUpProbabilities.sameRankRemainingPlayingCardCount}枚</p>
+              <p className="mb-4 text-sm text-base-content/60">同じ数字の残りトランプカード : {doubleUpProbabilities.sameRankRemainingPlayingCardCount}枚</p>
               
               <h4 className="mb-2 font-bold">めくられたカード</h4>
-              <div className="overflow-x-auto mb-4">
+              <div className="mb-4 overflow-x-auto">
                 <div className="max-w-42">
                   <PlayingCardInput
                     label="結果"
@@ -203,7 +203,7 @@ export const DoubleUpSection = ({ initialCoins, remainingBalanceCoins, todayEarn
               </div>
               
               {!isEmpty(playingCardInputError) && (
-                <div className="alert alert-error alert-soft mb-4">{playingCardInputError}</div>
+                <div className="mb-4 alert alert-soft alert-error">{playingCardInputError}</div>
               )}
               
               <button type="button" className="btn btn-error" onClick={onLose}>失敗 (外した)</button>

@@ -134,11 +134,11 @@ export const CreateYellowNodesModal = ({ holomems, onClose, onUpdated }: CreateY
         <h2 className="mb-4 text-lg font-bold">黄マス一括追加</h2>
         
         {!isEmpty(formError) && (
-          <div className="alert alert-error alert-soft mb-4">{formError}</div>
+          <div className="mb-4 alert alert-soft alert-error">{formError}</div>
         )}
         
         <form onSubmit={onSubmit}>
-          <fieldset className="fieldset mb-4">
+          <fieldset className="mb-4 fieldset">
             <label className="fieldset-label">ホロメン</label>
             <select className="select w-full" name="holomems_id" value={holomemsId} onChange={onChangeHolomemsId} required>
               <option value="">(ホロメンを選択してください)</option>
@@ -148,32 +148,32 @@ export const CreateYellowNodesModal = ({ holomems, onClose, onUpdated }: CreateY
             </select>
           </fieldset>
           
-          <div className="overflow-x-auto mb-2">
+          <div className="mb-2 overflow-x-auto">
             <table className="table table-xs">
               <thead>
                 <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                  <th className="w-px pl-0 pr-1">{yellowTargetDisplayName}</th>
+                  <th className="w-px pr-1 pl-0">{yellowTargetDisplayName}</th>
                   <th className="     px-1     ">{descriptionDisplayName}</th>
                   <th className="w-px px-1     ">{amountDisplayName}</th>
                   <th className="w-px px-1     ">コネクト率</th>
-                  <th className="w-px pl-1 pr-0">解放</th>
+                  <th className="w-px pr-0 pl-1">解放</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row, rowIndex) => (
                   <tr key={rowIndex} className="[&>td]:align-top">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                    <td className="pl-0 pr-1">
-                      <select className="select select-xs w-full" name="yellow_target" value={row.yellow_target} onChange={event => onChangeRow(rowIndex, event)}>
+                    <td className="pr-1 pl-0">
+                      <select className="select w-full select-xs" name="yellow_target" value={row.yellow_target} onChange={event => onChangeRow(rowIndex, event)}>
                         <option value="">(選択してください)</option>
                         {boardNodeYellowTargets.map(yellowTarget => (
                           <option key={yellowTarget} value={yellowTarget}>{yellowTargetNames[yellowTarget]}</option>
                         ))}
                       </select>
                     </td>
-                    <td className="px-1                         "><input className="input input-xs w-full" type="text"              name="description"  value={row.description}                         onChange={event => onChangeRow(rowIndex, event)} /></td>
-                    <td className="px-1                         "><input className="input input-xs w-full" type="number" step="any" name="amount"       value={row.amount}                              onChange={event => onChangeRow(rowIndex, event)} /></td>
-                    <td className="px-1                         "><input className="input input-xs w-full" type="number" step="any" name="connect_rate" value={row.connect_rate}                        onChange={event => onChangeRow(rowIndex, event)} /></td>
-                    <td className="p-0 text-center !align-middle"><input className="checkbox checkbox-sm"  type="checkbox"                              checked={row.is_unlocked === booleanStringTrue} onChange={event => onChangeIsUnlocked(rowIndex, event)} /></td>
+                    <td className="px-1                          "><input className="input w-full input-xs" type="text"              name="description"  value={row.description}                         onChange={event => onChangeRow(rowIndex, event)} /></td>
+                    <td className="px-1                          "><input className="input w-full input-xs" type="number" step="any" name="amount"       value={row.amount}                              onChange={event => onChangeRow(rowIndex, event)} /></td>
+                    <td className="px-1                          "><input className="input w-full input-xs" type="number" step="any" name="connect_rate" value={row.connect_rate}                        onChange={event => onChangeRow(rowIndex, event)} /></td>
+                    <td className="p-0  text-center align-middle!"><input className="checkbox checkbox-sm"  type="checkbox"                              checked={row.is_unlocked === booleanStringTrue} onChange={event => onChangeIsUnlocked(rowIndex, event)} /></td>
                   </tr>
                 ))}
               </tbody>

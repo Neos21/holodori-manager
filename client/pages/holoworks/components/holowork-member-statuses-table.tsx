@@ -53,7 +53,7 @@ export const HoloworkMemberStatusesTable = ({ memberStatuses, isDisabled, onUpda
             <table className="table table-xs">
               <thead>
                 <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                  <th className="w-px pl-0 pr-1           ">グループ</th>
+                  <th className="w-px pr-1 pl-0           ">グループ</th>
                   <th className="w-px px-1                ">名前</th>
                   <th className="w-px px-1      text-right">完了</th>
                   <th className="w-px px-1      text-right">目標</th>
@@ -61,22 +61,22 @@ export const HoloworkMemberStatusesTable = ({ memberStatuses, isDisabled, onUpda
                   <th className="w-px px-1      text-right">キューブ</th>
                   <th className="w-px px-1      text-right">特訓</th>
                   <th className="w-px px-1      text-right">レッスン</th>
-                  <th className="     pl-1 pr-0           ">ホロメンメモ</th>
+                  <th className="     pr-0 pl-1           ">ホロメンメモ</th>
                 </tr>
               </thead>
               <tbody>
                 {/* 活動中メンバーには水色背景を付ける */}
                 {memberStatuses.map(memberStatus => (
                   <tr key={memberStatus.holomems_id} className={`[&>td]:align-top ${memberStatus.active_holoworks_id == null ? '' : 'bg-info/10'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                    <td className="         pl-0 pr-1 whitespace-nowrap                            ">{memberStatus.holomems_group_name}</td>
-                    <td className="         px-1      whitespace-nowrap                            ">{memberStatus.holomems_name}</td>
-                    <td className="         px-1      whitespace-nowrap   text-right cursor-pointer" onClick={() => onEditAchievement(memberStatus)}>{memberStatus.current_count}</td>
-                    <td className="         px-1      whitespace-nowrap   text-right               ">{memberStatus.next_threshold ?? '-'}</td>
-                    <td className="         px-1      whitespace-nowrap   text-right               ">{memberStatus.remaining_count ?? '-'}</td>
-                    <td className="         px-1      whitespace-nowrap   text-right               ">{memberStatus.cube_total_rate      > 0 ? formatDecimal(memberStatus.cube_total_rate     ) + '%' : '-'}</td>
-                    <td className="         px-1      whitespace-nowrap   text-right               ">{memberStatus.training_total_rate  > 0 ? formatDecimal(memberStatus.training_total_rate ) + '%' : '-'}</td>
-                    <td className="         px-1      whitespace-nowrap   text-right               ">{memberStatus.lesson_pt_total_rate > 0 ? formatDecimal(memberStatus.lesson_pt_total_rate) + '%' : '-'}</td>
-                    <td className="min-w-35 pl-1 pr-0                               cursor-pointer" onClick={() => onEditNote(memberStatus)}>
+                    <td className="                        pr-1 pl-0            whitespace-nowrap">{memberStatus.holomems_group_name}</td>
+                    <td className="                        px-1                 whitespace-nowrap">{memberStatus.holomems_name}</td>
+                    <td className="         cursor-pointer px-1      text-right whitespace-nowrap" onClick={() => onEditAchievement(memberStatus)}>{memberStatus.current_count}</td>
+                    <td className="                        px-1      text-right whitespace-nowrap">{memberStatus.next_threshold ?? '-'}</td>
+                    <td className="                        px-1      text-right whitespace-nowrap">{memberStatus.remaining_count ?? '-'}</td>
+                    <td className="                        px-1      text-right whitespace-nowrap">{memberStatus.cube_total_rate      > 0 ? formatDecimal(memberStatus.cube_total_rate     ) + '%' : '-'}</td>
+                    <td className="                        px-1      text-right whitespace-nowrap">{memberStatus.training_total_rate  > 0 ? formatDecimal(memberStatus.training_total_rate ) + '%' : '-'}</td>
+                    <td className="                        px-1      text-right whitespace-nowrap">{memberStatus.lesson_pt_total_rate > 0 ? formatDecimal(memberStatus.lesson_pt_total_rate) + '%' : '-'}</td>
+                    <td className="min-w-35 cursor-pointer pr-0 pl-1                             " onClick={() => onEditNote(memberStatus)}>
                       {/* `td` 要素に `line-clamp-1` を付けると折り返された文字が見切れるため `div` 必須 */}
                       <div className="line-clamp-1">{isEmpty(memberStatus.holomems_note) ? '-' : memberStatus.holomems_note}</div>
                     </td>

@@ -129,7 +129,7 @@ export const Memo = (): ReactElement => {
   return (
     <section>
       <textarea
-        className="textarea textarea-sm w-full min-h-40 mb-1"
+        className="textarea mb-1 min-h-40 w-full textarea-sm"
         name="memo" value={content} placeholder="メモ"
         onChange={onChangeContent} onBlur={onSaveMemo} readOnly={isLoading || isSaving}
       />
@@ -137,11 +137,11 @@ export const Memo = (): ReactElement => {
       <p className="mb-1 text-xs">最終保存 : {isEmpty(lastSavedAt) ? '-' : lastSavedAt}</p>
       
       {!isEmpty(errorMessage) && (
-        <p className="text-error font-bold text-xs">{errorMessage}</p>
+        <p className="text-xs font-bold text-error">{errorMessage}</p>
       )}
       
       {!isEmpty(savedMessage) && (
-        <p className="text-success font-bold text-xs">{savedMessage}</p>
+        <p className="text-xs font-bold text-success">{savedMessage}</p>
       )}
     </section>
   );

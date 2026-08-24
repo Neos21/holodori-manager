@@ -71,7 +71,7 @@ export const HoloworksTable = ({ holoworks, isDisabled, onChangeSubmitting, onUp
         
         {/* 完了・中断・削除時のエラー表示 */}
         {!isEmpty(formError) && (
-          <div className="alert alert-error alert-soft mb-4">{formError}</div>
+          <div className="mb-4 alert alert-soft alert-error">{formError}</div>
         )}
         
         {holoworks.length === 0 ? (
@@ -81,12 +81,12 @@ export const HoloworksTable = ({ holoworks, isDisabled, onChangeSubmitting, onUp
             <table className="table table-xs">
               <thead>
                 <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                  <th className="w-px pl-0 pr-1            ">枠の名前</th>
+                  <th className="w-px pr-1 pl-0            ">枠の名前</th>
                   <th className="     px-1                 ">活動中メンバー</th>
                   <th className="w-px px-1      text-center">開始</th>
                   <th className="w-px px-1      text-center">完了</th>
                   <th className="w-px px-1      text-center">中断</th>
-                  <th className="w-px pl-1 pr-0 text-center">削除</th>
+                  <th className="w-px pr-0 pl-1 text-center">削除</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,12 +96,12 @@ export const HoloworksTable = ({ holoworks, isDisabled, onChangeSubmitting, onUp
                   // 何となく見栄え的に `vertical-align` は `middle` で良い
                   return (
                     <tr key={holowork.id}>
-                      <td className="         pl-0 pr-1      whitespace-nowrap            ">{holowork.name}</td>
+                      <td className="         pr-1 pl-0                  whitespace-nowrap">{holowork.name}</td>
                       <td className="min-w-35 px-1                                        ">{hasActiveMembers ? holowork.active_members.map(activeMember => (<div key={activeMember.holomems_id}>{activeMember.holomems_group_name} {activeMember.holomems_name}</div>)) : '-'}</td>
-                      <td className="         px-1      py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-info"    onClick={() => setStartingHolowork(holowork)}  disabled={isDisabled || hasActiveMembers} >開始</button></td>
-                      <td className="         px-1      py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-success" onClick={() => onSubmit(holowork, 'complete')} disabled={isDisabled || !hasActiveMembers}>完了</button></td>
-                      <td className="         px-1      py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-warning" onClick={() => onSubmit(holowork, 'abort')}    disabled={isDisabled || !hasActiveMembers}>中断</button></td>
-                      <td className="         pl-1 pr-0 py-0 whitespace-nowrap text-center"><button type="button" className="btn btn-xs btn-error"   onClick={() => onDelete(holowork)}             disabled={isDisabled || hasActiveMembers} >削除</button></td>
+                      <td className="         px-1      py-0 text-center whitespace-nowrap"><button type="button" className="btn btn-info    btn-xs" onClick={() => setStartingHolowork(holowork)}  disabled={isDisabled || hasActiveMembers} >開始</button></td>
+                      <td className="         px-1      py-0 text-center whitespace-nowrap"><button type="button" className="btn btn-success btn-xs" onClick={() => onSubmit(holowork, 'complete')} disabled={isDisabled || !hasActiveMembers}>完了</button></td>
+                      <td className="         px-1      py-0 text-center whitespace-nowrap"><button type="button" className="btn btn-warning btn-xs" onClick={() => onSubmit(holowork, 'abort')}    disabled={isDisabled || !hasActiveMembers}>中断</button></td>
+                      <td className="         py-0 pr-0 pl-1 text-center whitespace-nowrap"><button type="button" className="btn btn-error   btn-xs" onClick={() => onDelete(holowork)}             disabled={isDisabled || hasActiveMembers} >削除</button></td>
                     </tr>
                   );
                 })}

@@ -265,7 +265,7 @@ export default function CardsPage(): ReactElement {
       <h1>カード一覧</h1>
       
       {!isEmpty(listError) && (
-        <div className="alert alert-error alert-soft mb-4">{listError}</div>
+        <div className="mb-4 alert alert-soft alert-error">{listError}</div>
       )}
       
       {isLoading ? (
@@ -278,10 +278,10 @@ export default function CardsPage(): ReactElement {
             <p className="mb-4">登録されているカードはありません。</p>
           ) : (
             <>
-              <div className="mb-1 grid grid-cols-2 gap-x-2 min-w-80">
+              <div className="mb-1 grid min-w-80 grid-cols-2 gap-x-2">
                 <fieldset className="fieldset">
                   <label className="fieldset-label">並び順</label>
-                  <select className="select select-sm w-full" value={sortMode} onChange={onChangeSortMode}>
+                  <select className="select w-full select-sm" value={sortMode} onChange={onChangeSortMode}>
                     <option value="orderOnly">ホロメン順</option>
                     <option value="orderOwned">所有優先</option>
                     <option value="power">強さ順</option>
@@ -290,7 +290,7 @@ export default function CardsPage(): ReactElement {
                 
                 <fieldset className="fieldset">
                   <label className="fieldset-label">所有状況</label>
-                  <select className="select select-sm w-full" value={ownedFilter} onChange={onChangeOwnedFilter}>
+                  <select className="select w-full select-sm" value={ownedFilter} onChange={onChangeOwnedFilter}>
                     <option value="all">全て</option>
                     <option value="owned">所有済のみ</option>
                     <option value="notOwned">未所有のみ</option>
@@ -298,10 +298,10 @@ export default function CardsPage(): ReactElement {
                 </fieldset>
               </div>
               
-              <div className="mb-2 grid grid-cols-2 gap-x-2 items-end min-w-80">
+              <div className="mb-2 grid min-w-80 grid-cols-2 items-end gap-x-2">
                 <div className="join">
                   {[...rarities].reverse().map(rarity => (
-                    <button key={rarity} type="button" className={`btn btn-sm join-item ${rarityFilter.has(rarity) ? 'btn-info' : ''}`} onClick={() => onToggleRarityFilter(rarity)}>★{rarity}</button>
+                    <button key={rarity} type="button" className={`btn join-item btn-sm ${rarityFilter.has(rarity) ? 'btn-info' : ''}`} onClick={() => onToggleRarityFilter(rarity)}>★{rarity}</button>
                   ))}
                 </div>
                 
@@ -311,7 +311,7 @@ export default function CardsPage(): ReactElement {
                 </label>
               </div>
               
-              <p className="mb-4 text-xs text-right">{visibleCards.length} / {cardDisplays.length} 件表示</p>
+              <p className="mb-4 text-right text-xs">{visibleCards.length} / {cardDisplays.length} 件表示</p>
               
               {visibleCards.length === 0 ? (
                 <p className="mb-4 text-sm">絞り込み条件に一致するカードはありません。</p>
@@ -320,26 +320,26 @@ export default function CardsPage(): ReactElement {
                   <table className="table table-xs">
                     <thead>
                       <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                        <th className="w-px pl-0 pr-1            ">{groupNameDisplayName}</th>
+                        <th className="w-px pr-1 pl-0            ">{groupNameDisplayName}</th>
                         <th className="w-px px-1                 ">名前</th>
                         <th className="     px-1                 ">{cardNameDisplayName}</th>
                         <th className="w-px px-1      text-center">★</th>
                         <th className="w-px px-1      text-center">Lv</th>
                         <th className="w-px px-1      text-center">開花</th>
-                        <th className="w-px pl-1 pr-0 text-center">編集</th>
+                        <th className="w-px pr-0 pl-1 text-center">編集</th>
                       </tr>
                     </thead>
                     <tbody>
                       {/* 未所有カードの行はグレー背景で表示する */}
                       {visibleCards.map(card => (
                         <tr key={card.id} className={`[&>td]:align-top ${card.is_owned === booleanNumberTrue ? '' : 'bg-base-300'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                          <td className="         pl-0 pr-1      whitespace-nowrap              ">{card.holomem_group_name}</td>
-                          <td className="         px-1           whitespace-nowrap              ">{card.holomem_name}</td>
+                          <td className="         pr-1 pl-0                    whitespace-nowrap">{card.holomem_group_name}</td>
+                          <td className="         px-1                         whitespace-nowrap">{card.holomem_name}</td>
                           <td className="min-w-36 px-1                                          ">{card.name}</td>
-                          <td className="         px-1           whitespace-nowrap text-center  ">{card.rarity}</td>
-                          <td className="         px-1           whitespace-nowrap text-right   ">{card.level}</td>
-                          <td className="         px-1           whitespace-nowrap text-center  ">{card.bloom}</td>
-                          <td className="         pl-1 pr-0 py-0 whitespace-nowrap !align-middle"><button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(card)}>編集</button></td>
+                          <td className="         px-1           text-center   whitespace-nowrap">{card.rarity}</td>
+                          <td className="         px-1           text-right    whitespace-nowrap">{card.level}</td>
+                          <td className="         px-1           text-center   whitespace-nowrap">{card.bloom}</td>
+                          <td className="         py-0 pr-0 pl-1 align-middle! whitespace-nowrap"><button type="button" className="btn w-full btn-xs" onClick={() => onStartEdit(card)}>編集</button></td>
                         </tr>
                       ))}
                     </tbody>
@@ -361,7 +361,7 @@ export default function CardsPage(): ReactElement {
             <h2 className="mb-4 text-lg font-bold">{editingId == null ? '新規カード追加' : `カード編集 (ID : ${editingId})`}</h2>
             
             {!isEmpty(formError) && (
-              <div className="alert alert-error alert-soft mb-4">{formError}</div>
+              <div className="mb-4 alert alert-soft alert-error">{formError}</div>
             )}
             
             <form onSubmit={onSubmit}>

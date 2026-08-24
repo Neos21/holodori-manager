@@ -103,40 +103,42 @@ export default function HighAndLowCalculatorPage(): ReactElement {
     <main>
       <h1>High & Low</h1>
       
-      <div className="grid gap-2 grid-cols-[max-content_8rem] items-center mb-2">
+      <div className="mb-2 grid grid-cols-[max-content_8rem] items-center gap-2">
         <label className="text-sm whitespace-nowrap">現在の所持金</label>
         <input
-          type="number" className="input input-xs text-right"
+          type="number" className="input text-right input-xs"
           value={remainingBalanceCoinsInput} onChange={onChangeRemainingBalanceCoins}
           min="0" step="1"
         />
         
         <label className="text-sm whitespace-nowrap">今日稼いだコイン</label>
         <input
-          type="number" className="input input-xs text-right"
+          type="number" className="input text-right input-xs"
           value={todayEarnedCoinsInput} onChange={onChangeTodayEarnedCoins}
           min="0" step="1"
         />
         
         <label className="text-sm whitespace-nowrap">今日のベット累計</label>
         <input
-          type="number" className="input input-xs text-right"
+          type="number" className="input text-right input-xs"
           value={todayBetCoinsInput} onChange={onChangeTodayBetCoins}
           min="0" step={betCoinsPerPlay}
         />
       </div>
-      <p className="text-base-content/60 mb-2 text-xs">最初のカードまたは結果を入力すると、所持金から50枚を差し引いてベット累計に加算します。途中から使う場合は各値を手動で修正できます。</p>
-      <div className="flex gap-2 flex-wrap mb-4 text-sm">
+      
+      <p className="mb-2 text-xs text-base-content/60">最初のカードまたは結果を入力すると、所持金から50枚を差し引いてベット累計に加算します。途中から使う場合は各値を手動で修正できます。</p>
+      
+      <div className="mb-4 flex flex-wrap gap-2 text-sm">
         <span className="badge badge-outline">今日のプレイ : {todayPlayCount.toLocaleString()}回</span>
         <span className={`badge badge-outline ${todayNetCoins >= 0 ? 'text-success' : 'text-error'}`}>今日の収支 : {todayNetCoins.toLocaleString()}枚</span>
       </div>
       
       {hasInvalidTodayBetCoins && (
-        <div className="alert alert-warning alert-soft mb-4">ベット累計が1プレイ50枚の単位と一致していません。入力値はそのまま収支計算に使用します。</div>
+        <div className="mb-4 alert alert-soft alert-warning">ベット累計が1プレイ50枚の単位と一致していません。入力値はそのまま収支計算に使用します。</div>
       )}
       
       {!isEmpty(resultMessage) && (
-        <div className="alert alert-info alert-soft mb-4">{resultMessage}</div>
+        <div className="mb-4 alert alert-soft alert-info">{resultMessage}</div>
       )}
       
       {gamePhase === 'poker' ? (

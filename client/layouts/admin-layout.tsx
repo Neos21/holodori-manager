@@ -42,7 +42,7 @@ export default function AdminLayout(): ReactElement {
   };
   
   return (
-    <div className="drawer lg:drawer-open min-h-screen">
+    <div className="drawer min-h-screen lg:drawer-open">
       {/* サイドメニュー開閉を操作するための非表示チェックボックス */}
       <input id="admin-sidebar" type="checkbox" className="drawer-toggle" checked={isSidebarOpen} onChange={onChangeSidebar} />
       
@@ -51,7 +51,7 @@ export default function AdminLayout(): ReactElement {
         <header className="navbar bg-base-100 shadow-sm lg:hidden">
           <div className="flex-none">
             <label htmlFor="admin-sidebar" className="btn btn-square btn-ghost">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </label>
@@ -60,7 +60,7 @@ export default function AdminLayout(): ReactElement {
         </header>
         
         {/* コンテンツ部分 */}
-        <div className="min-h-screen pt-4 px-3 pb-12">
+        <div className="min-h-screen px-3 pt-4 pb-12">
           <Outlet />
         </div>
       </div>
@@ -70,10 +70,10 @@ export default function AdminLayout(): ReactElement {
         <label htmlFor="admin-sidebar" className="drawer-overlay" />
         
         {/* サイドメニュー */}
-        <aside className="w-72 min-h-full border-r border-base-300 pt-4 px-3 pb-8 text-base-content bg-base-200">
+        <aside className="min-h-full w-72 border-r border-base-300 bg-base-200 px-3 pt-4 pb-8 text-base-content">
           <div className="mb-6 text-xl font-bold">Holodori Manager</div>
           <nav className="mb-6">
-            <ul className="menu w-full p-0 gap-2">
+            <ul className="menu w-full gap-2 p-0">
               {menuItems.map(item => {
                 const isActive = location.pathname === item.to;
                 return (

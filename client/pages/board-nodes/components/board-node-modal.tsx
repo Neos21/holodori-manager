@@ -150,7 +150,7 @@ export const BoardNodeModal = ({ boardNode, holomems, onClose, onUpdated }: Boar
         <h2 className="mb-4 text-lg font-bold">{boardNode == null ? '新規マス追加' : `マス編集 (ID : ${boardNode.id})`}</h2>
         
         {!isEmpty(formError) && (
-          <div className="alert alert-error alert-soft mb-4">{formError}</div>
+          <div className="mb-4 alert alert-soft alert-error">{formError}</div>
         )}
         
         <form onSubmit={onSubmit}>
@@ -186,7 +186,7 @@ export const BoardNodeModal = ({ boardNode, holomems, onClose, onUpdated }: Boar
             </select>
             
             <label className="fieldset-label">{descriptionDisplayName}</label>
-            <textarea className="textarea w-full min-h-24" name="description" value={form.description} onChange={onChangeForm} required />
+            <textarea className="textarea min-h-24 w-full" name="description" value={form.description} onChange={onChangeForm} required />
             
             <label className="fieldset-label">{amountDisplayName}</label>
             <input className="input w-full" name="amount" type="number" step="any" value={form.amount} onChange={onChangeForm} required />

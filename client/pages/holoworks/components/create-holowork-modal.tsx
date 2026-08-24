@@ -58,7 +58,7 @@ export const CreateHoloworkModal = ({ onClose, onCreated }: CreateHoloworkModalP
           </fieldset>
           
           {!isEmpty(formError) && (
-            <div className="alert alert-error alert-soft mb-4">{formError}</div>
+            <div className="mb-4 alert alert-soft alert-error">{formError}</div>
           )}
           
           <div className="modal-action justify-between">

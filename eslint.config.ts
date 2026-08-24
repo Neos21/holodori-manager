@@ -1,10 +1,10 @@
 import js from '@eslint/js';
 import neosEslintPlugin from '@neos21/neos-eslint-plugin';
 import { defineConfig } from 'eslint/config';
-import importPlugin from 'eslint-plugin-import';
+import pluginImport from 'eslint-plugin-import';
 import pluginReact from 'eslint-plugin-react';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
-import tailwindcss from 'eslint-plugin-tailwindcss';
+import pluginTailwindcss from 'eslint-plugin-tailwindcss';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -14,7 +14,7 @@ export default defineConfig([
     files: ['**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     plugins: {
       js,
-      import: importPlugin
+      import: pluginImport
     },
     extends: ['js/recommended'],
     languageOptions: {
@@ -26,7 +26,6 @@ export default defineConfig([
     },
     rules: {
       'eqeqeq': ['error', 'always', { null: 'ignore' }],
-      
       'import/order': [
         'error',
         {
@@ -47,9 +46,7 @@ export default defineConfig([
   tseslint.configs.recommended,
   {
     rules: {
-      '@typescript-eslint/explicit-function-return-type': ['error', {
-        allowIIFEs: true
-      }]
+      '@typescript-eslint/explicit-function-return-type': ['error', { allowIIFEs: true }]
     }
   },
   
@@ -70,7 +67,7 @@ export default defineConfig([
   },
   {
     plugins: {
-      'react-hooks': pluginReactHooks as unknown as Plugin,
+      'react-hooks': pluginReactHooks as unknown as Plugin
     },
     rules: {
       ...pluginReactHooks.configs.recommended.rules,
@@ -81,17 +78,20 @@ export default defineConfig([
     }
   },
   
-  // TailwindCSS 向けルール
-  ...tailwindcss.configs['flat/recommended'],
+  // TailwindCSS 向けルール : エラーが回避できないので `any` 化している
+  (pluginTailwindcss.configs as unknown as any)['flat/recommended'] || pluginTailwindcss.configs.recommended,  // eslint-disable-line @typescript-eslint/no-explicit-any
   {
     settings: {
+      // daisyUI を使っていることを認識させるため CSS ファイルパスを指定する
       tailwindcss: {
-        config: false
+        cssConfigPath: './client/styles.css'
       }
     },
     rules: {
-      'tailwindcss/classnames-order'   : 'off',  // 自分で並び順は決める
-      'tailwindcss/no-custom-classname': 'off'   // daisyUI のクラス名が誤判定されるので無効化する
+      'tailwindcss/classnames-order': 'warn',
+      'tailwindcss/no-arbitrary-value': 'off',  // 幅などに数値を含めたクラス名を使いたいので切る
+      'tailwindcss/no-custom-classname': 'warn',
+      'tailwindcss/no-contradicting-classname': 'warn'
     }
   },
   

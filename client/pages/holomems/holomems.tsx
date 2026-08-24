@@ -153,7 +153,7 @@ export default function HolomemsPage(): ReactElement {
       <h1>ホロメン一覧</h1>
       
       {!isEmpty(listError) && (
-        <div className="alert alert-error alert-soft mb-4">{listError}</div>
+        <div className="mb-4 alert alert-soft alert-error">{listError}</div>
       )}
       
       {isLoading ? (
@@ -169,20 +169,20 @@ export default function HolomemsPage(): ReactElement {
               <table className="table table-xs">
                 <thead>
                   <tr className="[&>th]:whitespace-nowrap">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                    <th className="w-px pl-0 pr-1 text-center">No</th>
+                    <th className="w-px pr-1 pl-0 text-center">No</th>
                     <th className="w-px px-1                 ">{groupNameDisplayName}</th>
                     <th className="w-px px-1                 ">{nameDisplayName}</th>
-                    <th className="     pl-1 pr-0            ">メモ</th>
+                    <th className="     pr-0 pl-1            ">メモ</th>
                   </tr>
                 </thead>
                 <tbody>
                   {/* 卒業しているホロメンの行はグレー背景で表示する */}
                   {holomems.map(holomem => (
                     <tr key={holomem.id} className={`[&>td]:align-top ${holomem.is_active === booleanNumberTrue ? '' : 'bg-base-300'}`}>  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-                      <td className="         pl-0 pr-1 py-0 whitespace-nowrap !align-middle"><button type="button" className="btn btn-xs w-full" onClick={() => onStartEdit(holomem)}>{holomem.sort_order}</button></td>
-                      <td className="         px-1           whitespace-nowrap              ">{holomem.group_name}</td>
-                      <td className="         px-1           whitespace-nowrap              ">{holomem.name}</td>
-                      <td className="min-w-35 pl-1 pr-0                                     ">
+                      <td className="         py-0 pr-1 pl-0 align-middle! whitespace-nowrap"><button type="button" className="btn w-full btn-xs" onClick={() => onStartEdit(holomem)}>{holomem.sort_order}</button></td>
+                      <td className="         px-1                         whitespace-nowrap">{holomem.group_name}</td>
+                      <td className="         px-1                         whitespace-nowrap">{holomem.name}</td>
+                      <td className="min-w-35 pr-0 pl-1                                     ">
                         {/* セルをクリックすることでメモを1行省略表示と全文折り返し表示でトグル切り替えできるようにする */}
                         {isEmpty(holomem.note) ? '-' : (
                           <div
@@ -212,7 +212,7 @@ export default function HolomemsPage(): ReactElement {
             <h2 className="mb-4 text-lg font-bold">{editingId == null ? '新規ホロメン追加' : `ホロメン編集 (ID : ${editingId})`}</h2>
             
             {!isEmpty(formError) && (
-              <div className="alert alert-error alert-soft mb-4">{formError}</div>
+              <div className="mb-4 alert alert-soft alert-error">{formError}</div>
             )}
             
             <form onSubmit={onSubmit}>
@@ -227,7 +227,7 @@ export default function HolomemsPage(): ReactElement {
                 <input className="input w-full" name="name" type="text" value={form.name} onChange={onChangeForm} required />
                 
                 <label className="fieldset-label">{noteDisplayName}</label>
-                <textarea className="textarea w-full min-h-24" name="note" value={form.note} onChange={onChangeForm} />
+                <textarea className="textarea min-h-24 w-full" name="note" value={form.note} onChange={onChangeForm} />
                 
                 <label className="fieldset-label">{isActiveDisplayName}</label>
                 <select className="select w-full" name="is_active" value={form.is_active} onChange={onChangeForm}>
