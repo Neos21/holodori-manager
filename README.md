@@ -15,7 +15,7 @@
 
 ## 技術スタック
 
-- フロントエンド : React + React Router v7 (SPA モード)
+- フロントエンド : React + React Router (SPA モード)
 - UI : Tailwind CSS + daisyUI
 - State 管理 : Zustand
 - HTTP クライアント : ky
