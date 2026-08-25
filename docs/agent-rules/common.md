@@ -22,7 +22,7 @@
 
 - 正規表現リテラルは必ず `(/.../)` のようにカッコで囲む
 - 文字列の空文字・Null 判定には `isEmpty()` を積極的に使う
-- 暗黙型変換を使った `if(!condition)` を避け、`== null`、`=== ''`、Boolean の明示比較など、意味が分かる条件にする
+- 暗黙型変換を使った `if(!condition)` を避け、`== null` や `=== ''` (`isEmpty()` ヘルパー関数の使用をより推奨)、Boolean な厳密型比較にする
 
 
 ## 空白による整列
@@ -33,16 +33,16 @@
 - 対象外の整形や、意図的な整列用空白を除去する一括 Formatter は実行しない
 
 ```markdown
-| example   | table |
+| Example   | Table |
 |-----------|-------|
-| text      | foo   |
-| text text | hoge  |
+| Text      | Foo   |
+| Text Text | Hoge  |
 ```
 
 ```typescript
 const exampleObject = {
   foo     : 1,
   piyo    : 2,
-  hogefuga: 3,
+  hogefuga: 3
 };
 ```

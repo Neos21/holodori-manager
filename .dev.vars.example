@@ -1,0 +1,2 @@
+ADMIN_PASSWORD=example
+ADMIN_JWT_SECRET=example

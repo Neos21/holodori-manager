@@ -6,7 +6,7 @@
 ## 作業開始前
 
 1. [README.md](./README.md) と [docs/agent-rules/README.md](./docs/agent-rules/README.md) を読む
-2. `TASKS.md` が存在する場合は実行ルールを読み、ファイル内で最初の未完タスクだけを実行候補とする
+2. [TASKS.md](./TASKS.md) が存在する場合は実行ルールを読み、ファイル内で最初の未完タスクだけを実行候補とする
     - `TASKS.md` が存在しない場合は、現在開発者が承認した作業範囲を1タスクとして扱う
 3. [workflow.md](./docs/agent-rules/workflow.md) と [common.md](./docs/agent-rules/common.md) を読む
 4. 作業対象に応じて、次の詳細ルールを読む
