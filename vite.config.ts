@@ -1,18 +1,23 @@
-import cloudflareAdapter from '@hono/vite-dev-server/cloudflare';
+import { cloudflare } from '@cloudflare/vite-plugin';
 import { reactRouter } from '@react-router/dev/vite';
 import tailwindcss from '@tailwindcss/vite';
-import serverAdapter from 'hono-react-router-adapter/vite';
+import { reactRouterHonoServer } from 'react-router-hono-server/dev';
 import { defineConfig } from 'vite';
 
 /** Vite 設定 */
 export default defineConfig({
   plugins: [
-    tailwindcss(),   // TailwindCSS プラグイン
-    reactRouter(),   // React Router プラグイン
-    serverAdapter({  // Hono + React Router 構成を認識させるプラグイン
-      adapter: cloudflareAdapter,
-      entry: './server/index.ts'
-    })
+    cloudflare({  // Vite に Cloudflare Workers ランタイムを統合するプラグイン https://developers.cloudflare.com/workers/vite-plugin/
+      viteEnvironment: {
+        name: 'ssr'
+      }
+    }),
+    tailwindcss(),  // TailwindCSS プラグイン
+    reactRouterHonoServer({  // Hono + React Router 構成を認識させるプラグイン・`reactRouter()` より手前に置くこと
+      runtime: 'cloudflare',
+      serverEntryPoint: './server/index.ts'
+    }),
+    reactRouter()  // React Router プラグイン
   ],
   build: {
     rollupOptions: {
