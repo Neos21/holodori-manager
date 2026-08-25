@@ -3,6 +3,7 @@ import { type ReactElement, useEffect, useState } from 'react';
 import { BoardNodeModal } from './components/board-node-modal';
 import { CreateGreenNodesModal } from './components/create-green-nodes-modal';
 import { CreateYellowNodesModal } from './components/create-yellow-nodes-modal';
+import { boardNodeYellowTargets } from '../../../shared/constants/app-constants';
 import { booleanNumberTrue } from '../../../shared/constants/boolean-constants';
 import { boardNodeCategories, boardNodeCategoryYellow } from '../../../shared/constants/holodori-constants';
 import { formatDecimal } from '../../../shared/helpers/format-decimal';
@@ -196,6 +197,11 @@ export default function BoardNodesPage(): ReactElement {
                                   ))}
                                 </tbody>
                               </table>
+                              {category === boardNodeCategoryYellow && (
+                                <p className="pt-1 text-xs font-bold">
+                                  {boardNodeYellowTargets.map(yellowTarget => `${yellowTargetNames[yellowTarget]} ${formatDecimal(BoardNodesService.calcYellowTargetTotalRate(nodes, yellowTarget))}%`).join('・')}
+                                </p>
+                              )}
                             </div>
                             
                             <table className="table table-xs">
