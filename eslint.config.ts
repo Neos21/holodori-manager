@@ -1,7 +1,7 @@
 import js from '@eslint/js';
 import neosEslintPlugin from '@neos21/neos-eslint-plugin';
 import { defineConfig } from 'eslint/config';
-import pluginImport from 'eslint-plugin-import';
+import pluginImportX from 'eslint-plugin-import-x';
 import pluginReact from 'eslint-plugin-react';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
 import pluginTailwindcss from 'eslint-plugin-tailwindcss';
@@ -14,8 +14,8 @@ export default defineConfig([
   {
     files: ['**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     plugins: {
-      js,
-      import: pluginImport
+      js        : js,
+      'import-x': pluginImportX
     },
     extends: ['js/recommended'],
     languageOptions: {
@@ -27,7 +27,7 @@ export default defineConfig([
     },
     rules: {
       'eqeqeq': ['error', 'always', { null: 'ignore' }],
-      'import/order': [
+      'import-x/order': [
         'error',
         {
           groups: [
