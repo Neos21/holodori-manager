@@ -58,10 +58,10 @@ const createEmptyRow = (): YellowNodeFormRow => ({
 
 /** 複数の黄マスを一括追加するモーダル */
 export const CreateYellowNodesModal = ({ holomems, onClose, onUpdated }: CreateYellowNodesModalProps): ReactElement => {
-  const [holomemsId  , setHolomemsId  ] = useState<NumberToStringValue>('');                        // 追加対象のホロメン ID・空文字は未選択
-  const [rows        , setRows        ] = useState<Array<YellowNodeFormRow>>(createInitialRows());  // 一括追加フォームの各行
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);                                 // 一括追加の送信中か否か
-  const [formError   , setFormError   ] = useState<string>('');                                     // バリデーション・API エラー
+  const [holomemsId  , setHolomemsId  ] = useState<NumberToStringValue>('');                              // 追加対象のホロメン ID・空文字は未選択
+  const [rows        , setRows        ] = useState<Array<YellowNodeFormRow>>(() => createInitialRows());  // 一括追加フォームの各行
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);                                       // 一括追加の送信中か否か
+  const [formError   , setFormError   ] = useState<string>('');                                           // バリデーション・API エラー
   
   /** 追加対象のホロメン ID をフォーム State に反映する */
   const onChangeHolomemsId = (event: ChangeEvent<HTMLSelectElement>): void => {
@@ -161,7 +161,7 @@ export const CreateYellowNodesModal = ({ holomems, onClose, onUpdated }: CreateY
               </thead>
               <tbody>
                 {rows.map((row, rowIndex) => (
-                  <tr key={rowIndex} className="[&>td]:align-top">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
+                  <tr key={rowIndex} className="[&>td]:align-top">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}{/* eslint-disable-line @eslint-react/no-array-index-key */}
                     <td className="pr-1 pl-0">
                       <select className="select w-full select-xs" name="yellow_target" value={row.yellow_target} onChange={event => onChangeRow(rowIndex, event)}>
                         <option value="">(選択してください)</option>

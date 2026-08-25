@@ -52,10 +52,10 @@ const createEmptyRow = (): GreenNodeFormRow => ({
 
 /** 複数の緑マスを一括追加するモーダル */
 export const CreateGreenNodesModal = ({ holomems, onClose, onUpdated }: CreateGreenNodesModalProps): ReactElement => {
-  const [holomemsId  , setHolomemsId  ] = useState<NumberToStringValue>('');                       // 追加対象のホロメン ID・空文字は未選択
-  const [rows        , setRows        ] = useState<Array<GreenNodeFormRow>>(createInitialRows());  // 一括追加フォームの各行
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);                                // 一括追加の送信中か否か
-  const [formError   , setFormError   ] = useState<string>('');                                    // バリデーション・API エラー
+  const [holomemsId  , setHolomemsId  ] = useState<NumberToStringValue>('');                             // 追加対象のホロメン ID・空文字は未選択
+  const [rows        , setRows        ] = useState<Array<GreenNodeFormRow>>(() => createInitialRows());  // 一括追加フォームの各行
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);                                      // 一括追加の送信中か否か
+  const [formError   , setFormError   ] = useState<string>('');                                          // バリデーション・API エラー
   
   /** 追加対象のホロメン ID をフォーム State に反映する */
   const onChangeHolomemsId = (event: ChangeEvent<HTMLSelectElement>): void => {
@@ -151,7 +151,7 @@ export const CreateGreenNodesModal = ({ holomems, onClose, onUpdated }: CreateGr
               </thead>
               <tbody>
                 {rows.map((row, rowIndex) => (
-                  <tr key={rowIndex} className="[&>td]:align-top">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
+                  <tr key={rowIndex} className="[&>td]:align-top">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}{/* eslint-disable-line @eslint-react/no-array-index-key */}
                     <td className="pr-1 pl-0                          "><input className="input w-full input-xs" type="text"              name="description"  value={row.description}                         onChange={event => onChangeRow(rowIndex, event)} /></td>
                     <td className="px-1                               "><input className="input w-full input-xs" type="number" step="any" name="amount"       value={row.amount}                              onChange={event => onChangeRow(rowIndex, event)} /></td>
                     <td className="px-1                               "><input className="input w-full input-xs" type="number" step="any" name="connect_rate" value={row.connect_rate}                        onChange={event => onChangeRow(rowIndex, event)} /></td>

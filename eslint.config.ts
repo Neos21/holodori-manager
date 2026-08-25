@@ -1,8 +1,8 @@
 import js from '@eslint/js';
+import eslintReact from "@eslint-react/eslint-plugin";
 import neosEslintPlugin from '@neos21/neos-eslint-plugin';
 import { defineConfig } from 'eslint/config';
 import pluginImportX from 'eslint-plugin-import-x';
-import pluginReact from 'eslint-plugin-react';
 import pluginReactHooks from 'eslint-plugin-react-hooks';
 import pluginTailwindcss from 'eslint-plugin-tailwindcss';
 import globals from 'globals';
@@ -55,23 +55,12 @@ export default defineConfig([
   neosEslintPlugin.configs.recommended,
   
   // React 向けルール
+  eslintReact.configs.recommended,
+  
+  // React Hooks 向けルール
+  pluginReactHooks.configs.flat.recommended,
   {
-    ...pluginReact.configs.flat.recommended,
     rules: {
-      'react/react-in-jsx-scope': 'off'
-    },
-    settings: {
-      react: {
-        version: 'detect'
-      }
-    }
-  },
-  {
-    plugins: {
-      'react-hooks': pluginReactHooks as unknown as Plugin
-    },
-    rules: {
-      ...pluginReactHooks.configs.recommended.rules,
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'error',
       'react-hooks/set-state-in-effect': 'error',

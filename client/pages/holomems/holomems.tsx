@@ -43,11 +43,11 @@ export default function HolomemsPage(): ReactElement {
   const [expandedNoteHolomemIds, setExpandedNoteHolomemIds] = useState<Array<number>>([]);                // メモ欄を展開しているホロメン ID を控えておく
   const [listError             , setListError             ] = useState<string>('');                       // 一覧読込時のエラーメッセージ
   
-  const [isModalOpen , setIsModalOpen ] = useState<boolean>(false);                             // 新規追加・編集モーダルを表示中か否か
-  const [form        , setForm        ] = useState<HolomemFormState>(createEmptyFormValues());  // 新規追加・編集フォームの入力値
-  const [editingId   , setEditingId   ] = useState<number | null>(null);                        // `null` なら新規追加としてフォームを扱う
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);                             // フォーム送信中か否か
-  const [formError   , setFormError   ] = useState<string>('');                                 // フォームのエラーメッセージ
+  const [isModalOpen , setIsModalOpen ] = useState<boolean>(false);                                   // 新規追加・編集モーダルを表示中か否か
+  const [form        , setForm        ] = useState<HolomemFormState>(() => createEmptyFormValues());  // 新規追加・編集フォームの入力値
+  const [editingId   , setEditingId   ] = useState<number | null>(null);                              // `null` なら新規追加としてフォームを扱う
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);                                   // フォーム送信中か否か
+  const [formError   , setFormError   ] = useState<string>('');                                       // フォームのエラーメッセージ
   
   /** 未取得の場合にホロメン一覧を Store に読み込み、取得エラーを画面表示用 State に反映する */
   const onLoadHolomems = async (): Promise<void> => {

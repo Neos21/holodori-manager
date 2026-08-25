@@ -75,9 +75,9 @@ const createFormValues = (boardNode: BoardNode | null): BoardNodeFormState => bo
 
 /** 単体のホロメンボードマスを新規追加・編集するモーダル */
 export const BoardNodeModal = ({ boardNode, holomems, onClose, onUpdated }: BoardNodeModalProps): ReactElement => {
-  const [form        , setForm        ] = useState<BoardNodeFormState>(createFormValues(boardNode));  // 新規追加または編集フォームの入力値
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);                                   // 追加・更新・削除の送信中か否か
-  const [formError   , setFormError   ] = useState<string>('');                                       // バリデーション・API エラー
+  const [form        , setForm        ] = useState<BoardNodeFormState>(() => createFormValues(boardNode));  // 新規追加または編集フォームの入力値
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);                                         // 追加・更新・削除の送信中か否か
+  const [formError   , setFormError   ] = useState<string>('');                                             // バリデーション・API エラー
   
   /** 編集中のフォームが参照するホロメン。新規追加時または対象を取得できない場合は `null` */
   const editingHolomem = boardNode == null ? null : holomems.find(holomem => holomem.id === Number(form.holomems_id)) ?? null;

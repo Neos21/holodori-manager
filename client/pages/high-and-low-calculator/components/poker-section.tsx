@@ -70,13 +70,13 @@ export const PokerSection = ({ isPlayDisabled, playDisabledReason, onStartPlay, 
   /** 役判定、配当計算、全保持パターンの期待値計算を担当する Service */
   const pokerService = new PokerService();
   
-  const [playingCardSelections, setPlayingCardSelections] = useState<Array<PlayingCardSelection>>(createEmptyPlayingCardSelections());  // 交換前の5枚・入力途中の値を含む
-  const [calculationMode      , setCalculationMode      ] = useState<CalculationMode>('shortcut');                                      // 保持推奨の計算方法
-  const [holdOptions          , setHoldOptions          ] = useState<Array<HoldOption>>([]);                                            // EV 降順の保持32パターン
-  const [isCalculating        , setIsCalculating        ] = useState<boolean>(false);                                                   // 保持推奨を計算中か否か
-  const [calculationError     , setCalculationError     ] = useState<string>('');                                                       // 手札入力・保持推奨計算のエラー
-  const [calculationDuration  , setCalculationDuration  ] = useState<number | null>(null);                                              // 保持推奨の計算処理にかかったミリ秒・未計算なら `null`
-  const [hasPlayStarted       , setHasPlayStarted       ] = useState<boolean>(false);                                                   // この表示中のプレイでベットを記録済みか否か
+  const [playingCardSelections, setPlayingCardSelections] = useState<Array<PlayingCardSelection>>(() => createEmptyPlayingCardSelections());  // 交換前の5枚・入力途中の値を含む
+  const [calculationMode      , setCalculationMode      ] = useState<CalculationMode>('shortcut');  // 保持推奨の計算方法
+  const [holdOptions          , setHoldOptions          ] = useState<Array<HoldOption>>([]);        // EV 降順の保持32パターン
+  const [isCalculating        , setIsCalculating        ] = useState<boolean>(false);               // 保持推奨を計算中か否か
+  const [calculationError     , setCalculationError     ] = useState<string>('');                   // 手札入力・保持推奨計算のエラー
+  const [calculationDuration  , setCalculationDuration  ] = useState<number | null>(null);          // 保持推奨の計算処理にかかったミリ秒・未計算なら `null`
+  const [hasPlayStarted       , setHasPlayStarted       ] = useState<boolean>(false);               // この表示中のプレイでベットを記録済みか否か
   
   /** 入力中の5枠を確定済みポーカー用トランプカードまたは `null` に変換した値 */
   const pokerPlayingCards = playingCardSelections.map(toPokerPlayingCard);
@@ -186,7 +186,7 @@ export const PokerSection = ({ isPlayDisabled, playDisabledReason, onStartPlay, 
       <div className="mb-4 overflow-x-auto">
         <div className="flex gap-1">
           {playingCardSelections.map((playingCardSelection, playingCardIndex) => (
-            <div key={playingCardIndex}>
+            <div key={playingCardIndex}>  {/* eslint-disable-line @eslint-react/no-array-index-key */}
               <PlayingCardInput
                 label={`${playingCardIndex + 1}枚目`}
                 playingCardSelection={playingCardSelection}

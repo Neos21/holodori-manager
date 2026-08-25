@@ -14,7 +14,7 @@ import { useAdminStore } from '../../stores/admin-store';
 export default function Index(): ReactElement {
   const navigate = useNavigate();
   
-  const [shouldRequestRelogin] = useState<boolean>(sessionStorage.getItem(sessionStorageKeyAuthenticationRedirectReason) === authenticationRedirectReasonReloginRequired);  // SessionStorage に再ログイン要求があるか否か・現在の表示中だけメッセージ表示に使用する
+  const [shouldRequestRelogin] = useState<boolean>(() => sessionStorage.getItem(sessionStorageKeyAuthenticationRedirectReason) === authenticationRedirectReasonReloginRequired);  // SessionStorage に再ログイン要求があるか否か・現在の表示中だけメッセージ表示に使用する
   
   // 再ログインメッセージの表示有無に関わらず表示要求を次回のトップページ表示に持ち越さない
   useEffect((): void => {

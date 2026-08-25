@@ -108,10 +108,10 @@ export default function CardsPage(): ReactElement {
   const holomems     = useHolomemsStore(state => state.holomems);                              // カードの表示情報との合成・新規カード追加時の選択肢に利用する
   const cardDisplays = useMemo(() => createCardDisplays(cards, holomems), [cards, holomems]);  // API から個別に取得したカードとホロメンから導出する表示用一覧
   
-  const [sortMode       , setSortMode       ] = useState<CardSortMode>('orderOnly');       // カード一覧の並び順
-  const [ownedFilter    , setOwnedFilter    ] = useState<CardOwnedFilter>('all');          // 所有状況による絞り込み条件
-  const [rarityFilter   , setRarityFilter   ] = useState<Set<Rarity>>(new Set<Rarity>());  // 空なら全レア度を表示する
-  const [isBloomFilterOn, setIsBloomFilterOn] = useState<boolean>(false);                  // 開花度1以上のカードだけを表示するか否か
+  const [sortMode       , setSortMode       ] = useState<CardSortMode>('orderOnly');             // カード一覧の並び順
+  const [ownedFilter    , setOwnedFilter    ] = useState<CardOwnedFilter>('all');                // 所有状況による絞り込み条件
+  const [rarityFilter   , setRarityFilter   ] = useState<Set<Rarity>>(() => new Set<Rarity>());  // 空なら全レア度を表示する
+  const [isBloomFilterOn, setIsBloomFilterOn] = useState<boolean>(false);                        // 開花度1以上のカードだけを表示するか否か
   
   /** 全カードに絞り込み条件を適用し、選択された並び順でソートした表示対象 */
   const visibleCards = useMemo(() => cardDisplays
@@ -125,11 +125,11 @@ export default function CardsPage(): ReactElement {
     .sort((cardA, cardB) => compareCardDisplays(cardA, cardB, sortMode)),
   [cardDisplays, sortMode, ownedFilter, rarityFilter, isBloomFilterOn]);
   
-  const [isModalOpen , setIsModalOpen ] = useState<boolean>(false);                          // 新規追加・編集モーダルを表示中か否か
-  const [form        , setForm        ] = useState<CardFormState>(createEmptyFormValues());  // 新規追加・編集フォームの入力値
-  const [editingId   , setEditingId   ] = useState<number | null>(null);                     // `null` なら新規追加としてフォームを扱う
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);                          // フォーム送信中か否か
-  const [formError   , setFormError   ] = useState<string>('');                              // フォームのエラーメッセージ
+  const [isModalOpen , setIsModalOpen ] = useState<boolean>(false);                                // 新規追加・編集モーダルを表示中か否か
+  const [form        , setForm        ] = useState<CardFormState>(() => createEmptyFormValues());  // 新規追加・編集フォームの入力値
+  const [editingId   , setEditingId   ] = useState<number | null>(null);                           // `null` なら新規追加としてフォームを扱う
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);                                // フォーム送信中か否か
+  const [formError   , setFormError   ] = useState<string>('');                                    // フォームのエラーメッセージ
   
   /** 編集中のフォームが参照するホロメン・新規追加時または対象を取得できない場合は `null` */
   const editingHolomem             = editingId      == null ? null : holomems.find(holomem => holomem.id === Number(form.holomems_id)) ?? null;
