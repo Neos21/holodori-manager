@@ -1,19 +1,15 @@
 import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
 
-import { candidatePriorities } from '../../../../shared/constants/app-constants';
 import { httpStatusCode } from '../../../../shared/constants/http-status-code';
-import { isEmpty } from '../../../../shared/helpers/is-empty';
 import { mergeIssues } from '../../../../shared/helpers/merge-issues';
 import { holoworkSchema } from '../../../../shared/schemas/holowork-schema';
 import { startHoloworkSchema } from '../../../../shared/schemas/start-holowork-schema';
 import { invalidIdErrorMessage, invalidRequestBodyErrorMessage } from '../../../constants/server-messages';
 import { HoloworksRepository } from '../../../repositories/holoworks-repository';
-import { HoloworkCandidatesService } from '../../../services/holowork-candidates-service';
 import { HoloworkMemberStatusesService } from '../../../services/holowork-member-statuses-service';
 import { HoloworksService } from '../../../services/holoworks-service';
 
-import type { CandidatePriority } from '../../../../shared/types/app/holowork-candidate';
 import type { Result } from '../../../../shared/types/utilities/result';
 import type { HonoBindings } from '../../../types/hono-bindings';
 
@@ -35,16 +31,6 @@ holoworks.get('/', async context => {
 holoworks.get('/member-statuses', async context => {
   const memberStatuses = await new HoloworkMemberStatusesService(context.env.DB).findAll();
   return context.json({ result: memberStatuses }, httpStatusCode.ok);
-});
-
-/** 選択した優先モードに基づく優先候補とその他候補を取得する */
-holoworks.get('/candidates', async context => {
-  const priority = context.req.query('priority');
-  if(isEmpty(priority)) return context.json({ error: 'priority パラメータを指定してください' }, httpStatusCode.badRequest);
-  if(!candidatePriorities.includes(priority as CandidatePriority)) return context.json({ error: 'priority の値が不正です' }, httpStatusCode.badRequest);
-  
-  const candidates = await new HoloworkCandidatesService(context.env.DB).getCandidates(priority as CandidatePriority);
-  return context.json({ result: candidates }, httpStatusCode.ok);
 });
 
 /** 新規ホロワーク枠を追加する */

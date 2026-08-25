@@ -1,73 +1,66 @@
 import { type ChangeEvent, type ReactElement, type SubmitEvent, useState } from 'react';
 
-import { candidatePriorities } from '../../../../shared/constants/app-constants';
 import { maximumHoloworkMemberCount, minimumHoloworkMemberCount } from '../../../../shared/constants/holodori-constants';
 import { formatDecimal } from '../../../../shared/helpers/format-decimal';
 import { isEmpty } from '../../../../shared/helpers/is-empty';
-import { failedToFetchMessage, generalFailedMessage } from '../../../constants/client-messages';
+import { generalFailedMessage } from '../../../constants/client-messages';
 import { adminApi } from '../../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../../helpers/extract-api-error-message';
 
-import type { HoloworkCandidate, HoloworkCandidates, CandidatePriority } from '../../../../shared/types/app/holowork-candidate';
 import type { HoloworkDisplay } from '../../../../shared/types/app/holowork-display';
+import type { HoloworkMemberStatus } from '../../../../shared/types/app/holowork-member-status';
 
 /** ホロワーク開始モーダルに渡す対象枠と完了通知 */
 type StartHoloworkModalProps = {
   /** 開始対象のホロワーク枠 */
-  holowork : HoloworkDisplay;
+  holowork      : HoloworkDisplay;
+  /** 達成状況・活動状況・黄マス集計一覧 */
+  memberStatuses: Array<HoloworkMemberStatus>;
   /** モーダルを閉じる */
-  onClose  : () => void;
+  onClose       : () => void;
   /** 開始成功後に親コンポーネントで一覧を再取得する */
-  onStarted: () => Promise<void>;
-};
-
-/** 優先モードのセレクトボックス表示名 */
-const candidatePriorityDisplayNames: Record<CandidatePriority, string> = {
-  count    : '完了回数重視',
-  cube     : 'キューブ獲得量重視',
-  training : '特訓アイテム獲得量重視',
-  lesson_pt: 'レッスン Pt 獲得量重視'
+  onStarted     : () => Promise<void>;
 };
 
 /** ホロワーク開始モーダル */
-export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHoloworkModalProps): ReactElement => {
-  const [priority , setPriority ] = useState<CandidatePriority | ''>('');  // 優先モードの選択値・空文字は未選択を表す
-  const [isLoading, setIsLoading] = useState<boolean>(false);              // 優先モード変更時の候補取得中か否か
+export const StartHoloworkModal = ({ holowork, memberStatuses, onClose, onStarted }: StartHoloworkModalProps): ReactElement => {
+  const [expandedNoteHolomemIds, setExpandedNoteHolomemIds] = useState<Array<number>>([]);  // メモ欄を展開しているホロメン ID
+  const [selectedHolomemsIds   , setSelectedHolomemsIds   ] = useState<Array<number>>([]);  // 全セクションで共有する重複なしの選択済みホロメン ID
+  const [isSubmitting          , setIsSubmitting          ] = useState<boolean>(false);     // ホロワーク開始の送信中か否か
+  const [formError             , setFormError             ] = useState<string>('');         // 入力・開始 API のエラー
   
-  const [priorityCandidates    , setPriorityCandidates    ] = useState<Array<HoloworkCandidate>>([]);  // API が優先条件に合致すると判定した候補
-  const [otherCandidates       , setOtherCandidates       ] = useState<Array<HoloworkCandidate>>([]);  // API が返す、優先候補と重複しない選択可能候補
-  const [expandedNoteHolomemIds, setExpandedNoteHolomemIds] = useState<Array<number>>([]);             // メモ欄を展開しているホロメン ID
+  /** ホロメン表示順と ID を比較する */
+  const compareHolomemOrder = (candidateA: HoloworkMemberStatus, candidateB: HoloworkMemberStatus): number => candidateA.holomems_sort_order - candidateB.holomems_sort_order || candidateA.holomems_id - candidateB.holomems_id;
   
-  const [selectedHolomemsIds, setSelectedHolomemsIds] = useState<Array<number>>([]);  // 両候補テーブルで共有する選択済みのメンバー ID
-  const [isSubmitting       , setIsSubmitting       ] = useState<boolean>(false);     // ホロワーク開始の送信中か否か
-  const [formError          , setFormError          ] = useState<string>('');         // 候補取得・入力・開始 API のエラー
-  
-  /** 優先モードを切り替え、対応する候補区分を取得する */
-  const onChangePriority = async (event: ChangeEvent<HTMLSelectElement>): Promise<void> => {
-    const selectedPriority = event.target.value as CandidatePriority | '';
-    setPriority(selectedPriority);
-    
-    setSelectedHolomemsIds([]);  // 優先モードが変わると候補集合と比較条件も変わるため、旧モードでの選択は引き継がない
-    setPriorityCandidates([]);
-    setOtherCandidates([]);
-    setExpandedNoteHolomemIds([]);
-    setFormError('');
-    
-    if(isEmpty(selectedPriority)) return;  // 未選択に戻した場合は API コールしない
-    
-    setIsLoading(true);
-    try {
-      const response = await adminApi.get('/api/holoworks/candidates', { searchParams: { priority: selectedPriority } }).json<{ result: HoloworkCandidates; }>();
-      setPriorityCandidates(response.result.priority_candidates);
-      setOtherCandidates(response.result.other_candidates);
-    }
-    catch(error) {
-      setFormError(extractApiErrorMessage(error, failedToFetchMessage('優先ホロメン候補')));
-    }
-    finally {
-      setIsLoading(false);
-    }
-  };
+  /** ページ表示時に取得済みの一覧から、他枠で活動していないホロメンだけを開始候補として扱う */
+  const selectableMemberStatuses = memberStatuses.filter(memberStatus => memberStatus.active_holoworks_id == null);
+  /** キューブ獲得量重視メンバ */
+  const cubeCandidates = selectableMemberStatuses
+    .filter(memberStatus => memberStatus.cube_total_rate > 0)
+    .sort((candidateA, candidateB) => candidateB.cube_total_rate - candidateA.cube_total_rate || compareHolomemOrder(candidateA, candidateB));
+  /** 特訓アイテム獲得量重視メンバ */
+  const trainingCandidates = selectableMemberStatuses
+    .filter(memberStatus => memberStatus.training_total_rate > 0)
+    .sort((candidateA, candidateB) => candidateB.training_total_rate - candidateA.training_total_rate || compareHolomemOrder(candidateA, candidateB));
+  /** レッスン Pt 獲得量重視メンバ */
+  const lessonPtCandidates = selectableMemberStatuses
+    .filter(memberStatus => memberStatus.lesson_pt_total_rate > 0)
+    .sort((candidateA, candidateB) => candidateB.lesson_pt_total_rate - candidateA.lesson_pt_total_rate || compareHolomemOrder(candidateA, candidateB));
+  /** アイテム3つとも獲得量アップしないメンバを抽出する */
+  const noRateCandidates = selectableMemberStatuses.filter(memberStatus => memberStatus.cube_total_rate <= 0 && memberStatus.training_total_rate <= 0 && memberStatus.lesson_pt_total_rate <= 0);
+  /** 完了回数重視メンバ */
+  const countCandidates = noRateCandidates
+    .filter(memberStatus => memberStatus.next_threshold != null)
+    .sort((candidateA, candidateB) =>
+      (candidateA.remaining_count ?? 0) - (candidateB.remaining_count ?? 0) ||
+      candidateB.current_count - candidateA.current_count ||
+      (candidateA.next_threshold ?? 0) - (candidateB.next_threshold ?? 0) ||
+      compareHolomemOrder(candidateA, candidateB)
+    );
+  /** アイテム獲得量アップがなく完了回数のアチーブメントも全達成している、選択可能なメンバ */
+  const otherCandidates = noRateCandidates
+    .filter(memberStatus => memberStatus.next_threshold == null)
+    .sort(compareHolomemOrder);
   
   /** メモ欄を1行省略表示と全文折り返し表示で切り替える */
   const onToggleNote = (holomemId: number): void => {
@@ -76,14 +69,15 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
       : [...prevExpandedNoteHolomemIds, holomemId]);
   };
   
-  /** 両候補テーブルで共有するホロメン選択を最大人数以内で更新する */
+  /** 全セクションで共有するホロメン選択を、重複させず最大人数以内で更新する */
   const onChangeSelectedHolomem = (event: ChangeEvent<HTMLInputElement>): void => {
     const holomemId = Number(event.target.value);
-    if(event.target.checked) {
-      if(selectedHolomemsIds.length >= maximumHoloworkMemberCount) return;  // 最大人数を超える場合はメンバー選択しない
-      return setSelectedHolomemsIds(prevHolomemsIds => [...prevHolomemsIds, holomemId]);
-    }
-    setSelectedHolomemsIds(prevHolomemsIds => prevHolomemsIds.filter(id => id !== holomemId));  // 選択したメンバーを解除する
+    const isChecked = event.target.checked;
+    setSelectedHolomemsIds(prevHolomemsIds => {
+      if(!isChecked) return prevHolomemsIds.filter(id => id !== holomemId);  // 全セクションに重複表示された同じメンバーを解除する
+      if(prevHolomemsIds.includes(holomemId) || prevHolomemsIds.length >= maximumHoloworkMemberCount) return prevHolomemsIds;
+      return [...prevHolomemsIds, holomemId];
+    });
   };
   
   /** 選択人数を検証し、最大人数未満の場合は `window.confirm()` で確認してホロワークを開始する */
@@ -108,31 +102,39 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
     }
   };
   
-  /** 候補の種類に応じて完了回数または合計最終レートを持つテーブル行 (`tbody` 内) を描画する */
-  const renderCandidateTableBody = (candidate: HoloworkCandidate): ReactElement => {
-    const isSelected = selectedHolomemsIds.includes(candidate.holomems_id);
+  /** 候補テーブルの共通行を描画する */
+  const renderCandidateTableBody = (holoworkMemberStatus: HoloworkMemberStatus, isShowRates: boolean, isShowAchievements: boolean = true): ReactElement => {
+    const isSelected = selectedHolomemsIds.includes(holoworkMemberStatus.holomems_id);
     return (
-      <tr key={candidate.holomems_id} className="[&>td]:align-top">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
-        <td className="p-0  text-center align-middle!"><input className="checkbox checkbox-sm" type="checkbox" value={candidate.holomems_id} checked={isSelected} onChange={onChangeSelectedHolomem} disabled={isSubmitting || (!isSelected && selectedHolomemsIds.length >= maximumHoloworkMemberCount)} /></td>
-        <td className="px-1 whitespace-nowrap">{candidate.holomems_group_name}</td>
-        <td className="px-1 whitespace-nowrap">{candidate.holomems_name}</td>
-        {/* 判別用プロパティにより Candidate の Union 型を絞り込み、優先モードに対応する比較値を表示する */}
-        {'current_count' in candidate ? (
+      <tr key={holoworkMemberStatus.holomems_id} className="[&>td]:align-top">  {/* eslint-disable-line neos-eslint-plugin/comment-colon-spacing */}
+        <td className="p-0  text-center align-middle!"><input className="checkbox checkbox-sm" type="checkbox" value={holoworkMemberStatus.holomems_id} checked={isSelected} onChange={onChangeSelectedHolomem} disabled={isSubmitting || (!isSelected && selectedHolomemsIds.length >= maximumHoloworkMemberCount)} /></td>
+        <td className="px-1             whitespace-nowrap">{holoworkMemberStatus.holomems_group_name}</td>
+        <td className="px-1             whitespace-nowrap">{holoworkMemberStatus.holomems_name}</td>
+        {/* 報酬アップアイテム */}
+        {isShowRates && (
           <>
-            <td className="px-1 text-right whitespace-nowrap">{candidate.current_count}</td>
-            <td className="px-1 text-right whitespace-nowrap">{candidate.next_threshold ?? '-'}</td>
-            <td className="px-1 text-right whitespace-nowrap">{candidate.remaining_count ?? '-'}</td>
+            <td className="px-1 text-right whitespace-nowrap">{holoworkMemberStatus.cube_total_rate      > 0 ? formatDecimal(holoworkMemberStatus.cube_total_rate     ) + '%' : '-'}</td>
+            <td className="px-1 text-right whitespace-nowrap">{holoworkMemberStatus.training_total_rate  > 0 ? formatDecimal(holoworkMemberStatus.training_total_rate ) + '%' : '-'}</td>
+            <td className="px-1 text-right whitespace-nowrap">{holoworkMemberStatus.lesson_pt_total_rate > 0 ? formatDecimal(holoworkMemberStatus.lesson_pt_total_rate) + '%' : '-'}</td>
           </>
-        ) : (
-          <td className="px-1 text-right whitespace-nowrap">{candidate.total_rate > 0 ? formatDecimal(candidate.total_rate) + '%' : '-'}</td>
         )}
+        {/* 完了回数 */}
+        <td className="px-1 text-right whitespace-nowrap">{holoworkMemberStatus.current_count}</td>
+        {/* 完了回数に基づくアチーブメント達成状況 */}
+        {isShowAchievements && (
+          <>
+            <td className="px-1 text-right whitespace-nowrap">{holoworkMemberStatus.next_threshold ?? '-'}</td>
+            <td className="px-1 text-right whitespace-nowrap">{holoworkMemberStatus.remaining_count ?? '-'}</td>
+          </>
+        )}
+        {/* ホロメンメモ */}
         <td className="pr-0 pl-1">
-          {isEmpty(candidate.holomems_note) ? '-' : (
+          {isEmpty(holoworkMemberStatus.holomems_note) ? '-' : (
             <div
-              className={`cursor-pointer ${expandedNoteHolomemIds.includes(candidate.holomems_id) ? 'whitespace-pre-wrap' : 'line-clamp-1'}`}
-              onClick={() => onToggleNote(candidate.holomems_id)}
+              className={`cursor-pointer ${expandedNoteHolomemIds.includes(holoworkMemberStatus.holomems_id) ? 'whitespace-pre-wrap' : 'line-clamp-1'}`}
+              onClick={() => onToggleNote(holoworkMemberStatus.holomems_id)}
             >
-              {candidate.holomems_note}
+              {holoworkMemberStatus.holomems_note}
             </div>
           )}
         </td>
@@ -140,13 +142,13 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
     );
   };
   
-  /** API が排他的に返した候補区分を、同じ列構成のテーブルとして描画する */
-  const renderCandidatesTable = (title: string, candidates: Array<HoloworkCandidate>): ReactElement => (
+  /** セクションに応じた列構成で候補テーブルを描画する */
+  const renderCandidatesTable = (title: string, holoworkMemberStatuses: Array<HoloworkMemberStatus>, isShowRates: boolean, isShowAchievements: boolean = true): ReactElement => (
     <section className="mb-4">
       <h3 className="font-bold">{title}</h3>
       
-      {candidates.length === 0 ? (
-        <p className="text-sm">対象のホロメンはいません。</p>
+      {holoworkMemberStatuses.length === 0 ? (
+        <p className="text-sm text-base-content/60">対象のホロメンはいません。</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="table table-xs">
@@ -155,20 +157,29 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
                 <th className="w-px pr-1 pl-0 text-center">選択</th>
                 <th className="w-px px-1                 ">グループ</th>
                 <th className="w-px px-1                 ">名前</th>
-                {priority === 'count' ? (
+                {/* 報酬アップアイテム */}
+                {isShowRates && (
                   <>
-                    <th className="w-px px-1 text-right">完了</th>
+                    <th className="w-px px-1 text-right">キューブ</th>
+                    <th className="w-px px-1 text-right">特訓アイテム</th>
+                    <th className="w-px px-1 text-right">レッスン Pt</th>
+                  </>
+                )}
+                {/* 完了回数 */}
+                <th className="w-px px-1 text-right">完了</th>
+                {/* 完了回数に基づくアチーブメント達成状況 */}
+                {isShowAchievements && (
+                  <>
                     <th className="w-px px-1 text-right">目標</th>
                     <th className="w-px px-1 text-right">残数</th>
                   </>
-                ) : (
-                  <th className="w-px px-1 text-right">合計レート</th>
                 )}
+                {/* ホロメンメモ */}
                 <th className="pr-0 pl-1">ホロメンメモ</th>
               </tr>
             </thead>
             <tbody>
-              {candidates.map(renderCandidateTableBody)}
+              {holoworkMemberStatuses.map(holoworkMemberStatus => renderCandidateTableBody(holoworkMemberStatus, isShowRates, isShowAchievements))}
             </tbody>
           </table>
         </div>
@@ -183,27 +194,13 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
         <h2 className="mb-4 text-lg font-bold">ホロワーク開始 : {holowork.name}</h2>
         
         <form onSubmit={onSubmit}>
-          <fieldset className="mb-3 fieldset">
-            <label className="fieldset-label">優先モード</label>
-            <select className="select w-full" value={priority} onChange={onChangePriority} disabled={isLoading || isSubmitting}>
-              <option value="">選択してください</option>
-              {candidatePriorities.map(candidatePriority => (
-                <option key={candidatePriority} value={candidatePriority}>{candidatePriorityDisplayNames[candidatePriority]}</option>
-              ))}
-            </select>
-          </fieldset>
+          <p className="mb-3 text-sm">選択されたホロメン (最大 {maximumHoloworkMemberCount} 人) : {selectedHolomemsIds.length} 人</p>
           
-          {isLoading && (
-            <div className="mb-4 text-center"><span className="loading loading-spinner text-warning" /></div>
-          )}
-          
-          {!isLoading && !isEmpty(priority) && (
-            <>
-              <p className="mb-3 text-sm">選択人数 : {selectedHolomemsIds.length} / {maximumHoloworkMemberCount}</p>
-              {renderCandidatesTable('優先候補'      , priorityCandidates)}
-              {renderCandidatesTable('その他ホロメン', otherCandidates)}
-            </>
-          )}
+          {renderCandidatesTable('キューブ獲得量重視'    , cubeCandidates    , true        )}
+          {renderCandidatesTable('特訓アイテム獲得量重視', trainingCandidates, true        )}
+          {renderCandidatesTable('レッスン Pt 獲得量重視', lessonPtCandidates, true        )}
+          {renderCandidatesTable('完了回数重視'          , countCandidates   , false       )}
+          {renderCandidatesTable('その他ホロメン'        , otherCandidates   , false, false)}
           
           {!isEmpty(formError) && (
             <div className="mb-4 alert alert-soft alert-error">{formError}</div>
@@ -211,7 +208,7 @@ export const StartHoloworkModal = ({ holowork, onClose, onStarted }: StartHolowo
           
           <div className="modal-action justify-between">
             <button type="button" className="btn" onClick={onClose} disabled={isSubmitting}>キャンセル</button>
-            <button type="submit" className="btn btn-info" disabled={isLoading || isSubmitting}>開始する</button>
+            <button type="submit" className="btn btn-info"          disabled={isSubmitting}>開始する</button>
           </div>
         </form>
       </div>

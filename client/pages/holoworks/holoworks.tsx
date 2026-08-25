@@ -78,6 +78,7 @@ export default function HoloworksPage(): ReactElement {
           {/* ホロワーク枠一覧テーブル */}
           <HoloworksTable
             holoworks={holoworks}
+            memberStatuses={memberStatuses}
             isDisabled={isSubmitting}
             onChangeSubmitting={setIsSubmitting}
             onUpdated={onLoadData}

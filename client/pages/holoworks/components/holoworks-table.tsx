@@ -7,11 +7,14 @@ import { adminApi } from '../../../helpers/admin-api';
 import { extractApiErrorMessage } from '../../../helpers/extract-api-error-message';
 
 import type { HoloworkDisplay } from '../../../../shared/types/app/holowork-display';
+import type { HoloworkMemberStatus } from '../../../../shared/types/app/holowork-member-status';
 
 /** ホロワーク枠テーブルに渡す一覧と枠操作 */
 type HoloworksTableProps = {
   /** 活動中メンバーを含む枠一覧 */
   holoworks         : Array<HoloworkDisplay>;
+  /** 達成状況・活動状況・黄マス集計一覧 */
+  memberStatuses    : Array<HoloworkMemberStatus>;
   /** API 操作中か否か・`true` の場合は全枠の操作ボタンを非活性にする */
   isDisabled        : boolean;
   /** API 操作中フラグを親コンポーネントで更新する */
@@ -21,7 +24,7 @@ type HoloworksTableProps = {
 };
 
 /** ホロワーク枠一覧テーブル */
-export const HoloworksTable = ({ holoworks, isDisabled, onChangeSubmitting, onUpdated }: HoloworksTableProps): ReactElement => {
+export const HoloworksTable = ({ holoworks, memberStatuses, isDisabled, onChangeSubmitting, onUpdated }: HoloworksTableProps): ReactElement => {
   const [startingHolowork, setStartingHolowork] = useState<HoloworkDisplay | null>(null);  // `null` は開始対象未選択を表す
   const [formError       , setFormError       ] = useState<string>('');                    // 完了・中断・削除時のエラーメッセージ
   
@@ -115,6 +118,7 @@ export const HoloworksTable = ({ holoworks, isDisabled, onChangeSubmitting, onUp
       {startingHolowork != null && (
         <StartHoloworkModal
           holowork={startingHolowork}
+          memberStatuses={memberStatuses}
           onClose={() => setStartingHolowork(null)}
           onStarted={onUpdated}
         />
