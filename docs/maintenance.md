@@ -15,6 +15,15 @@ TypeScript v6 (v6.0.3 が最終) から v7 への更新は、`typescript-eslint`
 `$ npm run build` は `$ wrangler types` と React Router の型生成を実行する。生成後は `worker-configuration.d.ts` などの差分を確認し、設定変更に由来する必要な差分だけを残す。
 
 
+## Univer Sheets
+
+`@univerjs/` 配下のパッケージは、プリセットとその依存プラグインの競合を避けるため全て同じバージョンを使用する。現在は `0.25.1` に固定している。
+
+`@univerjs/core@0.25.1` が依存する `nanoid@5.1.11` には [GHSA-28wg-ghj8-5hjv](https://github.com/advisories/GHSA-28wg-ghj8-5hjv) の問題があるため、`package.json` の `overrides` で修正済みの `5.1.16` に固定している。Univer の更新によって依存先も修正版になった時点で、この上書きは削除する。
+
+モバイル UI は実験段階であり、デスクトップ UI と同時に登録できない。通常 UI のスマートフォン実機評価で閲覧・編集が困難と判断した場合に、プラグインモードへの移行とモバイル UI の採用を別途検討する。
+
+
 ## 既知の警告
 
 現状、ビルド時に Wrangler から `envFile` の非推奨警告が表示される。現時点ではビルドを失敗させるものではないため無視して良い。別の互換性対応と合わせて見直す。

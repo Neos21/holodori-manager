@@ -10,6 +10,7 @@ export default [
     route('/board-nodes'            , './pages/board-nodes/board-nodes.tsx'),
     route('/holoworks'              , './pages/holoworks/holoworks.tsx'),
     route('/high-and-low-calculator', './pages/high-and-low-calculator/high-and-low-calculator.tsx'),
-    route('/memos'                  , './pages/memos/memos.tsx')
+    route('/memos'                  , './pages/memos/memos.tsx'),
+    route('/sheets'                 , './pages/sheets/sheets.tsx')
   ])
 ] satisfies RouteConfig;

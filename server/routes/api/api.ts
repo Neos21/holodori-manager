@@ -7,6 +7,7 @@ import { holoworkAchievements, holoworkAchievementsPath } from './holowork-achie
 import { holoworks, holoworksPath } from './holoworks/holoworks';
 import { login, loginPath } from './login/login';
 import { memos, memosPath } from './memos/memos';
+import { workbooks, workbooksPath } from './workbooks/workbooks';
 
 import type { HonoBindings } from '../../types/hono-bindings';
 
@@ -20,3 +21,4 @@ api.route(boardNodesPath          , boardNodes);
 api.route(holoworkAchievementsPath, holoworkAchievements);
 api.route(holoworksPath           , holoworks);
 api.route(memosPath               , memos);
+api.route(workbooksPath           , workbooks);

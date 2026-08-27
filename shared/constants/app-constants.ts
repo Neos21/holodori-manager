@@ -9,3 +9,6 @@ export const boardNodeYellowTargets = [boardNodeYellowTargetCube, boardNodeYello
 
 /** 物理削除を許可せず、サイドメニューに表示するデフォルトメモの ID */
 export const defaultMemoId = 1 as const;
+
+/** D1 の行上限 2MB に対し、管理情報などの余裕を確保したワークブック JSON の最大バイト数 */
+export const maxWorkbookSnapshotBytes = 1_900_000 as const;

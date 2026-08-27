@@ -16,14 +16,20 @@ export default function AdminLayout(): ReactElement {
   
   /** サイドメニューに表示する管理ページのリンク */
   const menuItems = [
-    { to: '/home'                   , label: 'ホーム'         },
-    { to: '/holomems'               , label: 'ホロメン'       },
-    { to: '/cards'                  , label: 'カード'         },
-    { to: '/board-nodes'            , label: 'ホロメンボード' },
-    { to: '/holoworks'              , label: 'ホロワーク'     },
-    { to: '/high-and-low-calculator', label: 'High & Low'     },
-    { to: '/memos'                  , label: 'メモ'           }
+    { to: '/home'                   , label: 'ホーム'           },
+    { to: '/holomems'               , label: 'ホロメン'         },
+    { to: '/cards'                  , label: 'カード'           },
+    { to: '/board-nodes'            , label: 'ホロメンボード'   },
+    { to: '/holoworks'              , label: 'ホロワーク'       },
+    { to: '/high-and-low-calculator', label: 'High & Low'       },
+    { to: '/memos'                  , label: 'メモ'             },
+    { to: '/sheets'                 , label: 'スプレッドシート' }
   ];
+  
+  /** スプレッドシート画面では共通余白を外して表示領域全体を使用する */
+  const contentClassName = location.pathname === '/sheets'
+    ? 'h-[calc(100svh-2.5rem)] lg:h-screen'  // スマホ表示時は `.navbar` の高さ `h-10` (= 2.5rem) を除く
+    : 'min-h-screen px-3 pt-4 pb-12';
   
   /** サイドメニューを開閉する */
   const onChangeSidebar = (event: ChangeEvent<HTMLInputElement>): void => setIsSidebarOpen(event.target.checked);
@@ -48,9 +54,9 @@ export default function AdminLayout(): ReactElement {
       
       <div className="drawer-content">
         {/* スマホサイズ時のみ表示されるハンバーガーメニューとヘッダラベル */}
-        <header className="navbar bg-base-100 shadow-sm lg:hidden">
+        <header className="navbar h-10 min-h-10 bg-base-100 p-0 shadow-sm lg:hidden">
           <div className="flex-none">
-            <label htmlFor="admin-sidebar" className="btn btn-square btn-ghost">
+            <label htmlFor="admin-sidebar" className="btn ml-2 btn-square size-10 min-h-10 btn-ghost">
               <svg xmlns="http://www.w3.org/2000/svg" className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
@@ -60,7 +66,7 @@ export default function AdminLayout(): ReactElement {
         </header>
         
         {/* コンテンツ部分 */}
-        <div className="min-h-screen px-3 pt-4 pb-12">
+        <div className={contentClassName}>
           <Outlet />
         </div>
       </div>

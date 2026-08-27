@@ -5,11 +5,12 @@
 
 ## 一覧
 
-| ADR                                                     | 状態 | 判断                                           |
-|---------------------------------------------------------|------|------------------------------------------------|
-| [ADR-000](./000-template.md)                            | 雛形 | 新しい ADR を作成する際の記載項目              |
-| [ADR-001](./001-separate-table-crud-and-read-models.md) | 採用 | 単一テーブル CRUD と複合 Read Model を分離する |
-| [ADR-002](./002-centralize-game-calculations.md)        | 採用 | ゲーム計算を共有 Service に一元化する          |
+| ADR                                                               | 状態 | 判断                                             |
+|-------------------------------------------------------------------|------|--------------------------------------------------|
+| [ADR-000](./000-template.md)                                      | 雛形 | 新しい ADR を作成する際の記載項目                |
+| [ADR-001](./001-separate-table-crud-and-read-models.md)           | 採用 | 単一テーブル CRUD と複合 Read Model を分離する   |
+| [ADR-002](./002-centralize-game-calculations.md)                  | 採用 | ゲーム計算を共有 Service に一元化する            |
+| [ADR-003](./003-store-univer-workbook-as-single-snapshot.md)      | 採用 | Univer ワークブック全体を1レコードに保存する     |
 
 
 ## 追加基準

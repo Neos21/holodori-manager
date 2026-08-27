@@ -51,3 +51,8 @@ CREATE TABLE memos (  -- 自由メモ
   id      INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
   content TEXT                                  -- 自由メモ
 );
+
+CREATE TABLE workbooks (  -- Univer Sheets のワークブック
+  id        INTEGER  PRIMARY KEY,  -- アプリ上のワークブック ID
+  snapshot  TEXT     NOT NULL      -- `IWorkbookData` 全体の JSON 文字列
+);

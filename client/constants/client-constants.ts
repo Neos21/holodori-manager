@@ -4,3 +4,6 @@ export const sessionStorageKeyAuthenticationRedirectReason = 'authentication-red
 export const authenticationRedirectReasonReloginRequired   = 'relogin-required' as const;
 /** 認証によるリダイレクト理由 : ユーザ操作によるログアウト */
 export const authenticationRedirectReasonLogout            = 'logout' as const;
+
+/** シート別のズーム倍率をこのブラウザだけに保存する LocalStorage キー */
+export const localStorageKeyWorkbookZoomRatios = 'workbook-zoom-ratios' as const;

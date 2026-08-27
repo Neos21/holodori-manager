@@ -16,6 +16,7 @@ export class HolomemsRepository {
     return result.results ?? [];
   }
   
+  // TODO : 使ってる場所なさそう？
   /** ID が一致するホロメンを取得する・存在しない場合は `null` を返す */
   public async findById(id: number): Promise<Holomem | null> {
     return await this.db

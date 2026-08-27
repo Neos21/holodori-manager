@@ -49,8 +49,23 @@ Hono で提供する `/api` 配下の API 契約を示す。各項目の厳密�
 | メモ               | `POST`   | `/api/memos`                     | 追加する                                         |
 | メモ               | `PATCH`  | `/api/memos/:id`                 | 更新する                                         |
 | メモ               | `DELETE` | `/api/memos/:id`                 | ID 1 以外を削除する                              |
+| ワークブック       | `GET`    | `/api/workbooks/:id`             | 指定したワークブック全体を取得する               |
+| ワークブック       | `PUT`    | `/api/workbooks/:id`             | 指定したワークブック全体を作成または置換する     |
 
 Hono のルート定義では、`member-statuses` の固定パスを `/:id` を含むルートより前に置く。
+
+
+## ワークブック保存
+
+`PUT /api/workbooks/:id` は、Univer Sheets の `IWorkbookData` に相当するオブジェクトを `snapshot` として受け取る。シート単位やセル単位には分割せず、`workbooks.snapshot` に JSON 文字列として保存する。
+
+D1 の1行あたり 2,000,000 バイトの上限に達する前に明示的なエラーを返せるよう、保存する JSON が 1,900,000 バイトを超える場合は 400 を返す。
+
+```ts
+type UpdateWorkbookRequest = {
+  snapshot: IWorkbookData;
+};
+```
 
 
 ## ボードノード一括追加

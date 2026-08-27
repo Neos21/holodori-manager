@@ -7,3 +7,4 @@ DROP TABLE holowork_achievements;
 DROP TABLE holoworks;
 DROP TABLE active_holowork_members;
 DROP TABLE memos;
+DROP TABLE workbooks;

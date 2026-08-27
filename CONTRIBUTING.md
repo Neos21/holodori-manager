@@ -102,6 +102,7 @@ $ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM holowor
 $ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM holoworks'               --json | jq --compact-output '.[].results[]' > ./migrations/backups/holoworks.jsonl
 $ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM active_holowork_members' --json | jq --compact-output '.[].results[]' > ./migrations/backups/active-holowork-members.jsonl
 $ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM memos'                   --json | jq --compact-output '.[].results[]' > ./migrations/backups/memos.jsonl
+$ wrangler d1 execute holodori-manager --remote --command='SELECT * FROM workbooks'               --json | jq --compact-output '.[].results[]' > ./migrations/backups/workbooks.jsonl
 ```
 
 
