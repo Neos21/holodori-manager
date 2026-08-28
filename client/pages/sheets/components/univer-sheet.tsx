@@ -1,9 +1,31 @@
-import { CommandType, type IWorkbookData } from '@univerjs/core';
+import { CommandType, type IWorkbookData, LocaleType, mergeLocales, Univer } from '@univerjs/core';
+import { FUniver } from '@univerjs/core/facade';
+import DesignJaJP from '@univerjs/design/locale/ja-JP';
+import { UniverDocsPlugin } from '@univerjs/docs';
+import { UniverDocsUIPlugin } from '@univerjs/docs-ui';
+import DocsUIJaJP from '@univerjs/docs-ui/locale/ja-JP';
+import { UniverFormulaEnginePlugin } from '@univerjs/engine-formula';
+import { UniverRenderEnginePlugin } from '@univerjs/engine-render';
 import { UniverSheetsConditionalFormattingPreset } from '@univerjs/preset-sheets-conditional-formatting';
 import UniverPresetSheetsConditionalFormattingJaJP from '@univerjs/preset-sheets-conditional-formatting/locales/ja-JP';
 import { UniverSheetsCorePreset } from '@univerjs/preset-sheets-core';
 import UniverPresetSheetsCoreJaJP from '@univerjs/preset-sheets-core/locales/ja-JP';
-import { createUniver, LocaleType, mergeLocales } from '@univerjs/presets';
+import { createUniver } from '@univerjs/presets';
+import { UniverSheetsPlugin } from '@univerjs/sheets';
+import SheetsJaJP from '@univerjs/sheets/locale/ja-JP';
+import { UniverSheetsConditionalFormattingPlugin } from '@univerjs/sheets-conditional-formatting';
+import { UniverSheetsConditionalFormattingMobileUIPlugin } from '@univerjs/sheets-conditional-formatting-ui';
+import SheetsConditionalFormattingUIJaJP from '@univerjs/sheets-conditional-formatting-ui/locale/ja-JP';
+import { UniverSheetsFormulaPlugin } from '@univerjs/sheets-formula';
+import { UniverSheetsFormulaUIPlugin } from '@univerjs/sheets-formula-ui';
+import SheetsFormulaUIJaJP from '@univerjs/sheets-formula-ui/locale/ja-JP';
+import { UniverSheetsNumfmtPlugin } from '@univerjs/sheets-numfmt';
+import { UniverSheetsNumfmtUIPlugin } from '@univerjs/sheets-numfmt-ui';
+import SheetsNumfmtUIJaJP from '@univerjs/sheets-numfmt-ui/locale/ja-JP';
+import { UniverSheetsMobileUIPlugin } from '@univerjs/sheets-ui';
+import SheetsUIJaJP from '@univerjs/sheets-ui/locale/ja-JP';
+import { UniverMobileUIPlugin } from '@univerjs/ui';
+import UIJaJP from '@univerjs/ui/locale/ja-JP';
 import { HTTPError } from 'ky';
 import { type ReactElement, useEffect, useRef, useState } from 'react';
 import { useBlocker } from 'react-router';
@@ -27,6 +49,8 @@ const persistedZoomRatio = 1 as const;
 const minimumZoomRatio = 0.1 as const;
 /** Univer が許容するズーム倍率の上限 */
 const maximumZoomRatio = 4 as const;
+/** アプリのデスクトップレイアウトへ切り替わる最小幅 */
+const desktopLayoutMinimumWidth = 1024 as const;
 
 /** 保存状況を示すステート型 */
 type SaveState = 'saved' | 'dirty' | 'saving' | 'error';
@@ -48,6 +72,54 @@ const initialWorkbookData = {
     }
   }
 } satisfies Partial<IWorkbookData>;
+
+/**
+ * 狭い画面を使用するタッチ式モバイル端末か否かを判定する
+ * 
+ * タッチ対応 PC をモバイル UI に切り替えないよう、画面幅とタッチポイントに加えて UA も確認する
+ * iPadOS はデスクトップ表示時に Macintosh を名乗るため、複数タッチ可能な Macintosh も対象に含める
+ */
+const isMobileTouchDevice = (): boolean => {
+  const isNarrowViewport = window.innerWidth < desktopLayoutMinimumWidth;
+  const hasTouchPoints = navigator.maxTouchPoints > 0;
+  const isMobileUserAgent = (/Android|iPhone|iPad|iPod|Mobile/i).test(navigator.userAgent);
+  const isIPadDesktopUserAgent = (/Macintosh/i).test(navigator.userAgent) && navigator.maxTouchPoints > 1;
+  return isNarrowViewport && hasTouchPoints && (isMobileUserAgent || isIPadDesktopUserAgent);
+};
+
+/** 公式のモバイル構成に必要なプラグインを登録して Univer API を生成する */
+const createMobileUniver = (container: HTMLDivElement): FUniver => {
+  const univer = new Univer({
+    locale : LocaleType.JA_JP,
+    locales: {
+      [LocaleType.JA_JP]: mergeLocales(
+        DesignJaJP,
+        UIJaJP,
+        DocsUIJaJP,
+        SheetsJaJP,
+        SheetsUIJaJP,
+        SheetsFormulaUIJaJP,
+        SheetsNumfmtUIJaJP,
+        SheetsConditionalFormattingUIJaJP
+      )
+    }
+  });
+  
+  univer.registerPlugin(UniverRenderEnginePlugin);
+  univer.registerPlugin(UniverFormulaEnginePlugin);
+  univer.registerPlugin(UniverMobileUIPlugin, { container });
+  univer.registerPlugin(UniverDocsPlugin);
+  univer.registerPlugin(UniverDocsUIPlugin);
+  univer.registerPlugin(UniverSheetsPlugin);
+  univer.registerPlugin(UniverSheetsMobileUIPlugin);
+  univer.registerPlugin(UniverSheetsFormulaPlugin);
+  univer.registerPlugin(UniverSheetsFormulaUIPlugin);
+  univer.registerPlugin(UniverSheetsNumfmtPlugin);
+  univer.registerPlugin(UniverSheetsNumfmtUIPlugin);
+  univer.registerPlugin(UniverSheetsConditionalFormattingPlugin);
+  univer.registerPlugin(UniverSheetsConditionalFormattingMobileUIPlugin);
+  return FUniver.newAPI(univer);
+};
 
 /** LocalStorage から有効なシート別ズーム倍率だけを読み込む */
 const loadZoomRatios = (): WorkbookZoomRatios => {
@@ -191,20 +263,28 @@ export default function UniverSheet(): ReactElement {
       }
       
       if(isDisposed || containerRef.current == null) return;
-      const created = createUniver({
-        locale : LocaleType.JA_JP,
-        locales: {
-          [LocaleType.JA_JP]: mergeLocales(
-            UniverPresetSheetsCoreJaJP,
-            UniverPresetSheetsConditionalFormattingJaJP
-          )
-        },
-        presets: [
-          UniverSheetsCorePreset({ container: containerRef.current }),
-          UniverSheetsConditionalFormattingPreset()
-        ]
-      });
-      univerAPI = created.univerAPI;
+      
+      // デバイスに応じた Univer Sheets を作る : タッチ可能か否かを重視しているので画面幅だけで後から切り替わる挙動はしない
+      if(isMobileTouchDevice()) {
+        univerAPI = createMobileUniver(containerRef.current);
+      }
+      else {
+        const created = createUniver({
+          locale : LocaleType.JA_JP,
+          locales: {
+            [LocaleType.JA_JP]: mergeLocales(
+              UniverPresetSheetsCoreJaJP,
+              UniverPresetSheetsConditionalFormattingJaJP
+            )
+          },
+          presets: [
+            UniverSheetsCorePreset({ container: containerRef.current }),
+            UniverSheetsConditionalFormattingPreset()
+          ]
+        });
+        univerAPI = created.univerAPI;
+      }
+      
       univerAPI.createWorkbook(applyLocalZoomRatios(snapshot, zoomRatios));
       commandDisposable = univerAPI.addEvent(univerAPI.Event.CommandExecuted, event => {
         if(event.type !== CommandType.MUTATION) return;

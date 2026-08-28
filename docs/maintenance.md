@@ -21,7 +21,9 @@ TypeScript v6 (v6.0.3 が最終) から v7 への更新は、`typescript-eslint`
 
 `@univerjs/core@0.25.1` が依存する `nanoid@5.1.11` には [GHSA-28wg-ghj8-5hjv](https://github.com/advisories/GHSA-28wg-ghj8-5hjv) の問題があるため、`package.json` の `overrides` で修正済みの `5.1.16` に固定している。Univer の更新によって依存先も修正版になった時点で、この上書きは削除する。
 
-モバイル UI は実験段階であり、デスクトップ UI と同時に登録できない。通常 UI のスマートフォン実機評価で閲覧・編集が困難と判断した場合に、プラグインモードへの移行とモバイル UI の採用を別途検討する。
+モバイル UI プラグインは実験段階のものであり、デスクトップ UI と同じ Univer インスタンスには登録しない。端末判定後、デスクトップではプリセットモード、モバイルでは [Univer Sheets 公式のモバイル構成例](https://docs.univer.ai/ja-JP/showcase/sheets/mobile-via-plugin)に基づくプラグインモードのどちらか一方を初期化する。
+
+プラグインモードで直接 Import する `@univerjs/` パッケージは、プリセットの推移的依存だけに頼らず `package.json` に列挙し、全て同じバージョンへ固定する。
 
 
 ## 既知の警告

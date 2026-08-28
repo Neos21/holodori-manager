@@ -16,15 +16,6 @@ export class HolomemsRepository {
     return result.results ?? [];
   }
   
-  // TODO : 使ってる場所なさそう？
-  /** ID が一致するホロメンを取得する・存在しない場合は `null` を返す */
-  public async findById(id: number): Promise<Holomem | null> {
-    return await this.db
-      .prepare('SELECT id, sort_order, group_name, name, note, is_active FROM holomems WHERE id = ? LIMIT 1')
-      .bind(id)
-      .first<Holomem>();
-  }
-  
   /** 指定した ID に一致する有効なホロメンを ID 順で取得する */
   public async findActiveByIds(ids: Array<number>): Promise<Array<Holomem>> {
     if(ids.length === 0) return [];
