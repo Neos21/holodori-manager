@@ -14,7 +14,7 @@ import { createUniver } from '@univerjs/presets';
 import { UniverSheetsPlugin } from '@univerjs/sheets';
 import SheetsJaJP from '@univerjs/sheets/locale/ja-JP';
 import { UniverSheetsConditionalFormattingPlugin } from '@univerjs/sheets-conditional-formatting';
-import { UniverSheetsConditionalFormattingMobileUIPlugin } from '@univerjs/sheets-conditional-formatting-ui';
+import { UniverSheetsConditionalFormattingUIPlugin } from '@univerjs/sheets-conditional-formatting-ui';
 import SheetsConditionalFormattingUIJaJP from '@univerjs/sheets-conditional-formatting-ui/locale/ja-JP';
 import { UniverSheetsFormulaPlugin } from '@univerjs/sheets-formula';
 import { UniverSheetsFormulaUIPlugin } from '@univerjs/sheets-formula-ui';
@@ -117,7 +117,8 @@ const createMobileUniver = (container: HTMLDivElement): FUniver => {
   univer.registerPlugin(UniverSheetsNumfmtPlugin);
   univer.registerPlugin(UniverSheetsNumfmtUIPlugin);
   univer.registerPlugin(UniverSheetsConditionalFormattingPlugin);
-  univer.registerPlugin(UniverSheetsConditionalFormattingMobileUIPlugin);
+  // モバイル版 (UniverSheetsConditionalFormattingMobileUIPlugin) は v0.25.1 で描画 Controller を起動せず条件付き書式の背景色等が反映されないため、描画処理を起動する通常版を使用する
+  univer.registerPlugin(UniverSheetsConditionalFormattingUIPlugin);
   return FUniver.newAPI(univer);
 };
 
