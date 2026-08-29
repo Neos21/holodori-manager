@@ -32,7 +32,7 @@ type CreateGreenNodesModalProps = {
 };
 
 /** 緑マスの初期行に表示するマス効果 */
-const initialDescriptions = ['ホッピン・ロープ', 'そろえてクッキング', 'メガサーキット', 'ポカジャン！', 'ホロゴールド', 'メンバー Exp'] as const;
+const initialDescriptions = ['ホッピン・ロープ', 'そろえてクッキング', 'メガサーキット', 'ポカジャン！', 'くらやみチェイス', 'ホロゴールド', 'メンバー Exp'] as const;
 
 /** 緑マス一括追加フォームの初期値を返す */
 const createInitialRows = (): Array<GreenNodeFormRow> => initialDescriptions.map(description => ({
