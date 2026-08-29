@@ -11,4 +11,5 @@ build/
 coverage/
 node_modules/
 
+migrations/temp.sql
 migrations/backups/

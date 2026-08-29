@@ -236,6 +236,11 @@ INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (22
 INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (34, 5, '2026夏イベ オリー'  , 0, 1, 0);
 INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (40, 5, '2026夏イベ カリオペ', 0, 1, 0);
 INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (42, 5, '2026夏イベ 伊那尓栖', 0, 1, 0);
+-- 2026-08-29 追加
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES ( 8, 5, '2026夏イベ フブキ', 0, 1, 0);
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (13, 5, '2026夏イベ ミオ'  , 0, 1, 0);
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (14, 5, '2026夏イベ おかゆ', 0, 1, 0);
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (15, 5, '2026夏イベ ころね', 0, 1, 0);
 
 -- ホロワーク達成状況
 INSERT INTO holowork_achievements (holomems_id, current_count) VALUES ( 1, 0);
