@@ -45,7 +45,7 @@ export function Layout({ children }: { children: ReactNode }): ReactElement {
         <meta name="theme-color" content="#0088ff" />
         <meta name="description" content="Holodori Manager" />
         <meta name="keywords" content="Holodori Manager" />
-        <meta name="robots" content="index, follow" />
+        <meta name="robots" content="noindex, nofollow" />
         
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Holodori Manager" />
