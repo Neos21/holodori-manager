@@ -2,6 +2,8 @@
 
 スマホゲーム「ホロドリ (hololive Dreams)」における育成状況・ホロワークの管理を省力化する、個人利用向け Web アプリ。
 
+<https://holodori-manager.neos21.workers.dev>
+
 
 ## 主な機能
 

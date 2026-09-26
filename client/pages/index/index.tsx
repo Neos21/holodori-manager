@@ -55,25 +55,22 @@ export default function Index(): ReactElement {
   return (
     <main className="px-3 py-4">
       {/* `main` 要素の余白は `admin-layout.tsx` の `Outlet` ラッパーと揃えておく */}
-      <h1>Holodori Manager</h1>
+      
+      <form onSubmit={onSubmit} className="mb-4 flex gap-x-2">
+        <input
+          type="password" value={password} onChange={onChangePassword} disabled={isSubmitting}
+          className="input w-full flex-1 input-sm" placeholder="Holodori Manager" autoComplete="current-password"
+        />
+        <button type="submit" className="btn shrink-0 btn-sm" disabled={isSubmitting || isEmpty(password)}>Login</button>
+      </form>
       
       {shouldRequestRelogin && (
         <div className="mb-4 alert alert-soft alert-warning">再度ログインしてください</div>
       )}
       
-      <form onSubmit={onSubmit} className="space-y-4">
-        <input
-          type="password" value={password} onChange={onChangePassword} disabled={isSubmitting}
-          className="input w-full" placeholder="Password"
-          autoComplete="current-password"
-        />
-        
-        {!isEmpty(errorMessage) && (
-          <div className="alert alert-soft alert-error">{errorMessage}</div>
-        )}
-        
-        <button type="submit" className="btn" disabled={isSubmitting || isEmpty(password)}>Login</button>
-      </form>
+      {!isEmpty(errorMessage) && (
+        <div className="alert alert-soft alert-error">{errorMessage}</div>
+      )}
     </main>
   );
 }
