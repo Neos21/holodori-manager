@@ -30,6 +30,9 @@ CREATE TABLE board_nodes (  -- ホロメンボードのマス
   connect_rate   REAL                                                                                                     -- コネクトマスによる増幅率 (%)。未設定なら Null とする
 );
 
+-- ホロメンボードの解放済み黄マスに対するインデックス : ホロワーク管理画面での集計表示に多用するため
+CREATE INDEX index_board_nodes_unlocked_yellow_holomems_id ON board_nodes (holomems_id) WHERE category = 'yellow' AND is_unlocked = 1;
+
 CREATE TABLE holowork_achievements (  -- ホロワーク達成状況
   id             INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
   holomems_id    INTEGER  NOT NULL  UNIQUE,            -- FK → holomems.id・ユニーク
@@ -46,6 +49,9 @@ CREATE TABLE active_holowork_members (  -- ホロワーク活動中のホロメ�
   holoworks_id  INTEGER  NOT NULL,                    -- FK → holoworks.id
   holomems_id   INTEGER  NOT NULL  UNIQUE             -- FK → holomems.id・ユニーク (1人が同時に複数枠で活動できないのでそれを防ぐ)
 );
+
+-- ホロワーク活動メンバーに対する枠 ID のインデックス : 開始・完了・中断時の書き込みは増えるが、取得・枠削除時の読み取りを減らせる
+CREATE INDEX index_active_holowork_members_holoworks_id ON active_holowork_members (holoworks_id);
 
 CREATE TABLE memos (  -- 自由メモ
   id      INTEGER  PRIMARY KEY  AUTOINCREMENT,  -- ID
