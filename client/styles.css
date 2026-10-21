@@ -1,7 +1,8 @@
-@import "tailwindcss";
+@import "tailwindcss" source("./");
 
 @plugin "daisyui" {
   themes: light --default;  /* ライトテーマのみにする */
+  include: properties, scrollbar, rootcolor, rootscrolllock, rootscrollgutter, svg, alert, badge, button, checkbox, drawer, fieldset, input, loading, menu, modal, navbar, select, table, textarea, join, radius;
 }
 
 :root {
