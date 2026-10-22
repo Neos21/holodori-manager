@@ -245,6 +245,25 @@ INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (15
 INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (28, 5, '2026夏イベ ルイ'  , 0, 1, 0);
 INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (49, 5, '2026夏イベ フワワ', 0, 1, 0);
 INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (50, 5, '2026夏イベ モココ', 0, 1, 0);
+-- 2026-09-19 追加
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES ( 6, 5, '2026夏イベ アキ'    , 0, 1, 0);
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (46, 5, '2026夏イベ シオリ'  , 0, 1, 0);
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (27, 5, '2026夏イベ ラプラス', 0, 1, 0);
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (35, 5, '2026夏イベ アーニャ', 0, 1, 0);
+-- 2026-09-29 追加
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (39, 5, '2026夏イベ こぼ'    , 0, 1, 0);
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (29, 5, '2026夏イベ こより'  , 0, 1, 0);
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (45, 5, '2026夏イベ ベールズ', 0, 1, 0);
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (19, 5, '2026夏イベ マリン'  , 0, 1, 0);
+-- 2026-10-07 追加
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (26, 5, '2026夏イベ ポルカ', 0, 1, 0);
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (23, 5, '2026夏イベ ラミィ', 0, 1, 0);
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (52, 5, '2026夏イベ 莉々華', 0, 1, 0);
+-- 2026-10-19 追加
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (21, 5, '2026夏イベ トワ'    , 0, 1, 0);
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (25, 5, '2026夏イベ ぼたん'  , 0, 1, 0);
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (38, 5, '2026夏イベ カエラ'  , 0, 1, 0);
+INSERT INTO cards (holomems_id, rarity, name, is_owned, level, bloom) VALUES (47, 5, '2026夏イベ ビジュー', 0, 1, 0);
 
 -- ホロワーク達成状況
 INSERT INTO holowork_achievements (holomems_id, current_count) VALUES ( 1, 0);
@@ -307,6 +326,8 @@ INSERT INTO holoworks (name) VALUES ('歌配信'    );
 INSERT INTO holoworks (name) VALUES ('ゲーム配信');
 INSERT INTO holoworks (name) VALUES ('収録'      );
 INSERT INTO holoworks (name) VALUES ('雑談配信'  );
+-- 2026-09-29 新エリア追加
+INSERT INTO holoworks (name) VALUES ('さかな釣り');
 
 -- デフォルトの自由メモ : ID 1 の必須レコードとして扱う
 INSERT INTO memos (content) VALUES (NULL);
