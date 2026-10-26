@@ -45,7 +45,7 @@ holoworks.post('/', async context => {
   return context.json({ result: { id } }, httpStatusCode.created);
 });
 
-/** ホロワークを開始する */
+/** ホロワークを開始する : レスポンスは操作したホロワーク枠の ID のみ */
 holoworks.post('/:id/start', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
   if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);
@@ -58,20 +58,20 @@ holoworks.post('/:id/start', async context => {  // eslint-disable-line neos-esl
   
   const startResult = await new HoloworksService(context.env.DB).start(id, parsed.data.holomems_ids);
   if(startResult.error != null) return context.json({ error: startResult.error }, getResultHttpStatusCode(startResult));
-  return context.json({ result: { active_holowork_member_ids: startResult.result } }, httpStatusCode.created);
+  return context.json({ result: { id } }, httpStatusCode.created);
 });
 
-/** ホロワークを完了する */
+/** ホロワークを完了する : レスポンスは操作したホロワーク枠の ID のみ */
 holoworks.post('/:id/complete', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
   if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);
   
   const completeResult = await new HoloworksService(context.env.DB).complete(id);
   if(completeResult.error != null) return context.json({ error: completeResult.error }, getResultHttpStatusCode(completeResult));
-  return context.json({ result: { holomems_ids: completeResult.result } }, httpStatusCode.ok);
+  return context.json({ result: { id } }, httpStatusCode.ok);
 });
 
-/** ホロワークを中断する */
+/** ホロワークを中断する : レスポンスは操作したホロワーク枠の ID のみ */
 holoworks.post('/:id/abort', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
   if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);
@@ -81,7 +81,7 @@ holoworks.post('/:id/abort', async context => {  // eslint-disable-line neos-esl
   return context.json({ result: { id } }, httpStatusCode.ok);
 });
 
-/** 活動中メンバーがいないホロワーク枠を削除する */
+/** 活動中メンバーがいないホロワーク枠を削除する : レスポンスは操作したホロワーク枠の ID のみ */
 holoworks.delete('/:id', async context => {  // eslint-disable-line neos-eslint-plugin/comment-colon-spacing
   const id = Number(context.req.param('id'));
   if(!Number.isInteger(id)) return context.json({ error: invalidIdErrorMessage }, httpStatusCode.badRequest);

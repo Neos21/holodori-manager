@@ -1,4 +1,3 @@
-import { booleanNumberTrue } from '../../shared/constants/boolean-constants';
 import { buildUpdateQuery } from '../helpers/build-update-query';
 
 import type { Holomem } from '../../shared/types/entities/holomem';
@@ -12,17 +11,6 @@ export class HolomemsRepository {
     // 「表示順」でソートし、万が一重複していた時のために念のため ID でのソート条件も書いておく
     const result = await this.db
       .prepare('SELECT id, sort_order, group_name, name, note, is_active FROM holomems ORDER BY sort_order ASC, id ASC')
-      .all<Holomem>();
-    return result.results ?? [];
-  }
-  
-  /** 指定した ID に一致する有効なホロメンを ID 順で取得する */
-  public async findActiveByIds(ids: Array<number>): Promise<Array<Holomem>> {
-    if(ids.length === 0) return [];
-    const placeholders = ids.map(() => '?').join(', ');
-    const result = await this.db
-      .prepare(`SELECT id, sort_order, group_name, name, note, is_active FROM holomems WHERE is_active = ${booleanNumberTrue} AND id IN (${placeholders}) ORDER BY id ASC`)
-      .bind(...ids)
       .all<Holomem>();
     return result.results ?? [];
   }
