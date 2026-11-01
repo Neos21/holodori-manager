@@ -19,13 +19,17 @@ export default defineConfig({
     }),
     reactRouter()  // React Router プラグイン
   ],
-  build: {
-    rollupOptions: {
-      // フロントエンドのビルド資材の命名ルールを変更する
-      output: {
-        entryFileNames: `assets/entry-[hash].js`,
-        chunkFileNames: `assets/chunk-[hash].js`,
-        assetFileNames: `assets/asset-[hash].[ext]`
+  environments: {
+    client: {
+      build: {
+        rollupOptions: {
+          // フロントエンドのビルド資材の命名ルールを変更する
+          output: {
+            entryFileNames: `assets/entry-[hash].js`,
+            chunkFileNames: `assets/chunk-[hash].js`,
+            assetFileNames: `assets/asset-[hash].[ext]`
+          }
+        }
       }
     }
   }
